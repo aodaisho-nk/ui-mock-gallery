@@ -1,4 +1,4 @@
-Deploy start 2026/08/20 12:54:01.99 
+Deploy start 2026/08/20 13:08:06.45 
 Folder: C:\Users\shooo\claudework\date\UIƒ‚ƒbƒNW 
 C:\Program Files\Git\cmd\git.exe
 --- git add --- 
