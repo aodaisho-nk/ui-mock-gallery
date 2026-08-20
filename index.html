@@ -39,6 +39,9 @@ a{color:inherit;text-decoration:none}
 }
 .fbtn:hover{border-color:var(--accent);color:var(--ink)}
 .fbtn.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+#fcount{font-size:11.5px;color:var(--ink-soft);align-self:center;margin-left:4px;white-space:nowrap}
+.inds{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}
+.ind{font-size:10px;background:#EEF4FA;color:#1F6FB5;border:1px solid #D4E3F2;border-radius:9px;padding:1px 8px;white-space:nowrap}
 
 .grid{
   max-width:1140px;margin:20px auto 0;padding:0 20px 20px;
@@ -110,7 +113,7 @@ footer{
 <div class="hero">
   <div class="eyebrow">UI MOCKUP GALLERY</div>
   <h1>業務システム <span class="grad">UIモック集</span></h1>
-  <p>導入後の操作イメージを、実際に触って確かめられるデモ集です。各カードをクリックすると動くモックが開きます。</p>
+  <p>導入後の操作イメージを、実際に触って確かめられるデモ集です。<b style="color:var(--accent)">業種を選ぶと、その業界に刺さるモックだけ</b>が表示されます。</p>
 </div>
 
 <div class="privacy-bar">
@@ -120,11 +123,14 @@ footer{
 
 <div class="filters" id="filters">
   <button class="fbtn on" data-f="all">すべて</button>
-  <button class="fbtn" data-f="ocr">OCR・データ入力</button>
-  <button class="fbtn" data-f="ai">AI活用</button>
-  <button class="fbtn" data-f="workflow">ワークフロー</button>
-  <button class="fbtn" data-f="report">帳票・書類</button>
-  <!-- <button class="fbtn" data-f="sales">営業・大手向け</button> -->
+  <button class="fbtn" data-f="est">🏢 不動産管理・建設</button>
+  <button class="fbtn" data-f="mfg">🏭 製造・物流</button>
+  <button class="fbtn" data-f="hr">👥 人材・採用・士業</button>
+  <button class="fbtn" data-f="med">🏥 医療・介護・教育</button>
+  <button class="fbtn" data-f="whole">📦 卸売・商社・小売</button>
+  <button class="fbtn" data-f="it">💻 IT・広告・コンサル</button>
+  <button class="fbtn" data-f="common">⭐ 全業種で使える</button>
+  <span id="fcount"></span>
 </div>
 
 <div class="grid" id="grid">
@@ -307,14 +313,53 @@ footer{
 <footer>UI MOCKUP GALLERY — 画面はすべてデモです。実データは使用していません。／個人情報・機密情報を外部AIに送信しない設計を標準としています。</footer>
 
 <script>
+/* ══ 業種別の分類（1モックが複数業種に属してOK）══ */
+const IND_LABEL={est:"不動産管理・建設",mfg:"製造・物流",hr:"人材・採用・士業",
+  med:"医療・介護・教育",whole:"卸売・商社・小売",it:"IT・広告・コンサル",common:"全業種"};
+const INDUSTRY={
+  "mocks/doda-sheets.html"     :["hr","est","med","whole"],
+  "mocks/interview-onsite.html":["hr","est","med","mfg"],
+  "mocks/interview.html"       :["hr","it","whole","med"],
+  "mocks/ocr-demo.html"        :["hr","mfg","est","common"],
+  "mocks/doc-assistant.html"   :["med","hr","it","common"],
+  "mocks/expense.html"         :["common","mfg","whole","est"],
+  "mocks/minutes.html"         :["common","it","med","est"],
+  "mocks/workflow.html"        :["est","mfg","whole","common"],
+  "mocks/invoice.html"         :["whole","est","mfg","it"],
+  "mocks/aislides.html"        :["it","whole","est","mfg"],
+  "mocks/slidegen.html"        :["it","whole","mfg"],
+  "mocks/leadgen.html"         :["whole","it","mfg","est"],
+  "mocks/pipeline.html"        :["whole","it","mfg"],
+  "mocks/dealrisk.html"        :["whole","it","mfg"],
+  "mocks/crmsync.html"         :["whole","it","mfg"]
+};
+/* カードに業種タグを付与＋チップ表示 */
+document.querySelectorAll(".card").forEach(c=>{
+  const key=(c.getAttribute("href")||"").replace(/^\.\//,"");
+  const inds=INDUSTRY[key]||["common"];
+  c.dataset.c=inds.join(" ");
+  const body=c.querySelector(".body");
+  if(body&&!body.querySelector(".inds")){
+    const d=document.createElement("div");
+    d.className="inds";
+    d.innerHTML=inds.map(i=>`<span class="ind">${IND_LABEL[i]}</span>`).join("");
+    body.appendChild(d);
+  }
+});
+/* フィルタ */
 document.querySelectorAll(".fbtn").forEach(b=>b.addEventListener("click",()=>{
   document.querySelectorAll(".fbtn").forEach(x=>x.classList.remove("on"));
   b.classList.add("on");
   const f=b.dataset.f;
+  let n=0;
   document.querySelectorAll(".card").forEach(c=>{
-    c.style.display=(f==="all"||c.dataset.c.split(" ").includes(f))?"":"none";
+    const hit=(f==="all"||(c.dataset.c||"").split(" ").includes(f));
+    c.style.display=hit?"":"none";if(hit)n++;
   });
+  const cnt=document.getElementById("fcount");
+  if(cnt)cnt.textContent=f==="all"?`全 ${n} 本`:`${b.textContent.replace(/^[^\s]+\s/,"")}に刺さる ${n} 本`;
 }));
+document.querySelectorAll(".fbtn")[0].click();
 </script>
 </body>
 </html>
