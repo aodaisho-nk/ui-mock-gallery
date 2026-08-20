@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DODA応募者情報 → スプレッドシート 自動転記 デモ</title>
+<title>求人媒体応募者情報 → システム自動転記 デモ</title>
 <style>
 :root{
   --bg:#F4F6FA; --paper:#fff; --ink:#1B2432; --ink-soft:#66748A; --line:#DEE4EE;
@@ -208,8 +208,8 @@ table.sh td.blank{color:#C8D1DC}
 <body>
 
 <header>
-  <div class="logo">D</div>
-  <div><h1>DODA応募者情報 → スプレッドシート 自動転記</h1>
+  <div class="logo">求</div>
+  <div><h1>求人媒体応募者情報 → システム自動転記</h1>
     <div class="sub">応募者ページを開くだけで自動抽出。書類選考ルールまで判定してワンクリック転記（Chrome拡張）</div></div>
   <span class="chip">UI デモ版</span>
   <span class="chip lock">🔒 端末内処理・中間サーバー不要</span>
@@ -316,7 +316,7 @@ table.sh td.blank{color:#C8D1DC}
 
       <!-- ── Chrome拡張パネル ── -->
       <aside class="panel">
-        <div class="p-hd">📋 DODA抽出データ確認<span class="v">v1.6.2</span><button class="px" id="pX" title="閉じる">✕</button></div>
+        <div class="p-hd">📋 応募者データ抽出・確認<span class="v">v1.6.2</span><button class="px" id="pX" title="閉じる">✕</button></div>
 
         <div class="p-bd">
           <div class="jobbox">
@@ -350,7 +350,7 @@ table.sh td.blank{color:#C8D1DC}
       </aside>
     </div>
   </div>
-  <div class="cap">▲ 右側のパネルは <b>Chrome拡張がdodaの画面上に重ねて表示するUI</b>です。doda側の画面には一切手を加えません（Shadow DOMで挿入）。</div>
+  <div class="cap">▲ 右側のパネルは <b>Chrome拡張が求人媒体の管理画面上に重ねて表示するUI</b>です（本デモはdodaの画面例）。媒体側の画面には一切手を加えません（Shadow DOMで挿入）。<b>他媒体（リクナビNEXT・マイナビ転職・Indeed等）にも同じ仕組みで対応できます。</b></div>
 
   <div class="res" id="res" style="display:none">
     <div class="kpi">
