@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>対面面接 質問マニュアル → 評価シート自動反映 デモ</title>
+<style>
+:root{
+  --bg:#F5F4F0; --paper:#fff; --ink:#242018; --ink-soft:#6E6A60; --line:#E2DFD6;
+  --accent:#8A5A2B; --accent-soft:#F7EFE6; --accent2:#B4531F;
+  --ok:#2E7D5B; --ok-bg:#E7F3EE; --warn:#9A6B00; --warn-bg:#FBF3DC; --red:#C7423C; --red-bg:#FBE9E7;
+  --mono:"Consolas","SFMono-Regular",monospace;
+  --mincho:"Hiragino Mincho ProN","Yu Mincho",serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.7}
+button{font-family:inherit;cursor:pointer}
+header{background:var(--paper);border-bottom:1px solid var(--line);padding:11px 20px;display:flex;align-items:center;gap:11px;flex-wrap:wrap}
+.logo{width:29px;height:29px;border-radius:8px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+header h1{font-size:15.5px}
+header .sub{font-size:11px;color:var(--ink-soft)}
+.chip{margin-left:auto;font-size:10.5px;border:1px solid var(--accent);color:var(--accent);border-radius:4px;padding:2px 9px}
+.chip.lock{margin-left:7px;border-color:var(--ok);color:var(--ok);background:var(--ok-bg)}
+
+.steps{max-width:1360px;margin:13px auto 0;padding:0 20px;display:flex;gap:8px;font-size:11.5px;color:var(--ink-soft);flex-wrap:wrap}
+.step{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--paper);border-radius:20px;padding:4px 14px}
+.step .n{width:17px;height:17px;border-radius:50%;background:var(--line);display:inline-flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px}
+.step.active{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.step.active .n{background:var(--accent);color:#fff}
+.step.done{border-color:var(--ok);color:var(--ok)}
+.step.done .n{background:var(--ok);color:#fff}
+.ar{align-self:center;color:var(--line)}
+
+main{max-width:1360px;margin:13px auto;padding:0 20px 50px;display:grid;grid-template-columns:1fr 400px;gap:16px;align-items:start}
+@media(max-width:1120px){main{grid-template-columns:1fr}}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:14px;box-shadow:0 1px 3px rgba(36,32,24,.05)}
+.card h2{font-size:12px;letter-spacing:.08em;color:var(--ink-soft);font-weight:700;margin-bottom:11px;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.card h2::after{content:"";flex:1;height:1px;background:var(--line)}
+.reg{font-size:9.5px;background:var(--ok-bg);color:var(--ok);border-radius:9px;padding:1px 9px;letter-spacing:0;font-weight:700}
+
+/* 面接ヘッダ（対面） */
+.mtg{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:linear-gradient(135deg,#F7EFE6,#FBF7F2);border:1px solid #EAD9C6;border-radius:12px;padding:12px 15px;margin-bottom:14px}
+.mtg .who{display:flex;align-items:center;gap:9px}
+.mtg .av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:15px}
+.mtg .nm{font-weight:700;font-size:14px}
+.mtg .ro{font-size:11px;color:var(--ink-soft)}
+.mtg .vs{color:var(--ink-soft);font-size:11px}
+.mtg .rec{margin-left:auto;display:flex;align-items:center;gap:10px}
+.recbtn{border:none;background:var(--red);color:#fff;font-weight:700;border-radius:9px;padding:10px 20px;font-size:13px;display:flex;align-items:center;gap:9px}
+.recbtn .d{width:9px;height:9px;border-radius:50%;background:#fff}
+.recbtn.on{background:#fff;color:var(--red);border:1px solid var(--red)}
+.recbtn.on .d{background:var(--red);animation:bl 1.1s infinite}
+@keyframes bl{50%{opacity:.2}}
+.timer{font-family:var(--mono);font-size:19px;color:var(--ink-soft)}
+.wave{display:flex;gap:3px;align-items:center;height:26px}
+.wave i{width:3px;background:var(--accent);border-radius:2px;height:5px}
+.wave.on i{animation:wv .7s ease-in-out infinite alternate}
+.wave i:nth-child(2){animation-delay:.1s}.wave i:nth-child(3){animation-delay:.22s}
+.wave i:nth-child(4){animation-delay:.32s}.wave i:nth-child(5){animation-delay:.16s}
+.wave i:nth-child(6){animation-delay:.26s}
+@keyframes wv{from{height:4px}to{height:24px}}
+
+/* 質問マニュアル */
+.prog{display:flex;align-items:center;gap:10px;font-size:11.5px;color:var(--ink-soft);margin-bottom:10px}
+.prog .tr{flex:1;height:8px;background:#EFEBE3;border-radius:4px;overflow:hidden}
+.prog .tr i{display:block;height:100%;background:var(--accent);border-radius:4px;transition:width .5s}
+.sect{font-size:11.5px;font-weight:800;color:var(--accent2);margin:12px 0 7px;display:flex;align-items:center;gap:8px}
+.sect .t{font-family:var(--mono);font-size:10px;color:var(--ink-soft);font-weight:400}
+.q{border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin-bottom:7px;cursor:pointer;transition:.15s;position:relative}
+.q:hover{border-color:var(--accent);background:#FDFBF8}
+.q.done{background:var(--ok-bg);border-color:#BBDFCB}
+.q.done::after{content:"✓ 質問済み";position:absolute;right:10px;top:8px;font-size:10px;color:var(--ok);font-weight:700}
+.q .qt{font-size:13px;font-weight:700;padding-right:66px}
+.q .qm{font-size:11px;color:var(--ink-soft);margin-top:3px;line-height:1.65}
+.q .qm b{color:var(--accent2)}
+.q .map{display:inline-block;font-size:9.5px;background:var(--accent-soft);color:var(--accent);border-radius:8px;padding:1px 8px;margin-top:4px}
+.hintbar{background:var(--accent-soft);border:1px solid #EAD9C6;border-radius:9px;padding:8px 12px;font-size:11.5px;color:#6B4520;margin-bottom:10px}
+
+/* 文字起こし */
+.feed{max-height:210px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;font-size:12.5px}
+.u{display:flex;gap:8px;animation:up .3s ease}
+@keyframes up{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+.u .who2{font-family:var(--mono);font-size:10px;border-radius:4px;padding:1px 7px;white-space:nowrap;align-self:flex-start;margin-top:3px}
+.u .who2.iv{background:var(--accent-soft);color:var(--accent)}
+.u .who2.cd{background:#E8F0FA;color:#2B5FA8}
+.empty{color:var(--ink-soft);font-size:12px;text-align:center;padding:26px;border:2px dashed var(--line);border-radius:10px}
+
+/* 評価シート */
+.sheet-meta{display:grid;grid-template-columns:76px 1fr;font-size:12px;border:1px solid var(--line);margin-bottom:11px}
+.sheet-meta div{padding:5px 10px;border-bottom:1px solid var(--line)}
+.sheet-meta div:nth-child(odd){background:#FAF8F4;font-weight:600;color:var(--ink-soft);border-right:1px solid var(--line)}
+.ev{border:1px solid var(--line);border-radius:10px;padding:9px 11px;margin-bottom:8px}
+.ev .top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ev .lb{font-size:12.5px;font-weight:700}
+.ev .sc{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--accent)}
+.stars{display:flex;gap:2px;margin-top:3px}
+.stars button{border:none;background:none;font-size:20px;color:#DED9CF;padding:0 1px;line-height:1}
+.stars button.on{color:#E5A83C}
+.ev .basis{font-size:11px;color:var(--ink-soft);margin-top:5px;background:#FAF8F4;border-radius:7px;padding:6px 9px;line-height:1.7;display:none}
+.ev .basis.show{display:block;animation:up .35s ease}
+.ev .basis b{color:var(--accent2)}
+.ev.filled{border-color:#D8C9B4;background:#FDFBF8}
+.ev textarea{width:100%;border:1px solid var(--line);border-radius:7px;padding:6px 9px;font-size:12px;font-family:inherit;margin-top:6px;min-height:44px;resize:vertical;background:#FBFAF7}
+.total{border:2px solid var(--ink);padding:9px 13px;display:flex;align-items:center;gap:12px;font-weight:700;margin-top:10px}
+.total .v{margin-left:auto;font-size:17px;color:var(--ok)}
+.act{width:100%;border:none;background:var(--accent);color:#fff;font-weight:700;border-radius:9px;padding:12px;font-size:13.5px;margin-top:11px}
+.act:disabled{opacity:.42;cursor:not-allowed}
+.act.deliver{background:var(--ok)}
+.warnbox{background:var(--warn-bg);border:1px solid #EFD9A0;color:var(--warn);border-radius:9px;padding:8px 11px;font-size:11.5px;margin-top:9px;display:none}
+.warnbox.show{display:block}
+.done-file{display:none;margin-top:10px;background:var(--ok-bg);color:var(--ok);border-radius:9px;padding:9px 13px;font-size:12px;font-weight:600;line-height:1.7}
+.done-file.show{display:block;animation:up .4s ease}
+.priv{margin-top:10px;background:var(--ok-bg);border:1px solid #BBDFCB;border-radius:9px;padding:8px 11px;font-size:10.5px;color:#1F5C43;line-height:1.7}
+
+/* 完成シート */
+.out{border:1px solid var(--line);border-radius:11px;overflow:hidden;margin-top:14px;display:none}
+.out.show{display:block;animation:up .4s ease}
+.out .oh{background:var(--accent);color:#fff;padding:9px 14px;font-size:12.5px;font-weight:700;display:flex;gap:9px;align-items:center}
+.out .oh .st{margin-left:auto;font-size:11px;font-weight:400}
+.paper{padding:20px 24px;background:#fff}
+.paper h3{font-family:var(--mincho);text-align:center;font-size:19px;letter-spacing:.35em;border-bottom:2px solid var(--ink);padding-bottom:8px;margin-bottom:13px}
+table.rs{width:100%;border-collapse:collapse;font-size:12px}
+table.rs th{background:#F5F1EA;border:1px solid var(--line);padding:6px 10px;text-align:left;font-size:11.5px;white-space:nowrap}
+table.rs td{border:1px solid var(--line);padding:6px 10px;vertical-align:top}
+table.rs td.sc{font-family:var(--mono);text-align:center;width:78px;white-space:nowrap}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:9px 20px;border-radius:8px;font-size:12.5px;opacity:0;pointer-events:none;transition:.25s;z-index:70}
+.toast.show{opacity:1;transform:translateX(-50%)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">面</div>
+  <div><h1>対面面接 質問マニュアル → 評価シート自動反映</h1>
+    <div class="sub">登録済みの質問マニュアルに沿って進めるだけ。回答が評価シートの該当欄に自動で入ります</div></div>
+  <span class="chip">UI デモ版</span>
+  <span class="chip lock">🔒 録音・氏名は社内保存</span>
+</header>
+
+<div class="steps">
+  <span class="step active" id="s1"><span class="n">1</span>マニュアルに沿って質問</span><span class="ar">→</span>
+  <span class="step" id="s2"><span class="n">2</span>回答を自動で文字起こし</span><span class="ar">→</span>
+  <span class="step" id="s3"><span class="n">3</span>評価シートへ反映</span><span class="ar">→</span>
+  <span class="step" id="s4"><span class="n">4</span>フォーマットで納品</span>
+</div>
+
+<main>
+  <!-- 左：面接進行 -->
+  <section>
+    <div class="mtg">
+      <div class="who">
+        <div class="av" style="background:#8A5A2B">伏</div>
+        <div><div class="nm">伏見（面接官）</div><div class="ro">人事部・採用担当</div></div>
+      </div>
+      <span class="vs">━━ 対面面接（会議室A）━━</span>
+      <div class="who">
+        <div class="av" style="background:#2B5FA8">田</div>
+        <div><div class="nm">田中 美咲 様</div><div class="ro">フロント職・一次面接</div></div>
+      </div>
+      <div class="rec">
+        <div class="wave" id="wave"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <span class="timer" id="timer">00:00</span>
+        <button class="recbtn" id="recBtn"><span class="d"></span><span id="recTx">面接を開始（集音マイクON）</span></button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📖 質問マニュアル <span class="reg">伏見版 v3・登録済み</span></h2>
+      <div class="hintbar">💡 質問カードを<b>クリックすると「質問済み」</b>になり、候補者の回答が文字起こしに流れて、右の評価シートの<b>対応する項目に根拠として自動反映</b>されます。</div>
+      <div class="prog"><span>進捗</span><span class="tr"><i id="pbar" style="width:0%"></i></span><span id="pnum">0 / 8</span></div>
+      <div id="qlist"></div>
+    </div>
+
+    <div class="card">
+      <h2>🎙 文字起こし（対面・話者自動分離）</h2>
+      <div class="feed" id="feed"><div class="empty" id="feedEmpty">面接を開始し、質問カードをクリックすると<br>会話がここに記録されます（デモ）。</div></div>
+    </div>
+
+    <div class="out" id="out">
+      <div class="oh">📄 評価シート（伏見フォーマット）で出力<span class="st" id="outSt">プレビュー</span></div>
+      <div class="paper">
+        <h3>面接評価シート</h3>
+        <table class="rs" id="rsTable"></table>
+      </div>
+    </div>
+  </section>
+
+  <!-- 右：評価シート -->
+  <aside>
+    <div class="card">
+      <h2>📝 評価シート <span class="reg">伏見フォーマット・登録済み</span></h2>
+      <div class="sheet-meta">
+        <div>候補者</div><div>田中 美咲（フロント職・一次）</div>
+        <div>面接日</div><div>2026年8月18日 14:00〜</div>
+        <div>面接官</div><div>伏見（人事部）</div>
+        <div>形式</div><div>対面（会議室A・45分）</div>
+      </div>
+      <div id="evList"></div>
+      <div class="total">総合判定<span class="v" id="tv">—</span></div>
+      <div class="warnbox" id="warn"></div>
+      <button class="act" id="btnApply" disabled>📝 評価シートに反映する</button>
+      <button class="act deliver" id="btnDeliver" disabled>📁 指定フォルダへ納品（Excel）</button>
+      <div class="done-file" id="doneFile">✓ 納品完了：面接評価_田中美咲_20260818.xlsx<br>
+        <span style="font-weight:400;font-size:11px">保存先 \\NAS01\人事部\採用\面接評価\2026-08\ ／ 採用管理表にも自動追記</span></div>
+      <div class="priv">🔒 録音・文字起こし・氏名は<b>社内サーバーにのみ保存</b>。AIで要約する場合も候補者名は【候補者A】に置換して送信し、シート出力時に端末内で復元します。</div>
+    </div>
+  </aside>
+</main>
+
+<div class="toast" id="toastEl"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+/* 質問マニュアル（伏見版） */
+const MANUAL=[
+ ["導入（3分）","アイスブレイク・場を和ませる",[
+  {q:"本日はお越しいただきありがとうございます。まずは簡単に自己紹介をお願いできますか。",
+   aim:"緊張をほぐす。<b>話し方・第一印象</b>を見る",map:"第一印象",
+   a:"田中美咲と申します。前職では商業施設の受付を4年担当し、月に約600名の来客対応をしていました。",
+   ev:0,basis:"受付4年・月600名対応。落ち着いた話し方で聞き取りやすい",sc:4},
+  {q:"当社までの道のりは分かりやすかったですか。",
+   aim:"世間話で緊張を緩和。<b>受け答えの自然さ</b>を確認",map:"第一印象",
+   a:"はい、駅から近くて迷わずに来られました。周辺も落ち着いた雰囲気で良いですね。",
+   ev:0,basis:"自然な受け答え。表情も柔らかい",sc:4}]],
+ ["経歴・実績（12分）","具体性と再現性を確認",[
+  {q:"直近の業務内容を、1日の流れに沿って具体的に教えてください。",
+   aim:"<b>業務理解の深さ</b>と説明の構造化力",map:"経験・スキル",
+   a:"朝は開店前の点検と朝礼、日中は受付とクレーム一次対応、夕方に日報と引き継ぎ資料の作成です。繁忙期は1日80件ほど対応しました。",
+   ev:2,basis:"1日の流れを時系列で整理して説明。繁忙期80件/日の実績",sc:4},
+  {q:"その成果を数字で表すとどうなりますか。工夫した点も合わせて教えてください。",
+   aim:"<b>数字で語れるか</b>／改善提案の経験",map:"経験・スキル",
+   a:"クレームの一次解決率を62%から84%に上げました。よくある質問をマニュアル化してチームに共有したのが要因です。",
+   ev:2,basis:"一次解決率 62%→84%。マニュアル化で横展開した再現性あり",sc:5},
+  {q:"これまでで一番大変だった場面と、その乗り越え方を教えてください。",
+   aim:"<b>ストレス耐性</b>と課題解決の姿勢",map:"経験・スキル",
+   a:"人員が2名欠けた時期に、優先順位を決めて対応順を組み直し、他部署にも協力を仰いで乗り切りました。",
+   ev:2,basis:"欠員時に優先順位付けと他部署連携で対応。主体性あり",sc:4}]],
+ ["志望動機（8分）","一貫性と入社後の姿",[
+  {q:"数ある会社の中で、なぜ当社を選ばれたのですか。",
+   aim:"<b>志望度の高さ</b>と企業研究の深さ",map:"志望度",
+   a:"御社の管理物件は入居者対応の評価が高く、私が力を入れてきた顧客対応が活かせると考えました。説明会での社員の方の雰囲気も決め手です。",
+   ev:3,basis:"自社の強み（入居者対応）を理解した上での志望。説明会にも参加",sc:5},
+  {q:"入社後、まず何に取り組みたいですか。",
+   aim:"入社後の<b>具体的イメージ</b>があるか",map:"志望度",
+   a:"まずは物件と業務フローを覚えて、半年以内に一人で入居者対応を回せるようになりたいです。",
+   ev:3,basis:"半年で独り立ちという具体的な目標を提示",sc:4}]],
+ ["カルチャー・条件（10分）","相互理解と条件すり合わせ",[
+  {q:"チームで働くうえで大切にしていることは何ですか。",
+   aim:"<b>協調性</b>・当社の価値観との相性",map:"カルチャーフィット",
+   a:"情報を抱え込まないことです。前職では引き継ぎノートを作って、誰が入っても同じ対応ができるようにしていました。",
+   ev:4,basis:"情報共有を重視。引き継ぎノートを自主的に作成",sc:5},
+  {q:"ご希望の年収と、入社可能日を教えてください。",
+   aim:"<b>条件のすり合わせ</b>。相違があれば早期に確認",map:"条件マッチ",
+   a:"年収は前職と同等の340万円ほどを希望します。入社は現職の引き継ぎがあるので1ヶ月半後を想定しています。",
+   ev:5,basis:"希望年収340万円（レンジ内）／入社可能 1.5ヶ月後",sc:4}]]
+];
+/* 評価シート（伏見フォーマット） */
+const EVAL=[
+ {k:"第一印象",d:"表情・話し方・清潔感"},
+ {k:"コミュニケーション",d:"聞く姿勢・伝わりやすさ"},
+ {k:"経験・スキル",d:"再現性のある実績か"},
+ {k:"志望度",d:"企業研究・入社意欲"},
+ {k:"カルチャーフィット",d:"価値観・チームでの働き方"},
+ {k:"条件マッチ",d:"年収・入社日・勤務地"}
+];
+let scores=EVAL.map(()=>0),basis=EVAL.map(()=>[]),asked=0,started=false,sec=0,tmr;
+const TOTALQ=MANUAL.reduce((a,s)=>a+s[2].length,0);
+
+/* 質問マニュアル描画 */
+$("qlist").innerHTML=MANUAL.map((s,si)=>
+  `<div class="sect">${s[0]}<span class="t">${s[1]}</span></div>`+
+  s[2].map((q,qi)=>`<div class="q" data-s="${si}" data-q="${qi}">
+    <div class="qt">${q.q}</div>
+    <div class="qm">ねらい：${q.aim}</div>
+    <span class="map">→ ${q.map}</span></div>`).join("")).join("");
+$("pnum").textContent=`0 / ${TOTALQ}`;
+
+/* 評価シート描画 */
+function renderEval(){
+  $("evList").innerHTML=EVAL.map((e,i)=>`
+    <div class="ev ${basis[i].length?"filled":""}">
+      <div class="top"><span class="lb">${e.k}</span>
+        <span class="sc">${scores[i]?scores[i]+"/5":"未評価"}</span></div>
+      <div style="font-size:10.5px;color:var(--ink-soft)">${e.d}</div>
+      <div class="stars" data-i="${i}">${[1,2,3,4,5].map(n=>
+        `<button data-n="${n}" class="${n<=scores[i]?"on":""}">★</button>`).join("")}</div>
+      <div class="basis ${basis[i].length?"show":""}">
+        <b>面接での根拠（自動反映）</b><br>${basis[i].map(b=>"・"+b).join("<br>")||""}</div>
+      ${i===EVAL.length-1?`<textarea id="memo" placeholder="特記事項（自由記入）">前職と同業務。即戦力として期待できる。</textarea>`:""}
+    </div>`).join("");
+  document.querySelectorAll(".stars").forEach(st=>st.querySelectorAll("button").forEach(b=>
+    b.addEventListener("click",()=>{
+      const i=+st.dataset.i;scores[i]=+b.dataset.n;renderEval();check();
+    })));
+}
+renderEval();
+
+/* 面接開始 */
+$("recBtn").addEventListener("click",()=>{
+  started=!started;
+  $("recBtn").classList.toggle("on",started);
+  $("recTx").textContent=started?"録音中（停止）":"面接を開始（集音マイクON）";
+  $("wave").classList.toggle("on",started);
+  if(started){tmr=setInterval(()=>{sec++;
+    $("timer").textContent=String(Math.floor(sec/60)).padStart(2,"0")+":"+String(sec%60).padStart(2,"0")},1000);
+    $("feedEmpty").style.display="none";setStep(1);
+    toast("集音マイクON。マニュアルの質問カードを順にクリックしてください");
+  }else{clearInterval(tmr)}
+});
+
+/* 質問クリック → 回答が流れ、評価根拠に反映 */
+$("qlist").addEventListener("click",e=>{
+  const el=e.target.closest(".q");if(!el||el.classList.contains("done"))return;
+  if(!started){toast("先に「面接を開始」を押してください");return}
+  const s=+el.dataset.s,q=+el.dataset.q,d=MANUAL[s][2][q];
+  el.classList.add("done");asked++;
+  $("pbar").style.width=Math.round(asked/TOTALQ*100)+"%";
+  $("pnum").textContent=`${asked} / ${TOTALQ}`;
+  push("iv","伏見",d.q);
+  setStep(2);
+  setTimeout(()=>{
+    push("cd","田中様",d.a);
+    basis[d.ev].push(d.basis);
+    if(!scores[d.ev])scores[d.ev]=d.sc;          // AI推奨評点（面接官が変更可）
+    if(d.map==="第一印象"&&!scores[1])scores[1]=4; // コミュニケーションも初期反映
+    if(d.map==="第一印象")basis[1].push("受け答えが自然で、質問の意図を汲んで回答できている");
+    renderEval();check();
+    toast(`「${EVAL[d.ev].k}」に根拠を自動反映しました`);
+  },700);
+});
+function push(cls,who,txt){
+  const d=document.createElement("div");d.className="u";
+  d.innerHTML=`<span class="who2 ${cls}">${who}</span><span>${txt}</span>`;
+  $("feed").appendChild(d);$("feed").scrollTop=$("feed").scrollHeight;
+}
+function check(){
+  const done=scores.filter(s=>s>0).length;
+  const avg=scores.reduce((a,b)=>a+b,0)/Math.max(1,done);
+  $("tv").textContent=done?(avg>=4.5?"S：即戦力・強く推奨":avg>=4?"A：二次面接へ進む":avg>=3?"B：要検討":"C：見送り"):"—";
+  $("tv").style.color=avg>=4?"var(--ok)":avg>=3?"var(--warn)":"var(--red)";
+  const miss=EVAL.filter((e,i)=>!scores[i]).map(e=>e.k);
+  $("warn").classList.toggle("show",miss.length>0&&asked>0);
+  $("warn").innerHTML=miss.length?`⚠ 未評価の項目があります：<b>${miss.join("・")}</b>（マニュアルの該当質問がまだ未実施です）`:"";
+  $("btnApply").disabled=!(done===EVAL.length);
+}
+function setStep(n){[1,2,3,4].forEach(i=>{const e=$("s"+i);e.classList.toggle("active",i===n);e.classList.toggle("done",i<n)})}
+
+/* 反映 → 出力 */
+$("btnApply").addEventListener("click",()=>{
+  setStep(3);
+  const memo=$("memo")?$("memo").value:"";
+  $("rsTable").innerHTML=
+    `<tr><th style="width:118px">候補者</th><td>田中 美咲（フロント職・一次）</td>
+     <th style="width:76px">面接日</th><td>2026/08/18</td></tr>
+     <tr><th>面接官</th><td>伏見（人事部）</td><th>形式</th><td>対面・45分</td></tr>`+
+    `<tr><th>評価項目</th><th style="text-align:center">評点</th><th colspan="2">面接での根拠（自動反映）</th></tr>`+
+    EVAL.map((e,i)=>`<tr><td>${e.k}</td><td class="sc">${"★".repeat(scores[i])}${"☆".repeat(5-scores[i])}</td>
+      <td colspan="2" style="font-size:11.5px;color:var(--ink-soft)">${basis[i].map(b=>"・"+b).join("<br>")||"—"}</td></tr>`).join("")+
+    `<tr><th>特記事項</th><td colspan="3">${memo||"—"}</td></tr>
+     <tr><th>総合判定</th><td colspan="3" style="font-weight:700;color:var(--ok)">${$("tv").textContent}</td></tr>
+     <tr><th>質問消化</th><td colspan="3">マニュアル ${asked}/${TOTALQ} 問を実施</td></tr>`;
+  $("out").classList.add("show");
+  $("out").scrollIntoView({behavior:"smooth",block:"nearest"});
+  $("btnDeliver").disabled=false;
+  toast("伏見フォーマットの評価シートに反映しました");
+});
+$("btnDeliver").addEventListener("click",()=>{
+  setStep(4);$("outSt").textContent="納品済み";
+  $("doneFile").classList.add("show");
+  $("btnDeliver").disabled=true;$("btnDeliver").textContent="✓ 納品済み";
+  toast("指定フォルダへ納品しました。採用責任者にも通知（デモ）");
+});
+function toast(m){const t=$("toastEl");t.textContent=m;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),2600)}
+</script>
+</body>
+</html>
