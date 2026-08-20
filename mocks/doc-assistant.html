@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文書作成アシスタント - UIモック</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.24.0/dist/tabler-icons.min.css">
+<style>
+  :root{
+    --bg:#f4f3ef; --card:#ffffff; --border:#e2e0da; --border-strong:#c9c7c0;
+    --text:#2c2c2a; --text2:#6b6a64; --text3:#9b9a92;
+    --accent:#185fa5; --accent-bg:#e6f1fb; --accent-border:#b5d4f4;
+    --success:#0f6e56; --success-bg:#e1f5ee;
+    --warn:#854f0b; --warn-bg:#faeeda;
+    --danger:#a32d2d; --danger-bg:#fcebeb;
+    --radius:8px;
+  }
+  *{box-sizing:border-box; margin:0;}
+  body{font-family:"Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif; background:var(--bg); color:var(--text); font-size:14px; line-height:1.7; padding:24px;}
+  .app{max-width:860px; margin:0 auto; background:var(--card); border:1px solid var(--border); border-radius:12px; overflow:hidden;}
+  header{display:flex; align-items:center; justify-content:space-between; padding:14px 20px; border-bottom:1px solid var(--border);}
+  .brand{display:flex; align-items:center; gap:8px; font-weight:600; font-size:15px;}
+  .brand i{color:var(--accent); font-size:20px;}
+  .steps{display:flex; gap:6px;}
+  .stp{font-size:12px; padding:4px 12px; border-radius:99px; color:var(--text3);}
+  .stp.on{background:var(--accent-bg); color:var(--accent); font-weight:600;}
+  .layout{display:grid; grid-template-columns:200px minmax(0,1fr); min-height:480px;}
+  aside{border-right:1px solid var(--border); padding:16px 12px;}
+  .side-label{font-size:11px; color:var(--text3); margin:0 0 8px 4px;}
+  .dt{display:flex; align-items:center; gap:8px; width:100%; text-align:left; font-size:13px; padding:8px 12px; border:1px solid transparent; border-radius:var(--radius); background:transparent; cursor:pointer; color:var(--text); font-family:inherit; margin-bottom:2px;}
+  .dt:hover{background:var(--bg);}
+  .dt.on{background:var(--accent-bg); color:var(--accent); border-color:var(--accent-border); font-weight:600;}
+  .lib{display:flex; flex-direction:column; gap:8px; font-size:12.5px; color:var(--text2); padding-left:4px;}
+  .lib span{cursor:default;}
+  main{padding:18px 22px;}
+  .row{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; gap:10px; flex-wrap:wrap;}
+  .tpl{font-size:14px; font-weight:600;}
+  .badge{font-size:11px; padding:4px 10px; border-radius:99px; white-space:nowrap;}
+  .b-success{background:var(--success-bg); color:var(--success);}
+  .b-warn{background:var(--warn-bg); color:var(--warn);}
+  .b-accent{background:var(--accent-bg); color:var(--accent);}
+  textarea{width:100%; min-height:110px; border:1px solid var(--border-strong); border-radius:var(--radius); padding:10px 12px; font-size:13px; font-family:inherit; line-height:1.8; resize:vertical; color:var(--text);}
+  textarea:focus{outline:2px solid var(--accent-border); border-color:var(--accent);}
+  .preview{border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; font-size:13px; line-height:1.9; min-height:80px; margin-bottom:12px; background:#fdfdfc;}
+  .pii{background:var(--danger-bg); color:var(--danger); padding:1px 5px; border-radius:4px;}
+  .msk{background:var(--warn-bg); color:var(--warn); padding:1px 5px; border-radius:4px; font-family:"Consolas",monospace; font-size:12px;}
+  .rst{background:var(--success-bg); color:var(--success); padding:1px 5px; border-radius:4px;}
+  button.btn{display:inline-flex; align-items:center; gap:6px; font-size:13px; font-family:inherit; padding:8px 14px; border:1px solid var(--border-strong); border-radius:var(--radius); background:var(--card); color:var(--text); cursor:pointer;}
+  button.btn:hover:not(:disabled){background:var(--bg);}
+  button.btn:disabled{opacity:.45; cursor:not-allowed;}
+  button.btn.primary{background:var(--accent); border-color:var(--accent); color:#fff;}
+  button.btn.primary:hover:not(:disabled){background:#0c447c;}
+  .toolbar{display:flex; align-items:center; gap:8px; margin-bottom:14px; flex-wrap:wrap;}
+  .hint{font-size:12px; color:var(--text3);}
+  .card{background:var(--bg); border-radius:var(--radius); padding:12px 14px; margin-bottom:12px;}
+  .card p.t{font-size:11px; color:var(--text3); margin-bottom:6px;}
+  table{width:100%; font-size:12.5px; border-collapse:collapse;}
+  td{padding:4px 0; border-bottom:1px solid var(--border);}
+  tr:last-child td{border-bottom:none;}
+  td.v{text-align:right; font-family:"Consolas",monospace;}
+  td.act{width:30px; text-align:right;}
+  td.act button{border:none; background:none; cursor:pointer; color:var(--text3); font-size:14px;}
+  .dict-add{display:flex; gap:6px; margin-top:8px;}
+  .dict-add input{flex:1; border:1px solid var(--border-strong); border-radius:6px; padding:6px 10px; font-size:12.5px; font-family:inherit;}
+  .note{background:var(--success-bg); color:var(--success); border-radius:var(--radius); padding:8px 12px; font-size:12.5px; margin-bottom:12px;}
+  .doc-title{font-size:16px; font-weight:600; margin-bottom:2px;}
+  .doc-meta{font-size:12px; color:var(--text2); margin-bottom:12px;}
+  .doc-sec{margin-bottom:10px;}
+  .doc-sec b{font-weight:600;}
+  .screen{display:none;}
+  .screen.on{display:block;}
+  footer{padding:10px 20px; border-top:1px solid var(--border); font-size:11.5px; color:var(--text3); display:flex; justify-content:space-between;}
+  @media print{ body{background:#fff; padding:0;} .no-print{display:none !important;} .app{border:none;} aside,header,footer{display:none;} }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="no-print">
+    <div class="brand"><i class="ti ti-file-text"></i>文書作成アシスタント</div>
+    <div class="steps">
+      <span class="stp on" id="s1">1 入力</span>
+      <span class="stp" id="s2">2 マスキング</span>
+      <span class="stp" id="s3">3 生成</span>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="no-print">
+      <p class="side-label">文書タイプ</p>
+      <div id="doctypes" style="margin-bottom:20px;">
+        <button class="dt on" data-t="議事録"><i class="ti ti-notes"></i>議事録</button>
+        <button class="dt" data-t="手順書"><i class="ti ti-list-check"></i>手順書</button>
+        <button class="dt" data-t="報告書"><i class="ti ti-report"></i>報告書</button>
+        <button class="dt" data-t="稟議書"><i class="ti ti-stamp"></i>稟議書</button>
+      </div>
+      <p class="side-label">素材ライブラリ</p>
+      <div class="lib">
+        <span><i class="ti ti-folder"></i> 定型文・挨拶文</span>
+        <span><i class="ti ti-folder"></i> 会社ロゴ・書式</span>
+        <span><i class="ti ti-folder"></i> 過去の見本文書</span>
+      </div>
+    </aside>
+
+    <main>
+      <!-- 画面1: 入力〜マスキング -->
+      <div class="screen on" id="screen1">
+        <div class="row">
+          <span class="tpl" id="tpl-name">議事録テンプレート v2</span>
+          <span class="badge b-success"><i class="ti ti-lock"></i> 対応表はローカル保存</span>
+        </div>
+
+        <textarea id="input-text">8月8日の定例会議にて、佐藤健一より株式会社山田製作所との新規取引について報告。見積額480万円で来月契約予定。次回までに稟議書を準備する。</textarea>
+
+        <div class="card">
+          <p class="t">マスキング辞書(語句 → 置換ラベル)</p>
+          <table id="dict-table"></table>
+          <div class="dict-add">
+            <input id="new-word" placeholder="マスクする語句(例: 田中太郎)">
+            <input id="new-label" placeholder="ラベル(例: 【担当B】)">
+            <button class="btn" onclick="addDict()"><i class="ti ti-plus"></i>追加</button>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <button class="btn" id="mask-btn" onclick="doMask()"><i class="ti ti-eye-off"></i>マスキング実行</button>
+          <span class="hint" id="status1">原文(送信前)</span>
+        </div>
+
+        <div class="preview" id="mask-preview" style="display:none;"></div>
+
+        <div class="toolbar">
+          <button class="btn primary" id="gen-btn" onclick="doGenerate()" disabled><i class="ti ti-sparkles"></i>AIで文書生成</button>
+          <span class="hint">マスキング完了後に有効になります</span>
+        </div>
+      </div>
+
+      <!-- 画面2: 生成結果〜復元 -->
+      <div class="screen" id="screen2">
+        <div class="row">
+          <span class="tpl">生成結果:<span id="result-type">議事録</span></span>
+          <span class="badge b-warn" id="mode-badge">マスク状態(AIからの出力そのまま)</span>
+        </div>
+
+        <div class="preview" id="result-doc"></div>
+
+        <div class="note" id="restore-note" style="display:none;">
+          <i class="ti ti-shield-check"></i> ローカルの対応表で復元しました。この処理はAIを経由していません。
+        </div>
+
+        <div class="toolbar no-print">
+          <button class="btn" id="restore-btn" onclick="toggleRestore()"><i class="ti ti-arrow-back-up"></i>ローカルで復元</button>
+          <button class="btn" id="print-btn" onclick="window.print()" disabled><i class="ti ti-printer"></i>印刷 / PDF保存</button>
+          <button class="btn" id="copy-btn" onclick="copyDoc()" disabled><i class="ti ti-copy"></i>コピー</button>
+          <button class="btn" onclick="backToInput()"><i class="ti ti-arrow-left"></i>入力に戻る</button>
+        </div>
+        <p class="hint no-print" id="save-hint">保存・コピーは復元後に有効になります</p>
+      </div>
+    </main>
+  </div>
+
+  <footer class="no-print">
+    <span>AIXコンサル 資料作成支援システム(デモ)</span>
+    <span>個人情報・社外秘はこの端末の外に出ません</span>
+  </footer>
+</div>
+
+<script>
+// ===== 状態 =====
+let dict = [
+  {word:"佐藤健一", label:"【担当A】"},
+  {word:"株式会社山田製作所", label:"【取引先X】"},
+  {word:"見積額480万円", label:"【金額Y】"},
+];
+let currentType = "議事録";
+let maskedInput = "";
+let restored = false;
+
+// ===== 辞書UI =====
+function renderDict(){
+  const t = document.getElementById("dict-table");
+  t.innerHTML = dict.map((d,i)=>
+    `<tr><td>${esc(d.word)}</td><td class="v">${esc(d.label)}</td>
+     <td class="act"><button onclick="removeDict(${i})" title="削除"><i class="ti ti-x"></i></button></td></tr>`
+  ).join("");
+}
+function addDict(){
+  const w = document.getElementById("new-word").value.trim();
+  const l = document.getElementById("new-label").value.trim();
+  if(!w) return;
+  dict.push({word:w, label:l || `【項目${dict.length+1}】`});
+  document.getElementById("new-word").value = "";
+  document.getElementById("new-label").value = "";
+  renderDict();
+}
+function removeDict(i){ dict.splice(i,1); renderDict(); }
+function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+// ===== マスキング =====
+function doMask(){
+  const raw = document.getElementById("input-text").value;
+  maskedInput = raw;
+  let html = esc(raw);
+  dict.forEach(d=>{
+    maskedInput = maskedInput.split(d.word).join(d.label);
+    html = html.split(esc(d.word)).join(`<span class="msk">${esc(d.label)}</span>`);
+  });
+  const pv = document.getElementById("mask-preview");
+  pv.style.display = "block";
+  pv.innerHTML = html;
+  document.getElementById("status1").textContent = "マスキング済み(送信OK)";
+  document.getElementById("status1").style.color = "var(--success)";
+  document.getElementById("gen-btn").disabled = false;
+  setStep(2);
+}
+
+// ===== 生成(デモ: テンプレートで疑似生成) =====
+const templates = {
+  "議事録": (body)=>`<p class="doc-title">定例会議 議事録</p>
+    <p class="doc-meta">日時:2026年8月8日(金)10:00–11:00 / 場所:第2会議室</p>
+    <div class="doc-sec"><b>1. 報告事項</b><br>${body}</div>
+    <div class="doc-sec"><b>2. 決定事項</b><br>・次回会議までに関連書類を準備する<br>・関係先と最終確認を実施する</div>
+    <div class="doc-sec"><b>3. 次回予定</b><br>2026年8月22日(金)10:00 第2会議室</div>`,
+  "手順書": (body)=>`<p class="doc-title">業務手順書</p>
+    <p class="doc-meta">改訂日:2026年8月11日 / 版数:v1.0</p>
+    <div class="doc-sec"><b>1. 目的・概要</b><br>${body}</div>
+    <div class="doc-sec"><b>2. 手順</b><br>① 事前準備を行う<br>② 本作業を実施する<br>③ 完了確認と記録を行う</div>
+    <div class="doc-sec"><b>3. 注意事項</b><br>不明点は管理者に確認すること。</div>`,
+  "報告書": (body)=>`<p class="doc-title">業務報告書</p>
+    <p class="doc-meta">報告日:2026年8月11日</p>
+    <div class="doc-sec"><b>1. 報告内容</b><br>${body}</div>
+    <div class="doc-sec"><b>2. 所感・課題</b><br>進捗は概ね順調。継続的なフォローが必要。</div>
+    <div class="doc-sec"><b>3. 今後の予定</b><br>次回報告時に最新状況を共有する。</div>`,
+  "稟議書": (body)=>`<p class="doc-title">稟議書</p>
+    <p class="doc-meta">起案日:2026年8月11日 / 起案者:____</p>
+    <div class="doc-sec"><b>1. 件名・目的</b><br>${body}</div>
+    <div class="doc-sec"><b>2. 金額・条件</b><br>本文記載の通り。</div>
+    <div class="doc-sec"><b>3. 承認欄</b><br>担当 → 課長 → 部長 → 役員</div>`
+};
+
+function doGenerate(){
+  let body = esc(maskedInput);
+  dict.forEach(d=>{ body = body.split(esc(d.label)).join(`<span class="msk tk" data-r="${esc(d.word)}" data-m="${esc(d.label)}">${esc(d.label)}</span>`); });
+  document.getElementById("result-doc").innerHTML = templates[currentType](body);
+  document.getElementById("result-type").textContent = currentType;
+  restored = false;
+  updateRestoreUI();
+  document.getElementById("screen1").classList.remove("on");
+  document.getElementById("screen2").classList.add("on");
+  setStep(3);
+}
+
+// ===== 復元 =====
+function toggleRestore(){
+  restored = !restored;
+  document.querySelectorAll("#result-doc .tk").forEach(e=>{
+    if(restored){ e.textContent = e.dataset.r; e.className = "rst tk"; }
+    else{ e.textContent = e.dataset.m; e.className = "msk tk"; }
+  });
+  updateRestoreUI();
+}
+function updateRestoreUI(){
+  const badge = document.getElementById("mode-badge");
+  const btn = document.getElementById("restore-btn");
+  if(restored){
+    badge.textContent = "復元済み(ローカル処理)";
+    badge.className = "badge b-success";
+    btn.innerHTML = '<i class="ti ti-eye-off"></i>マスク表示に戻す';
+    document.getElementById("restore-note").style.display = "block";
+    document.getElementById("print-btn").disabled = false;
+    document.getElementById("copy-btn").disabled = false;
+    document.getElementById("save-hint").textContent = "";
+  } else {
+    badge.textContent = "マスク状態(AIからの出力そのまま)";
+    badge.className = "badge b-warn";
+    btn.innerHTML = '<i class="ti ti-arrow-back-up"></i>ローカルで復元';
+    document.getElementById("restore-note").style.display = "none";
+    document.getElementById("print-btn").disabled = true;
+    document.getElementById("copy-btn").disabled = true;
+    document.getElementById("save-hint").textContent = "保存・コピーは復元後に有効になります";
+  }
+}
+function copyDoc(){
+  navigator.clipboard.writeText(document.getElementById("result-doc").innerText)
+    .then(()=>alert("コピーしました"));
+}
+function backToInput(){
+  document.getElementById("screen2").classList.remove("on");
+  document.getElementById("screen1").classList.add("on");
+  setStep(maskedInput ? 2 : 1);
+}
+
+// ===== 共通 =====
+function setStep(n){
+  [1,2,3].forEach(i=>document.getElementById("s"+i).classList.toggle("on", i===n));
+}
+document.querySelectorAll(".dt").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll(".dt").forEach(x=>x.classList.remove("on"));
+  b.classList.add("on");
+  currentType = b.dataset.t;
+  document.getElementById("tpl-name").textContent = currentType + "テンプレート v2";
+}));
+renderDict();
+</script>
+</body>
+</html>

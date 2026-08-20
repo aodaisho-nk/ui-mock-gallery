@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>商談メモ → CRM自動入力 デモ</title>
+<style>
+:root{
+  --bg:#F2F4F8; --paper:#fff; --ink:#1B2432; --ink-soft:#65728A; --line:#DBE1EA;
+  --accent:#1B6DC1; --accent-soft:#E6F1FB; --ok:#2E7D5B; --ok-soft:#E6F3EE;
+  --warn:#9A6B00; --warn-soft:#FBF3DC; --mask:#B45309; --mask-soft:#FCEFDC; --red:#C7423C;
+  --mono:"Consolas","SFMono-Regular",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.7}
+button{font-family:inherit;cursor:pointer}
+header{background:var(--paper);border-bottom:1px solid var(--line);padding:12px 22px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{width:29px;height:29px;border-radius:8px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+header h1{font-size:15.5px}
+header .sub{font-size:11px;color:var(--ink-soft)}
+.chip{margin-left:auto;font-size:10.5px;border:1px solid var(--accent);color:var(--accent);border-radius:4px;padding:2px 9px}
+.chip.lock{margin-left:7px;border-color:var(--ok);color:var(--ok);background:var(--ok-soft)}
+.steps{max-width:1340px;margin:13px auto 0;padding:0 20px;display:flex;gap:8px;font-size:11.5px;color:var(--ink-soft);flex-wrap:wrap}
+.step{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--paper);border-radius:20px;padding:4px 14px}
+.step .n{width:17px;height:17px;border-radius:50%;background:var(--line);display:inline-flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px}
+.step.active{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.step.active .n{background:var(--accent);color:#fff}
+.step.done{border-color:var(--ok);color:var(--ok)}
+.step.done .n{background:var(--ok);color:#fff}
+main{max-width:1340px;margin:13px auto;padding:0 20px 50px;display:grid;grid-template-columns:1fr 340px 1fr;gap:15px;align-items:start}
+@media(max-width:1120px){main{grid-template-columns:1fr}}
+.pane{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:15px 17px}
+.pane h2{font-size:12px;letter-spacing:.09em;color:var(--ink-soft);margin-bottom:11px;display:flex;align-items:center;gap:9px}
+.pane h2::after{content:"";flex:1;height:1px;background:var(--line)}
+textarea{width:100%;min-height:220px;border:1px solid var(--line);border-radius:9px;padding:11px 13px;font-size:12.5px;font-family:inherit;line-height:1.85;background:#FBFCFD;resize:vertical}
+.src{display:flex;gap:7px;margin-bottom:10px;flex-wrap:wrap}
+.src button{flex:1;border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:8px;font-size:11.5px;font-weight:600;min-width:110px}
+.src button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.run{width:100%;border:none;background:var(--accent);color:#fff;font-weight:700;border-radius:9px;padding:12px;font-size:13.5px;margin-top:11px}
+.run:disabled{opacity:.45;cursor:default}
+.status{display:none;align-items:center;gap:8px;font-size:12px;color:var(--ink-soft);margin-top:10px}
+.status.show{display:flex}
+.sp{width:13px;height:13px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* 抽出結果 */
+.ex{display:none}
+.ex.show{display:block;animation:up .4s ease}
+@keyframes up{from{opacity:0;transform:translateY(7px)}to{opacity:1}}
+.fld{border:1px solid var(--line);border-radius:9px;padding:8px 11px;margin-bottom:7px;font-size:12.5px}
+.fld .l{font-size:10px;color:var(--ink-soft);letter-spacing:.06em}
+.fld .v{font-weight:700}
+.fld .conf{float:right;font-family:var(--mono);font-size:10px;color:var(--accent)}
+.fld.new{border-color:var(--ok);background:var(--ok-soft)}
+.fld.chg{border-color:var(--warn);background:var(--warn-soft)}
+.mask-tag{background:var(--mask-soft);color:var(--mask);border-radius:4px;padding:0 5px;font-family:var(--mono);font-size:11px}
+.pill{font-size:10px;border-radius:9px;padding:1px 8px;margin-left:6px}
+.p-new{background:var(--ok-soft);color:var(--ok)}
+.p-chg{background:var(--warn-soft);color:var(--warn)}
+/* CRM風 */
+.crm{border:1px solid #C6D2E0;border-radius:11px;overflow:hidden}
+.crm-bar{background:linear-gradient(#1B6DC1,#155BA5);color:#fff;padding:8px 13px;font-size:12px;display:flex;align-items:center;gap:8px}
+.crm-bar .cl{width:16px;height:16px;border-radius:4px;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700}
+.crm-tabs{display:flex;gap:1px;background:#EDF2F7;font-size:11px;border-bottom:1px solid #C6D2E0}
+.crm-tabs span{padding:6px 12px;color:#5B6B80}
+.crm-tabs span.on{background:#fff;color:var(--accent);font-weight:700;border-bottom:2px solid var(--accent)}
+.crm-b{padding:12px 14px}
+.rowf{display:grid;grid-template-columns:98px 1fr;gap:6px 10px;font-size:12.5px;align-items:center;margin-bottom:6px}
+.rowf .k{color:var(--ink-soft);font-size:11.5px}
+.rowf .val{border:1px solid var(--line);border-radius:6px;padding:5px 9px;background:#FBFCFD}
+.rowf .val.hit{border-color:var(--ok);background:var(--ok-soft);animation:fl 1s ease}
+@keyframes fl{0%{background:#BFEBD9}100%{background:var(--ok-soft)}}
+.hist{margin-top:11px;border-top:1px dashed var(--line);padding-top:9px;font-size:11.5px;color:var(--ink-soft)}
+.hist .it{padding:3px 0}
+.approve{width:100%;border:none;background:var(--ok);color:#fff;font-weight:700;border-radius:9px;padding:11px;font-size:13px;margin-top:11px}
+.approve:disabled{opacity:.45;cursor:default}
+.priv{margin-top:11px;background:var(--ok-soft);border:1px solid rgba(46,125,91,.35);border-radius:9px;padding:9px 12px;font-size:11.5px}
+.priv b{color:var(--ok)}
+.kpi3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:11px}
+.kpi3 div{background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:8px 10px;text-align:center}
+.kpi3 b{display:block;font-family:var(--mono);font-size:17px;color:var(--accent)}
+.kpi3 span{font-size:9.5px;color:var(--ink-soft)}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:9px 20px;border-radius:8px;font-size:12.5px;opacity:0;pointer-events:none;transition:.25s;z-index:60}
+.toast.show{opacity:1;transform:translateX(-50%)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">CRM</div>
+  <div><h1>商談メモ → CRM自動入力</h1><div class="sub">訪問後の入力作業をゼロに。話した内容から項目を自動抽出して更新</div></div>
+  <span class="chip">UI デモ版</span>
+  <span class="chip lock">🔒 個人名はマスキング送信</span>
+</header>
+
+<div class="steps">
+  <span class="step active" id="s1"><span class="n">1</span>商談メモ／録音を入力</span>
+  <span class="step" id="s2"><span class="n">2</span>AIが項目を自動抽出</span>
+  <span class="step" id="s3"><span class="n">3</span>CRMへ差分反映</span>
+  <span class="step" id="s4"><span class="n">4</span>承認して確定</span>
+</div>
+
+<main>
+  <!-- 入力 -->
+  <section class="pane">
+    <h2>① 商談の記録</h2>
+    <div class="src">
+      <button class="on" data-s="text">✍️ メモを貼り付け</button>
+      <button data-s="rec">🎙 録音を文字起こし</button>
+      <button data-s="mail">📧 メールから取込</button>
+    </div>
+    <textarea id="memo">6/18 東邦重工業さん訪問（14:00-15:00、先方3名）。
+
+情報システム部の田中部長、経理の佐藤課長、担当の鈴木さん。
+基幹システム刷新の件、前回提案した構成でおおむね合意。
+金額は3.2億で調整、来期予算に計上済みとのこと。
+決裁は7月の役員会。田中部長が上申してくれる。
+競合はB社が残っているが、移行実績の差で優位との認識。
+次回は7/2（火）10時から、法務も同席で契約条件の詰め。
+検収条件だけ確認事項として持ち帰り。
+連絡先：tanaka@toho-heavy.co.jp / 03-5432-1098</textarea>
+    <button class="run" id="btnRun">🤖 AIで項目を抽出してCRMに反映</button>
+    <div class="status" id="st"><span class="sp"></span><span id="stMsg">解析中…</span></div>
+    <div class="priv">🔒 <b>担当者名・メール・電話は自動マスキングしてからAIへ送信</b>。CRMへの書き戻し時に端末内で復元します。</div>
+  </section>
+
+  <!-- 抽出 -->
+  <section class="pane">
+    <h2>② AI抽出結果</h2>
+    <div class="kpi3">
+      <div><b id="kf">0</b><span>抽出項目</span></div>
+      <div><b id="kn">0</b><span>新規/更新</span></div>
+      <div><b id="km">0</b><span>マスク件数</span></div>
+    </div>
+    <div id="exEmpty" style="color:var(--ink-soft);font-size:12.5px;text-align:center;padding:40px 10px;border:2px dashed var(--line);border-radius:10px">
+      左のメモから、案件フェーズ・金額・決裁者・次回予定などを<br>自動で構造化します。
+    </div>
+    <div class="ex" id="ex"></div>
+  </section>
+
+  <!-- CRM -->
+  <section class="pane">
+    <h2>③ CRM（更新プレビュー）</h2>
+    <div class="crm">
+      <div class="crm-bar"><span class="cl">SF</span>商談：基幹システム刷新／東邦重工業</div>
+      <div class="crm-tabs"><span class="on">詳細</span><span>活動</span><span>見積</span><span>関係者</span></div>
+      <div class="crm-b">
+        <div class="rowf">
+          <span class="k">フェーズ</span><span class="val" id="c1">提案</span>
+          <span class="k">金額</span><span class="val" id="c2">280,000,000</span>
+          <span class="k">確度</span><span class="val" id="c3">60%</span>
+          <span class="k">完了予定日</span><span class="val" id="c4">2026/08/31</span>
+          <span class="k">決裁者</span><span class="val" id="c5">未登録</span>
+          <span class="k">競合</span><span class="val" id="c6">未登録</span>
+          <span class="k">次回活動</span><span class="val" id="c7">未設定</span>
+          <span class="k">課題</span><span class="val" id="c8">—</span>
+        </div>
+        <div class="hist" id="hist"><div class="it">最終更新：6/02 鈴木（手入力）</div></div>
+        <button class="approve" id="btnOk" disabled>✓ この内容で承認して確定</button>
+      </div>
+    </div>
+    <div class="priv" style="margin-top:12px">⏱ <b>入力工数：平均18分 → 40秒</b>（当社実測・デモ値）。<br>入力漏れによる予測精度の低下も防げます。</div>
+  </section>
+</main>
+
+<div class="toast" id="toastEl"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+document.querySelectorAll(".src button").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll(".src button").forEach(x=>x.classList.remove("on"));b.classList.add("on");
+  const s=b.dataset.s;
+  if(s==="rec")toast("Zoom/対面の録音を文字起こしして取り込みます（デモ）");
+  if(s==="mail")toast("Outlook/Gmailの往復メールから商談内容を抽出します（デモ）");
+}));
+function setStep(n){[1,2,3,4].forEach(i=>{const e=$("s"+i);e.classList.toggle("active",i===n);e.classList.toggle("done",i<n)})}
+
+const FIELDS=[
+  ["フェーズ","最終交渉","96%","chg","提案 → 最終交渉","c1"],
+  ["金額","320,000,000 円","94%","chg","2.8億 → 3.2億","c2"],
+  ["確度","80%","88%","chg","60% → 80%","c3"],
+  ["完了予定日","2026/07/31","91%","chg","8/31 → 7/31（役員会が7月）","c4"],
+  ["決裁者","【担当A】部長（情報システム部）","89%","new","新規登録","c5"],
+  ["競合","B社（移行実績で優位）","85%","new","新規登録","c6"],
+  ["次回活動","2026/07/02 10:00 契約条件協議（法務同席）","97%","new","カレンダー登録","c7"],
+  ["課題","検収条件の確認（持ち帰り）","82%","new","ToDo作成","c8"]
+];
+const RESTORE={c5:"田中 部長（情報システム部）"};
+
+$("btnRun").addEventListener("click",()=>{
+  $("btnRun").disabled=true;$("st").classList.add("show");setStep(2);
+  const msgs=["個人情報を検出しマスキング中…","商談内容を構造化しています…","CRM項目とマッピング中…","差分を判定しています…"];
+  let i=0;$("stMsg").textContent=msgs[0];
+  const iv=setInterval(()=>{i++;if(i<msgs.length)$("stMsg").textContent=msgs[i]},700);
+  setTimeout(()=>{
+    clearInterval(iv);$("st").classList.remove("show");
+    $("exEmpty").style.display="none";$("ex").classList.add("show");
+    $("ex").innerHTML=FIELDS.map(f=>`<div class="fld ${f[3]}">
+      <span class="conf">確信度 ${f[2]}</span>
+      <div class="l">${f[0]}<span class="pill ${f[3]==="new"?"p-new":"p-chg"}">${f[3]==="new"?"新規":"更新"}</span></div>
+      <div class="v">${f[1].replace(/【担当A】/,'<span class="mask-tag">【担当A】</span>')}</div>
+      <div class="l" style="margin-top:2px">${f[4]}</div></div>`).join("");
+    $("kf").textContent=FIELDS.length;$("kn").textContent=FIELDS.length;$("km").textContent="3";
+    setStep(3);
+    FIELDS.forEach((f,i)=>setTimeout(()=>{
+      const el=$(f[5]);el.textContent=f[1];el.classList.add("hit");
+    },i*220));
+    setTimeout(()=>{$("btnOk").disabled=false;toast("CRMへの反映内容を作成しました。内容を確認して承認してください")},FIELDS.length*220+200);
+  },3000);
+});
+
+$("btnOk").addEventListener("click",()=>{
+  setStep(4);
+  $("c5").textContent=RESTORE.c5;
+  $("hist").innerHTML=`<div class="it" style="color:var(--ok);font-weight:700">✓ 6/18 15:04 AI自動更新（承認：鈴木）</div>`+
+    `<div class="it">・8項目を更新／次回活動をカレンダー登録／課題をToDo化</div>`+
+    `<div class="it">・担当者名は端末内で復元して保存（AI送信時はマスク済み）</div>`+
+    `<div class="it">最終更新：6/02 鈴木（手入力）</div>`;
+  $("btnOk").disabled=true;$("btnOk").textContent="✓ 確定しました";
+  toast("CRMを更新しました。上長へ日報も自動送信（デモ）");
+});
+function toast(m){const t=$("toastEl");t.textContent=m;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),2600)}
+</script>
+</body>
+</html>

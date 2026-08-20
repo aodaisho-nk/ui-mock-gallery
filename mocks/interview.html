@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>面接評価シート自動生成｜Zoom連携 デモ</title>
+<style>
+:root{
+  --bg:#F3F4F7; --paper:#fff; --ink:#20293A; --ink-soft:#69758C; --line:#DDE2EC;
+  --zoom:#0B5CFF; --zoom-bg:#17181C; --zoom-tile:#242530; --zoom-line:#33343E;
+  --accent:#B4531F; --accent-soft:#FBEDE4; --ok:#2E7D5B; --ok-soft:#E7F3EE;
+  --warn:#9A6B00; --warn-soft:#FBF3DC; --red:#D64541;
+  --mono:"Consolas","SFMono-Regular",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.7}
+button{font-family:inherit;cursor:pointer}
+
+header{background:var(--paper);border-bottom:1px solid var(--line);padding:13px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{width:30px;height:30px;border-radius:8px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+header h1{font-size:16px}
+header .sub{font-size:11.5px;color:var(--ink-soft)}
+.chip{margin-left:auto;font-size:11px;letter-spacing:.12em;border:1px solid var(--accent);color:var(--accent);border-radius:4px;padding:2px 10px}
+.chip.lock{margin-left:8px;border-color:var(--ok);color:var(--ok);background:var(--ok-soft);letter-spacing:.04em}
+
+.steps{max-width:1180px;margin:14px auto 0;padding:0 18px;display:flex;gap:8px;font-size:11.5px;color:var(--ink-soft);flex-wrap:wrap}
+.step{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--paper);border-radius:20px;padding:4px 14px}
+.step .n{width:17px;height:17px;border-radius:50%;background:var(--line);display:inline-flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px}
+.step.active{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.step.active .n{background:var(--accent);color:#fff}
+.step.done{border-color:var(--ok);color:var(--ok)}
+.step.done .n{background:var(--ok);color:#fff}
+.arrow{align-self:center;color:var(--line)}
+
+main{max-width:1180px;margin:14px auto;padding:0 18px 60px;display:grid;grid-template-columns:minmax(0,1.15fr) 360px;gap:18px;align-items:start}
+@media(max-width:920px){main{grid-template-columns:1fr}}
+
+/* ── Zoom風ウィンドウ ── */
+.zoom{background:var(--zoom-bg);border-radius:12px;overflow:hidden;border:1px solid #000;box-shadow:0 8px 28px rgba(0,0,0,.25)}
+.zoom-bar{background:#212228;padding:8px 14px;display:flex;align-items:center;gap:10px;font-size:12px;color:#C9CDD6}
+.zoom-bar .zlogo{width:18px;height:18px;border-radius:5px;background:var(--zoom);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700}
+.zoom-bar .rec{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:11px;color:#FF7B76}
+.zoom-bar .rec i{width:8px;height:8px;border-radius:50%;background:var(--red)}
+.zoom-bar .rec.on i{animation:blink 1.1s infinite}
+@keyframes blink{50%{opacity:.2}}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px}
+.tile{background:var(--zoom-tile);border:1px solid var(--zoom-line);border-radius:8px;aspect-ratio:16/8.5;position:relative;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px}
+.tile .face{width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff}
+.tile .nm{position:absolute;left:8px;bottom:7px;background:rgba(0,0,0,.55);color:#E7EAF0;font-size:10.5px;border-radius:4px;padding:1px 8px}
+.tile .mic{position:absolute;right:8px;bottom:7px;font-size:11px}
+.tile.speaking{outline:2px solid #52C41A;outline-offset:-2px}
+.zoom-tools{display:flex;gap:14px;justify-content:center;padding:9px;border-top:1px solid var(--zoom-line);font-size:10.5px;color:#9AA0AD}
+.zoom-tools span{display:flex;flex-direction:column;align-items:center;gap:1px}
+.zoom-tools .ico{font-size:15px}
+.zoom-tools .app{color:#8AB4FF}
+
+/* 文字起こし */
+.trans{background:var(--paper);border:1px solid var(--line);border-radius:12px;margin-top:14px;padding:14px 16px}
+.trans h3{font-size:12px;letter-spacing:.14em;color:var(--ink-soft);margin-bottom:10px;display:flex;gap:10px;align-items:center}
+.trans h3::after{content:"";flex:1;height:1px;background:var(--line)}
+.trans h3 .live{font-size:10px;color:var(--red);border:1px solid var(--red);border-radius:3px;padding:0 6px;letter-spacing:.1em}
+.feed{max-height:190px;overflow-y:auto;display:flex;flex-direction:column;gap:7px;font-size:12.5px}
+.feed .u{display:flex;gap:8px;animation:up .3s ease}
+@keyframes up{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+.feed .who{font-family:var(--mono);font-size:10.5px;border-radius:4px;padding:1px 7px;white-space:nowrap;align-self:flex-start;margin-top:3px}
+.feed .who.iv{background:var(--accent-soft);color:var(--accent)}
+.feed .who.cd{background:#E8F0FA;color:#2B5FA8}
+.feed-empty{color:var(--ink-soft);font-size:12px;text-align:center;padding:24px;border:2px dashed var(--line);border-radius:9px}
+
+/* ── 右：Zoomアプリ(評価パネル) ── */
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.panel-hd{background:#F7F8FB;border-bottom:1px solid var(--line);padding:10px 16px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:8px}
+.panel-hd .zlogo{width:15px;height:15px;border-radius:4px;background:var(--zoom);color:#fff;font-size:8.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+.panel-hd small{margin-left:auto;font-weight:400;color:var(--ink-soft);font-size:10.5px}
+.panel-bd{padding:14px 16px}
+.cand{font-size:12px;color:var(--ink-soft);margin-bottom:10px}
+.cand b{color:var(--ink);font-size:13.5px}
+.item{margin-bottom:11px}
+.item .lb{font-size:12px;display:flex;justify-content:space-between}
+.item .lb span:last-child{font-family:var(--mono);font-size:11px;color:var(--accent)}
+.stars{display:flex;gap:3px;margin-top:2px}
+.stars button{border:none;background:none;font-size:19px;color:#D8DCE5;padding:0 1px;transition:transform .1s}
+.stars button:hover{transform:scale(1.2)}
+.stars button.on{color:#F5A623}
+textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 11px;font-size:12.5px;font-family:inherit;min-height:56px;resize:vertical;background:#FBFCFD}
+.gen{margin-top:12px;width:100%;border:none;background:var(--accent);color:#fff;font-weight:700;border-radius:9px;padding:12px;font-size:13.5px}
+.gen:hover:not(:disabled){opacity:.9}
+.gen:disabled{opacity:.45;cursor:default}
+.hint{font-size:11px;color:var(--ink-soft);margin-top:6px;text-align:center}
+
+/* ── 評価シート ── */
+.sheet-wrap{display:none;margin-top:14px}
+.sheet-wrap.show{display:block;animation:up .4s ease}
+.sheet{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:20px 22px}
+.sheet h3{font-size:15px;text-align:center;letter-spacing:.3em;border-bottom:2px solid var(--ink);padding-bottom:8px;margin-bottom:12px}
+.sheet .meta{display:grid;grid-template-columns:90px 1fr 90px 1fr;font-size:12px;border:1px solid var(--line);margin-bottom:12px}
+.sheet .meta div{padding:5px 10px;border-bottom:1px solid var(--line)}
+.sheet .meta div:nth-child(odd){background:#F7F8FB;font-weight:600}
+.sheet table{width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:12px}
+.sheet th{background:#F0F2F6;border:1px solid var(--line);padding:5px 10px;font-size:11.5px;text-align:left}
+.sheet td{border:1px solid var(--line);padding:5px 10px}
+.sheet td.sc{font-family:var(--mono);text-align:center;width:70px}
+.ai-sec{background:#FBF7F4;border:1px solid #EAD9CC;border-radius:8px;padding:10px 13px;font-size:12.5px;margin-bottom:8px}
+.ai-sec .t{font-size:11px;color:var(--accent);font-weight:700;letter-spacing:.1em;margin-bottom:3px}
+.judge{display:flex;align-items:center;gap:12px;border:2px solid var(--ink);padding:8px 14px;font-weight:700}
+.judge .v{margin-left:auto;font-size:18px;color:var(--ok)}
+.deliver{display:flex;gap:10px;margin-top:14px;align-items:center;flex-wrap:wrap}
+.deliver .path{font-family:var(--mono);font-size:11px;color:var(--ink-soft);background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:8px 12px;flex:1;min-width:220px}
+.dbtn{border:none;background:var(--ok);color:#fff;font-weight:700;border-radius:9px;padding:12px 22px;font-size:13.5px}
+.dbtn:hover:not(:disabled){opacity:.9}
+.dbtn:disabled{opacity:.5;cursor:default}
+.done-file{display:none;margin-top:10px;background:var(--ok-soft);color:var(--ok);border-radius:8px;padding:9px 14px;font-size:12.5px;font-weight:600}
+.done-file.show{display:block;animation:up .4s ease}
+.priv-note{margin-top:10px;background:var(--ok-soft);border:1px solid rgba(46,125,91,.35);color:var(--ink);border-radius:8px;padding:9px 13px;font-size:11.5px}
+.priv-note b{color:var(--ok)}
+
+/* ── 学習機能 ── */
+.learn-badge{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;background:#EFEAFB;color:#5B4FC7;border:1px solid #D6CDF5;border-radius:10px;padding:1px 9px;margin-left:6px;white-space:nowrap}
+.overall{border:1px dashed var(--line);border-radius:8px;padding:10px 13px;margin-bottom:10px;font-size:12.5px;line-height:1.9}
+.overall .hd{font-size:11px;color:var(--ink-soft);font-weight:700;margin-bottom:4px;display:flex;align-items:center;flex-wrap:wrap}
+.overall [contenteditable]{outline:none;border-radius:4px;padding:2px 4px}
+.overall [contenteditable]:hover{background:#FAFAFD;box-shadow:0 0 0 2px #EFEAFB}
+.overall [contenteditable]:focus{box-shadow:0 0 0 2px #5B4FC7;background:#fff}
+.learn-panel{margin-top:14px;border:1px solid #D6CDF5;border-radius:11px;overflow:hidden;background:#FCFBFF}
+.learn-panel .hd{background:#EFEAFB;color:#5B4FC7;padding:9px 14px;font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.learn-panel .hd .cnt{margin-left:auto;font-family:var(--mono);font-size:11px;background:#fff;border-radius:10px;padding:1px 10px}
+.learn-panel .bd{padding:12px 14px}
+.learn-panel .desc{font-size:11.5px;color:var(--ink-soft);margin-bottom:10px}
+.ph{display:flex;align-items:center;gap:9px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;margin-bottom:6px;background:#fff;font-size:12px}
+.ph .txt{flex:1}
+.ph .use{font-family:var(--mono);font-size:10.5px;color:#5B4FC7;background:#EFEAFB;border-radius:9px;padding:1px 8px;white-space:nowrap}
+.ph.new{animation:phIn .6s ease}
+@keyframes phIn{from{background:#EFEAFB;transform:translateY(-4px)}to{background:#fff}}
+.learn-cta{display:none;margin-top:10px;gap:8px;align-items:center;flex-wrap:wrap;background:#EFEAFB;border-radius:8px;padding:9px 12px;font-size:12px;color:#4A3FB0}
+.learn-cta.show{display:flex}
+.learn-cta button{border:none;background:#5B4FC7;color:#fff;border-radius:7px;padding:7px 15px;font-size:12px;font-weight:700}
+.learn-cta button.ghost{background:#fff;color:#5B4FC7;border:1px solid #D6CDF5}
+.learn-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:11px}
+.learn-stats div{background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 10px;text-align:center}
+.learn-stats b{display:block;font-family:var(--mono);font-size:16px;color:#5B4FC7}
+.learn-stats span{font-size:9.5px;color:var(--ink-soft)}
+.before-after{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11.5px;margin-top:10px}
+.before-after .bx{border:1px solid var(--line);border-radius:8px;padding:8px 11px;background:#fff}
+.before-after .bx .l{font-size:9.5px;letter-spacing:.1em;margin-bottom:3px;font-weight:700}
+.before-after .bx.b .l{color:var(--ink-soft)}
+.before-after .bx.a .l{color:#5B4FC7}
+.before-after .bx.a{border-color:#D6CDF5;background:#FCFBFF}
+@media(max-width:640px){.before-after{grid-template-columns:1fr}}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:10px 22px;border-radius:8px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:50}
+.toast.show{opacity:1;transform:translateX(-50%)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">面</div>
+  <div><h1>面接評価シート自動生成</h1><div class="sub">Zoom面接 → 評価入力＋文字起こし → シート生成 → フォルダ納品</div></div>
+  <span class="chip">UI デモ版</span>
+  <span class="chip lock">🔒 候補者名はAI非送信</span>
+</header>
+
+<div class="steps">
+  <span class="step active" id="s1"><span class="n">1</span>Zoomで面接しながら評価入力</span><span class="arrow">→</span>
+  <span class="step" id="s2"><span class="n">2</span>文字起こしを取得</span><span class="arrow">→</span>
+  <span class="step" id="s3"><span class="n">3</span>ワンクリックでシート生成</span><span class="arrow">→</span>
+  <span class="step" id="s4"><span class="n">4</span>指定フォルダへ納品</span>
+</div>
+
+<main>
+  <!-- 左：Zoom画面＋文字起こし＋生成シート -->
+  <section>
+    <div class="zoom">
+      <div class="zoom-bar">
+        <span class="zlogo">Z</span> Zoom ミーティング — 中途採用一次面接
+        <span class="rec" id="rec"><i></i><span id="recTxt">開始前</span></span>
+      </div>
+      <div class="tiles">
+        <div class="tile" id="tileIv">
+          <div class="face" style="background:#B4531F">中</div>
+          <span class="nm">面接官：中野（人事）</span><span class="mic">🎙</span>
+        </div>
+        <div class="tile" id="tileCd">
+          <div class="face" style="background:#2B5FA8">山</div>
+          <span class="nm">候補者：山田 一郎 様</span><span class="mic">🎙</span>
+        </div>
+      </div>
+      <div class="zoom-tools">
+        <span><span class="ico">🎙</span>ミュート</span>
+        <span><span class="ico">🎥</span>ビデオ</span>
+        <span><span class="ico">👥</span>参加者</span>
+        <span class="app"><span class="ico">📋</span>評価アプリ ←右パネル</span>
+        <span><span class="ico">⏺</span>レコーディング</span>
+      </div>
+    </div>
+
+    <div class="trans">
+      <h3>文字起こし <span class="live" id="liveTag" style="display:none">● LIVE</span></h3>
+      <div class="feed" id="feed">
+        <div class="feed-empty" id="feedEmpty">右パネルの「面接を開始」を押すと、Zoomの文字起こしが<br>リアルタイムでここに流れます（デモ）。</div>
+      </div>
+    </div>
+
+    <!-- 生成された評価シート -->
+    <div class="sheet-wrap" id="sheetWrap">
+      <div class="sheet">
+        <h3>面接評価シート</h3>
+        <div class="meta">
+          <div>候補者</div><div>山田 一郎（応募職種：法人営業）</div>
+          <div>面接日</div><div>2026年8月17日</div>
+          <div>面接官</div><div>中野（人事部）</div>
+          <div>形式</div><div>Zoom・一次面接（45分）</div>
+        </div>
+        <table>
+          <thead><tr><th>評価項目</th><th style="width:70px;text-align:center">評点</th><th>根拠（文字起こしから自動引用）</th></tr></thead>
+          <tbody id="sheetRows"></tbody>
+        </table>
+        <div class="ai-sec"><div class="t">■ AI要約（回答ハイライト）</div>
+          現職では新規開拓を中心に年間120%の目標達成を継続。転職理由は「提案の裁量を広げたい」と一貫しており、志望動機と職務内容の整合性が高い。マネジメント経験は限定的だが後輩指導の実績あり。</div>
+        <div class="ai-sec"><div class="t">■ 確認しておきたい点（AI提案）</div>
+          二次面接では①数値目標の設定プロセスへの関与度、②転居を伴う異動の可否、を確認推奨。</div>
+        <div class="overall">
+          <div class="hd">■ 総評コメント（自動生成）
+            <span class="learn-badge" id="learnBadge">🧠 過去12回のあなたの評価文から学習</span>
+          </div>
+          <div contenteditable id="overallTxt">現職での実績を数字で具体的に説明でき、再現性のある成果と判断できる。転職理由と志望動機に一貫性があり、当社の営業スタイルとの親和性も高い。マネジメント経験は限定的だが、後輩指導の実績から素地はあると見る。</div>
+        </div>
+        <div class="judge">総合判定<span class="v" id="judgeV">A：二次面接へ進む</span></div>
+
+        <div class="deliver">
+          <span class="path">納品先：\\NAS01\人事部\採用\面接評価\2026-08\</span>
+          <button class="dbtn" id="deliverBtn">📁 指定フォルダへ納品する</button>
+        </div>
+        <div class="done-file" id="doneFile">✓ 納品完了：面接評価_山田一郎_20260817.xlsx（テンプレート書式で保存・採用管理表にも自動追記）</div>
+        <div class="priv-note">🔒 <b>AI要約時、候補者名は【候補者A】に置換してから送信</b>し、シート出力時に端末内で復元。録画・文字起こしの原本は社内サーバーにのみ保存されます。</div>
+      </div>
+
+      <!-- 学習パネル -->
+      <div class="learn-panel">
+        <div class="hd">🧠 評価文の学習（使うほど、あなたの書き方に近づきます）
+          <span class="cnt">学習済み <b id="learnCount">12</b> 回</span></div>
+        <div class="bd">
+          <div class="learn-stats">
+            <div><b id="stPhrase">6</b><span>学習フレーズ</span></div>
+            <div><b id="stFit">78</b><span>文体一致率 %</span></div>
+            <div><b id="stEdit">▲65</b><span>修正量の削減 %</span></div>
+          </div>
+          <div class="desc">面接官が総評コメントを手直しすると、その言い回し・評価の観点・文体（です・ます／である調）を学習し、<b>次回以降の自動生成文に反映</b>します。学習データは社内に保存され、AIには匿名化して渡します。</div>
+
+          <div style="font-size:11px;color:var(--ink-soft);font-weight:700;margin-bottom:6px">あなたの頻出フレーズ（学習済み）</div>
+          <div id="phraseList"></div>
+
+          <div class="learn-cta" id="learnCta">
+            <span>✏️ 総評コメントの修正を検出しました。この書き方を学習しますか？</span>
+            <button id="learnYes">学習する</button>
+            <button class="ghost" id="learnNo">今回だけ</button>
+          </div>
+
+          <div class="before-after">
+            <div class="bx b"><div class="l">学習前（初期テンプレ）</div>コミュニケーション能力は良好。経験も十分と思われる。次回面接に進めてよいと考える。</div>
+            <div class="bx a"><div class="l">学習後（あなたの文体を反映）</div>現職での実績を数字で具体的に説明でき、<b>再現性のある成果</b>と判断できる。志望動機との一貫性も高い。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 右：Zoomアプリ評価パネル -->
+  <section class="panel">
+    <div class="panel-hd"><span class="zlogo">Z</span>面接評価アプリ<small>Zoom Apps 内で動作</small></div>
+    <div class="panel-bd">
+      <div class="cand">候補者：<b>山田 一郎 様</b>（法人営業・一次）</div>
+      <button class="gen" id="startBtn" style="background:#2B5FA8">▶ 面接を開始（文字起こしON・デモ）</button>
+      <div style="height:12px"></div>
+      <div id="items"></div>
+      <div class="item"><div class="lb"><span>メモ（気づき）</span></div>
+        <textarea id="memo">受け答えが具体的。数字で語れる。少し早口。</textarea></div>
+      <button class="gen" id="genBtn" disabled>📝 評価シートを作成（ワンクリック）</button>
+      <div class="hint" id="genHint">面接開始後に有効になります。星は面接中いつでも変更可</div>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toastEl"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const items=[["コミュニケーション",4],["専門スキル・経験",4],["志望動機の一貫性",5],["カルチャーフィット",3],["論理的思考",4]];
+const quotes=[
+  "「新規開拓で年間120%達成を3年続けました」",
+  "「CRMを自分で組んで営業効率を上げた経験があります」",
+  "「御社の◯◯事業に、前職の▲▲の経験が直接活きると考えています」",
+  "「チームでは飲み会より1on1派です（笑）」",
+  "「まず仮説を立ててから検証する進め方をしています」"
+];
+const script=[
+  ["iv","面接官","本日はよろしくお願いします。まず自己紹介をお願いできますか。"],
+  ["cd","候補者","山田一郎と申します。現職では法人営業として新規開拓を担当し、年間120%の目標達成を3年続けています。"],
+  ["iv","面接官","成果の要因はどこにあると考えていますか？"],
+  ["cd","候補者","CRMを自分で組んで、訪問前の仮説づくりに時間を割いたことです。提案の的中率が大きく上がりました。"],
+  ["iv","面接官","転職を考えた理由を教えてください。"],
+  ["cd","候補者","提案の裁量をもっと広げたいからです。御社の◯◯事業には前職の経験が直接活きると考えています。"]
+];
+let scores=items.map(x=>x[1]), started=false, idx=0, iv;
+
+// 星UI生成
+$("items").innerHTML=items.map((it,i)=>`
+  <div class="item"><div class="lb"><span>${it[0]}</span><span id="sv${i}">${it[1]}/5</span></div>
+    <div class="stars" id="st${i}">${[1,2,3,4,5].map(n=>`<button data-i="${i}" data-n="${n}" class="${n<=it[1]?"on":""}">★</button>`).join("")}</div></div>`).join("");
+document.querySelectorAll(".stars button").forEach(b=>b.addEventListener("click",()=>{
+  const i=+b.dataset.i,n=+b.dataset.n;scores[i]=n;
+  $("sv"+i).textContent=n+"/5";
+  document.querySelectorAll(`#st${i} button`).forEach(x=>x.classList.toggle("on",+x.dataset.n<=n));
+}));
+
+function setStep(n){[1,2,3,4].forEach(i=>{const el=$("s"+i);el.classList.toggle("active",i===n);el.classList.toggle("done",i<n)})}
+
+$("startBtn").addEventListener("click",()=>{
+  if(started)return;started=true;
+  $("startBtn").textContent="● 面接中（文字起こし取得中）";$("startBtn").disabled=true;
+  $("rec").classList.add("on");$("recTxt").textContent="REC・文字起こしON";
+  $("liveTag").style.display="";$("feedEmpty").style.display="none";
+  setStep(2);
+  iv=setInterval(()=>{
+    if(idx>=script.length){
+      clearInterval(iv);
+      $("genBtn").disabled=false;
+      $("genHint").textContent="文字起こし取得済み。ワンクリックでシート化できます";
+      $("tileIv").classList.remove("speaking");$("tileCd").classList.remove("speaking");
+      toast("文字起こしを取得しました。評価シートを作成できます");
+      return;
+    }
+    const [cls,who,txt]=script[idx++];
+    $("tileIv").classList.toggle("speaking",cls==="iv");
+    $("tileCd").classList.toggle("speaking",cls==="cd");
+    const d=document.createElement("div");
+    d.className="u";
+    d.innerHTML=`<span class="who ${cls}">${who}</span><span>${txt}</span>`;
+    $("feed").appendChild(d);$("feed").scrollTop=$("feed").scrollHeight;
+  },1700);
+});
+
+$("genBtn").addEventListener("click",()=>{
+  setStep(3);
+  $("sheetRows").innerHTML=items.map((it,i)=>
+    `<tr><td>${it[0]}</td><td class="sc">${"★".repeat(scores[i])}${"☆".repeat(5-scores[i])}</td><td style="font-size:11.5px;color:var(--ink-soft)">${quotes[i]}</td></tr>`).join("")
+    +`<tr><td>面接官メモ</td><td class="sc">—</td><td style="font-size:11.5px">${$("memo").value}</td></tr>`;
+  const avg=scores.reduce((a,b)=>a+b,0)/scores.length;
+  $("judgeV").textContent=avg>=4?"A：二次面接へ進む":avg>=3?"B：要検討（他候補と比較）":"C：見送り";
+  $("judgeV").style.color=avg>=4?"var(--ok)":avg>=3?"var(--warn)":"var(--red)";
+  $("sheetWrap").classList.add("show");
+  $("sheetWrap").scrollIntoView({behavior:"smooth",block:"start"});
+  toast("評価シートを生成しました（星評価＋文字起こし根拠＋AI要約）");
+});
+
+/* ── 評価文の学習 ── */
+let phrases=[
+  {t:"数字で具体的に説明でき、再現性のある成果と判断できる",u:9},
+  {t:"志望動機と職務内容の整合性が高い",u:7},
+  {t:"マネジメント経験は限定的だが素地はある",u:5},
+  {t:"受け答えに具体性があり、仮説思考が見られる",u:4},
+  {t:"当社の営業スタイルとの親和性が高い",u:3},
+  {t:"二次面接では〇〇を確認したい",u:3}
+];
+let learnCount=12,origOverall="";
+function renderPhrases(){
+  $("phraseList").innerHTML=phrases.slice(0,6).map(p=>
+    `<div class="ph ${p.isNew?"new":""}"><span class="txt">「${p.t}」</span><span class="use">${p.u}回使用</span></div>`).join("");
+  $("stPhrase").textContent=phrases.length;
+}
+renderPhrases();
+/* 総評を手直ししたら学習を提案 */
+document.addEventListener("input",e=>{
+  if(e.target&&e.target.id==="overallTxt"){
+    if(!origOverall)origOverall=e.target.dataset.orig||"";
+    $("learnCta").classList.add("show");
+  }
+});
+$("learnYes").addEventListener("click",()=>{
+  const t=($("overallTxt").textContent||"").trim();
+  const s=t.split(/[。．]/).map(x=>x.trim()).filter(x=>x.length>6);
+  const add=s[s.length-1]||t.slice(0,28);
+  phrases.unshift({t:add.slice(0,34),u:1,isNew:true});
+  learnCount++;
+  $("learnCount").textContent=learnCount;
+  $("stFit").textContent=Math.min(97,78+ (learnCount-12)*3);
+  $("stEdit").textContent="▲"+Math.min(88,65+(learnCount-12)*4);
+  $("learnBadge").textContent=`🧠 過去${learnCount}回のあなたの評価文から学習`;
+  renderPhrases();
+  $("learnCta").classList.remove("show");
+  toast("この書き方を学習しました。次回の総評コメントに反映されます");
+});
+$("learnNo").addEventListener("click",()=>{
+  $("learnCta").classList.remove("show");
+  toast("今回限りの修正として保存しました（学習には使いません）");
+});
+
+$("deliverBtn").addEventListener("click",()=>{
+  setStep(4);
+  $("doneFile").classList.add("show");
+  $("deliverBtn").disabled=true;$("deliverBtn").textContent="納品済み ✓";
+  toast("指定フォルダに納品しました。面接官と採用責任者に通知（デモ）");
+});
+function toast(m){const t=$("toastEl");t.textContent=m;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),2600)}
+</script>
+</body>
+</html>

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>営業リスト自動作成｜Web収集 → AIスコアリング デモ</title>
+<style>
+:root{
+  --bg:#F4F5F8; --paper:#fff; --ink:#212B3B; --ink-soft:#68758A; --line:#DCE2EB;
+  --accent:#5B4FC7; --accent-soft:#EDEBFA; --ok:#2E7D5B; --ok-soft:#E7F3EE;
+  --warn:#9A6B00; --warn-soft:#FBF3DC; --red:#C7423C;
+  --mono:"Consolas","SFMono-Regular",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.7}
+button{font-family:inherit;cursor:pointer}
+
+header{background:var(--paper);border-bottom:1px solid var(--line);padding:13px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{width:30px;height:30px;border-radius:8px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+header h1{font-size:16px}
+header .sub{font-size:11.5px;color:var(--ink-soft)}
+.chip{margin-left:auto;font-size:11px;letter-spacing:.12em;border:1px solid var(--accent);color:var(--accent);border-radius:4px;padding:2px 10px}
+.chip.lock{margin-left:8px;border-color:var(--ok);color:var(--ok);background:var(--ok-soft);letter-spacing:.04em}
+
+main{max-width:1180px;margin:20px auto;padding:0 18px 60px;display:grid;grid-template-columns:330px 1fr;gap:18px;align-items:start}
+@media(max-width:900px){main{grid-template-columns:1fr}}
+.pane{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:18px}
+.pane h2{font-size:12px;letter-spacing:.16em;color:var(--ink-soft);margin-bottom:14px;display:flex;gap:10px;align-items:center}
+.pane h2::after{content:"";flex:1;height:1px;background:var(--line)}
+
+.fgrid{display:flex;flex-direction:column;gap:10px}
+.fgrid label{font-size:12px;color:var(--ink-soft);display:block;margin-bottom:3px}
+.fgrid select,.fgrid input{
+  width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 11px;
+  font-size:13px;font-family:inherit;background:#FBFCFD;
+}
+.start{
+  margin-top:14px;width:100%;border:none;background:var(--accent);color:#fff;font-weight:700;
+  border-radius:9px;padding:13px;font-size:14px;
+}
+.start:hover:not(:disabled){opacity:.9}
+.start:disabled{opacity:.5;cursor:default}
+
+.crawl-log{
+  margin-top:16px;background:#141A2A;border-radius:9px;padding:11px 13px;
+  font-family:var(--mono);font-size:11px;line-height:1.9;color:#9FB2D0;
+  min-height:120px;max-height:200px;overflow-y:auto;display:none;
+}
+.crawl-log.show{display:block}
+.crawl-log .ok{color:#63D0A8}
+.crawl-log .src{color:#8FB6F0}
+
+.priv-note{
+  margin-top:14px;background:var(--ok-soft);border:1px solid rgba(46,125,91,.35);
+  border-radius:8px;padding:9px 13px;font-size:11.5px;color:var(--ink);
+}
+.priv-note b{color:var(--ok)}
+
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+@media(max-width:700px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 13px}
+.kpi .l{font-size:10.5px;color:var(--ink-soft)}
+.kpi .v{font-size:19px;font-weight:700;font-family:var(--mono)}
+.kpi .v small{font-size:10.5px;font-weight:400}
+
+.bar-wrap{margin-bottom:14px;display:none}
+.bar-wrap.show{display:block}
+.bar-meta{display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink-soft);margin-bottom:5px}
+.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--accent),#8A7FF0);transition:width .4s}
+
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{font-size:11px;color:var(--ink-soft);text-align:left;font-weight:600;border-bottom:2px solid var(--line);padding:6px 8px;white-space:nowrap}
+td{border-bottom:1px solid var(--line);padding:7px 8px;vertical-align:top}
+tr.new td{animation:rowIn .7s ease}
+@keyframes rowIn{from{background:var(--accent-soft)}to{background:transparent}}
+.co{font-weight:700}
+.co small{display:block;font-weight:400;font-size:10.5px;color:var(--ink-soft)}
+.url{font-family:var(--mono);font-size:10.5px;color:var(--accent)}
+.score{
+  display:inline-block;min-width:44px;text-align:center;border-radius:12px;
+  font-family:var(--mono);font-size:11.5px;font-weight:700;padding:1px 8px;
+}
+.score.a{background:var(--ok-soft);color:var(--ok)}
+.score.b{background:var(--warn-soft);color:var(--warn)}
+.score.c{background:#F0F2F5;color:var(--ink-soft)}
+.reason{font-size:11px;color:var(--ink-soft)}
+.empty{color:var(--ink-soft);font-size:12.5px;text-align:center;padding:56px 20px;border:2px dashed var(--line);border-radius:10px}
+.export{display:flex;gap:8px;margin-top:14px;display:none}
+.export.show{display:flex}
+.export button{
+  flex:1;border:1px solid var(--line);background:var(--paper);color:var(--ink);
+  border-radius:8px;padding:10px;font-size:12.5px;font-weight:600;
+}
+.export button:hover{border-color:var(--accent);color:var(--accent)}
+
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--ink);color:#fff;padding:10px 22px;border-radius:8px;font-size:13px;
+  opacity:0;pointer-events:none;transition:.25s;z-index:50;
+}
+.toast.show{opacity:1;transform:translateX(-50%)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">営</div>
+  <div><h1>営業リスト自動作成</h1><div class="sub">Web公開情報を収集 → 重複除外 → AIスコアリング</div></div>
+  <span class="chip">UI デモ版</span>
+  <span class="chip lock">🔒 公開企業情報のみ・個人情報は収集しない</span>
+</header>
+
+<main>
+  <!-- 左：条件設定 -->
+  <section class="pane">
+    <h2>リスト作成条件</h2>
+    <div class="fgrid">
+      <div><label>業種</label>
+        <select id="c-industry"><option>製造業（金属・機械）</option><option>建設業</option><option>食品加工</option><option>物流・運送</option><option>卸売・商社</option></select></div>
+      <div><label>地域</label>
+        <select id="c-area"><option>東京都・神奈川県</option><option>大阪府・兵庫県</option><option>愛知県</option><option>全国</option></select></div>
+      <div><label>従業員規模</label>
+        <select id="c-size"><option>10〜100名</option><option>〜10名</option><option>100〜300名</option><option>300名以上</option></select></div>
+      <div><label>キーワード（任意）</label>
+        <input id="c-kw" placeholder="例：DX、設備投資、新工場"></div>
+      <div><label>収集元</label>
+        <select id="c-src"><option>企業サイト＋公的DB＋業界団体名簿</option><option>企業サイトのみ</option></select></div>
+    </div>
+    <button class="start" id="startBtn">▶ リスト作成を開始（デモ）</button>
+
+    <div class="crawl-log" id="log"></div>
+
+    <div class="priv-note">
+      🔒 <b>収集するのは企業の公開情報（社名・所在地・代表電話・URL）のみ</b>。個人名・個人メール・携帯番号は収集しない設計です。AIスコアリング時は社名を【企業A】等にマスキングして送信し、業種・規模・サイト記載内容だけで判定します。
+    </div>
+  </section>
+
+  <!-- 右：結果 -->
+  <section class="pane">
+    <h2>作成されたリスト</h2>
+    <div class="kpis">
+      <div class="kpi"><div class="l">検出</div><div class="v" id="kFound">0<small> 社</small></div></div>
+      <div class="kpi"><div class="l">重複・廃業除外</div><div class="v" id="kDup">0<small> 社</small></div></div>
+      <div class="kpi"><div class="l">リスト化</div><div class="v" id="kList">0<small> 社</small></div></div>
+      <div class="kpi"><div class="l">作業時間削減</div><div class="v">▲95<small> %</small></div></div>
+    </div>
+
+    <div class="bar-wrap" id="barWrap">
+      <div class="bar-meta"><span id="barLabel">収集中…</span><span id="barPct">0%</span></div>
+      <div class="bar"><i id="barFill"></i></div>
+    </div>
+
+    <div class="empty" id="empty">左の条件を設定して「リスト作成を開始」を押すと、<br>Web上の公開情報から営業リストが自動生成されます。</div>
+
+    <table id="tbl" style="display:none">
+      <thead><tr><th>企業名</th><th>所在地</th><th>代表TEL</th><th>規模</th><th>AIスコア</th><th>判定理由（AI）</th></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+
+    <div class="export" id="export">
+      <button onclick="toast('Excelファイルを出力しました（デモ）')">📊 Excel出力</button>
+      <button onclick="toast('CRMに取り込みました（デモ）')">📇 CRM連携</button>
+      <button onclick="toast('テレアポリスト形式で出力しました（デモ）')">📞 テレアポリスト</button>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toastEl"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const logs=[
+  ["src","[巡回] 企業サイト 東京都大田区エリア …"],
+  ["","  └ 公開ページから 社名/所在地/代表TEL/URL を抽出"],
+  ["src","[巡回] 公的データベース（法人番号公表サイト）…"],
+  ["src","[巡回] 業界団体 会員名簿（公開分）…"],
+  ["ok","[除外] 重複 8社・廃業/移転 3社 を自動除外"],
+  ["ok","[AI] 社名を【企業A〜N】にマスキングしてスコアリング実行"],
+  ["ok","[完了] リスト14社を生成しました"]
+];
+const rows=[
+  ["大田精密工業株式会社","東京都大田区","03-3742-XXXX","82名","a","S 92","自社サイトで設備投資・DX推進を明記。決裁が早い規模感"],
+  ["株式会社ヨコハマ金属","神奈川県横浜市","045-501-XXXX","46名","a","S 88","新工場建設のニュースリリースあり。導入余地大"],
+  ["ミナト機械製作所","東京都品川区","03-3450-XXXX","28名","b","A 74","紙帳票運用の記載あり。段階導入の提案向き"],
+  ["株式会社カワサキ製作","神奈川県川崎市","044-322-XXXX","95名","b","A 71","採用強化中。管理部門の効率化ニーズ見込み"],
+  ["東京スプリング工業","東京都大田区","03-3765-XXXX","19名","c","B 58","情報が少なくヒアリング要。電話アプローチ推奨"]
+];
+let running=false;
+
+$("startBtn").addEventListener("click",()=>{
+  if(running)return;
+  running=true;
+  $("startBtn").disabled=true;
+  $("empty").style.display="none";
+  $("tbl").style.display="";
+  $("tbody").innerHTML="";
+  $("export").classList.remove("show");
+  $("log").classList.add("show");
+  $("log").innerHTML="";
+  $("barWrap").classList.add("show");
+  $("kFound").innerHTML='0<small> 社</small>';
+  $("kDup").innerHTML='0<small> 社</small>';
+  $("kList").innerHTML='0<small> 社</small>';
+
+  // ログを順次表示
+  logs.forEach((l,i)=>setTimeout(()=>{
+    const div=document.createElement("div");
+    div.className=l[0];div.textContent=l[1];
+    $("log").appendChild(div);
+    $("log").scrollTop=$("log").scrollHeight;
+  }, 500+i*650));
+
+  // プログレスバー
+  let pct=0;
+  const iv=setInterval(()=>{
+    pct=Math.min(100,pct+Math.random()*14+6);
+    $("barFill").style.width=pct+"%";
+    $("barPct").textContent=Math.round(pct)+"%";
+    $("barLabel").textContent=pct<40?"公開情報を収集中…":pct<70?"重複・廃業を除外中…":pct<100?"AIスコアリング中（社名マスキング済み）…":"完了";
+    if(pct>=100)clearInterval(iv);
+  },420);
+
+  // KPIカウントアップ
+  let found=0;
+  const kv=setInterval(()=>{
+    found=Math.min(25,found+Math.ceil(Math.random()*4));
+    $("kFound").innerHTML=found+'<small> 社</small>';
+    if(found>=25){clearInterval(kv);$("kDup").innerHTML='11<small> 社</small>'}
+  },380);
+
+  // 結果行を順次追加
+  rows.forEach((r,i)=>setTimeout(()=>{
+    const tr=document.createElement("tr");
+    tr.className="new";
+    tr.innerHTML=`<td class="co">${r[0]}<small class="url">${"https://"+r[0].slice(0,4)}****.co.jp</small></td>
+      <td>${r[1]}</td><td class="url">${r[2]}</td><td>${r[3]}</td>
+      <td><span class="score ${r[4]}">${r[5]}</span></td><td class="reason">${r[6]}</td>`;
+    $("tbody").appendChild(tr);
+    $("kList").innerHTML=(i+1)+'<small> 社</small>';
+    if(i===rows.length-1){
+      $("kList").innerHTML='14<small> 社</small>';
+      const more=document.createElement("tr");
+      more.innerHTML='<td colspan="6" style="text-align:center;color:var(--ink-soft);font-size:11.5px">… ほか9社（デモのため省略）</td>';
+      $("tbody").appendChild(more);
+      $("export").classList.add("show");
+      $("startBtn").disabled=false;running=false;
+      toast("営業リスト14社を作成しました（所要 約40秒・デモ）");
+    }
+  }, 4200+i*550));
+});
+function toast(m){const t=$("toastEl");t.textContent=m;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),2600)}
+</script>
+</body>
+</html>

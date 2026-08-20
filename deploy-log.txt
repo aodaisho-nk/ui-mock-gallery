@@ -1,0 +1,6 @@
+Deploy start 2026/08/20 12:04:04.13 
+Folder: C:\Users\shooo\claudework\date\UIƒ‚ƒbƒNW 
+C:\Program Files\Git\cmd\git.exe
+--- git init --- 
+Initialized empty Git repository in C:/Users/shooo/claudework/date/UIãƒ¢ãƒƒã‚¯é›†/.git/
+--- git add --- 

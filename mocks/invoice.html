@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>請求書 自動発行｜インボイス対応 デモ</title>
+<style>
+:root{
+  --bg:#F4F6F8; --paper:#fff; --ink:#1E2A36; --ink-soft:#647689; --line:#DCE3EA;
+  --accent:#20639B; --accent-soft:#E7F0F8; --ok:#2E7D5B; --ok-soft:#E7F3EE;
+  --warn:#9A6B00; --warn-soft:#FBF3DC; --red:#C7423C;
+  --mono:"Consolas","SFMono-Regular",monospace;
+  --mincho:"Hiragino Mincho ProN","Yu Mincho",serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.7}
+button{font-family:inherit;cursor:pointer}
+
+header{background:var(--paper);border-bottom:1px solid var(--line);padding:13px 24px;display:flex;align-items:center;gap:12px}
+.logo{width:30px;height:30px;border-radius:8px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+header h1{font-size:16px}
+header .sub{font-size:11.5px;color:var(--ink-soft)}
+.chip{margin-left:auto;font-size:11px;letter-spacing:.12em;border:1px solid var(--accent);color:var(--accent);border-radius:4px;padding:2px 10px}
+.chip.lock{margin-left:8px;border-color:var(--ok);color:var(--ok);background:var(--ok-soft);letter-spacing:.04em}
+.priv-note{
+  margin-top:12px;background:var(--ok-soft);border:1px solid rgba(46,125,91,.35);color:var(--ink);
+  border-radius:8px;padding:9px 13px;font-size:12px;
+}
+.priv-note b{color:var(--ok)}
+
+.kpis{max-width:1140px;margin:18px auto 0;padding:0 18px;display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px 16px}
+.kpi .l{font-size:11px;color:var(--ink-soft)}
+.kpi .v{font-size:21px;font-weight:700;font-family:var(--mono)}
+.kpi .v small{font-size:11px;font-weight:400}
+.kpi .v.ok{color:var(--ok)}.kpi .v.warn{color:var(--red)}
+
+main{max-width:1140px;margin:16px auto;padding:0 18px 60px;display:grid;grid-template-columns:400px 1fr;gap:18px;align-items:start}
+@media(max-width:880px){main{grid-template-columns:1fr}}
+.pane{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:18px}
+.pane h2{font-size:12px;letter-spacing:.16em;color:var(--ink-soft);margin-bottom:14px;display:flex;gap:10px;align-items:center}
+.pane h2::after{content:"";flex:1;height:1px;background:var(--line)}
+
+.job{border:1px solid var(--line);border-radius:10px;padding:11px 13px;margin-bottom:10px;cursor:pointer;transition:.15s;position:relative}
+.job:hover{border-color:var(--accent)}
+.job.on{border-color:var(--accent);background:var(--accent-soft)}
+.job .t{font-weight:700;font-size:13.5px}
+.job .m{font-size:11.5px;color:var(--ink-soft);display:flex;gap:10px}
+.st{font-size:10.5px;border-radius:10px;padding:1px 9px;position:absolute;top:11px;right:11px}
+.st.draft{background:var(--warn-soft);color:var(--warn)}
+.st.sent{background:var(--accent-soft);color:var(--accent)}
+.st.paid{background:var(--ok-soft);color:var(--ok)}
+
+.inv{border:1px solid var(--line);padding:24px 28px;background:var(--paper);box-shadow:0 2px 10px rgba(30,42,54,.06);font-size:13px}
+.inv h3{font-family:var(--mincho);text-align:center;font-size:21px;letter-spacing:.45em;margin-bottom:16px}
+.inv .head{display:flex;justify-content:space-between;gap:16px;margin-bottom:14px}
+.inv .to{font-size:15px;font-weight:700;border-bottom:1.5px solid var(--ink);padding-bottom:4px}
+.inv .from{font-size:11.5px;text-align:right;color:var(--ink-soft);line-height:1.8}
+.inv .from b{color:var(--ink);font-size:12.5px}
+.inv .regno{font-family:var(--mono);font-size:11px}
+.total-box{display:flex;align-items:baseline;gap:14px;border:2px solid var(--ink);padding:8px 16px;margin-bottom:14px;justify-content:space-between}
+.total-box .amt{font-family:var(--mono);font-size:22px;font-weight:700}
+table{width:100%;border-collapse:collapse;margin-bottom:12px}
+th{background:#EDF2F7;font-size:11.5px;padding:6px 10px;border:1px solid var(--line);font-weight:600}
+td{padding:6px 10px;border:1px solid var(--line);font-size:12.5px}
+td.num{text-align:right;font-family:var(--mono)}
+.taxrow{font-size:11.5px;color:var(--ink-soft);display:flex;justify-content:flex-end;gap:20px}
+.actions{display:flex;gap:10px;margin-top:16px}
+.abtn{flex:1;border-radius:8px;padding:12px;font-size:13.5px;font-weight:700;border:1px solid var(--line);background:var(--paper)}
+.abtn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.abtn.primary:hover:not(:disabled){opacity:.9}
+.abtn:disabled{opacity:.4;cursor:default}
+.sent-note{display:none;margin-top:14px;background:var(--ok-soft);color:var(--ok);border-radius:8px;padding:10px 14px;font-size:12.5px;font-weight:600;text-align:center}
+.sent-note.show{display:block;animation:fi .4s ease}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+.gen{display:none;align-items:center;gap:9px;color:var(--ink-soft);font-size:12.5px;margin-bottom:12px}
+.gen.show{display:flex}
+.spinner{width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#invWrap{transition:opacity .3s}
+#invWrap.dim{opacity:.25}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:10px 22px;border-radius:8px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:50}
+.toast.show{opacity:1;transform:translateX(-50%)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">請</div>
+  <div><h1>請求書 自動発行</h1><div class="sub">案件を選ぶだけで適格請求書を自動生成 → 送付 → 入金管理</div></div>
+  <span class="chip">UI デモ版</span>
+  <span class="chip lock">🔒 取引先情報はAI非送信</span>
+</header>
+
+<div class="kpis">
+  <div class="kpi"><div class="l">今月の請求額</div><div class="v">¥2,847,000</div></div>
+  <div class="kpi"><div class="l">入金済み</div><div class="v ok">¥1,930,000</div></div>
+  <div class="kpi"><div class="l">未入金（期限内）</div><div class="v">¥737,000</div></div>
+  <div class="kpi"><div class="l">期限超過</div><div class="v warn">¥180,000 <small>1件</small></div></div>
+</div>
+
+<main>
+  <!-- 左：案件一覧 -->
+  <section class="pane">
+    <h2>請求対象の案件（2026年8月）</h2>
+    <div class="job on" data-i="0">
+      <div class="t">株式会社アオバ商事</div>
+      <div class="m"><span>Webサイト保守 8月分</span><span>¥110,000</span></div>
+      <span class="st draft" id="st0">未発行</span>
+    </div>
+    <div class="job" data-i="1">
+      <div class="t">有限会社ミドリ製作所</div>
+      <div class="m"><span>システム開発 第2回</span><span>¥550,000</span></div>
+      <span class="st draft">未発行</span>
+    </div>
+    <div class="job" data-i="2">
+      <div class="t">株式会社ソラノ物流</div>
+      <div class="m"><span>コンサルティング 8月分</span><span>¥220,000</span></div>
+      <span class="st sent">送付済</span>
+    </div>
+    <div class="job" data-i="3">
+      <div class="t">タカダ建設株式会社</div>
+      <div class="m"><span>機器レンタル 7月分</span><span>¥180,000</span></div>
+      <span class="st paid">入金済</span>
+    </div>
+  </section>
+
+  <!-- 右：請求書プレビュー -->
+  <section class="pane">
+    <h2>請求書プレビュー</h2>
+    <div class="gen" id="gen"><span class="spinner"></span>請求書を自動生成しています…</div>
+    <div id="invWrap">
+      <div class="inv">
+        <h3>請求書</h3>
+        <div class="head">
+          <div>
+            <div class="to" id="invTo">株式会社アオバ商事 御中</div>
+            <div style="font-size:11.5px;color:var(--ink-soft);margin-top:6px">
+              請求書番号：<span class="regno" id="invNo">INV-2026-0814</span><br>
+              発行日：2026年8月17日／支払期限：2026年9月30日
+            </div>
+          </div>
+          <div class="from">
+            <b>株式会社サンプル</b><br>
+            東京都千代田区丸の内1-2-3<br>
+            <span class="regno">登録番号 T9876543210987</span><br>
+            TEL 03-9876-5432
+          </div>
+        </div>
+        <div class="total-box"><span>ご請求金額（税込）</span><span class="amt" id="invTotal">¥110,000</span></div>
+        <table>
+          <thead><tr><th>品目</th><th style="width:60px">数量</th><th style="width:90px">単価</th><th style="width:100px">金額</th></tr></thead>
+          <tbody id="invRows">
+            <tr><td>Webサイト保守業務（2026年8月分）</td><td class="num">1</td><td class="num">100,000</td><td class="num">100,000</td></tr>
+          </tbody>
+        </table>
+        <div class="taxrow"><span>小計 <b id="invSub">¥100,000</b></span><span>消費税(10%) <b id="invTax">¥10,000</b></span></div>
+      </div>
+      <div class="actions">
+        <button class="abtn primary" id="sendBtn">メールで送付する</button>
+        <button class="abtn" onclick="toast('PDFをダウンロードしました（デモ）')">PDF保存</button>
+        <button class="abtn" onclick="toast('会計ソフトに仕訳連携しました（デモ）')">会計連携</button>
+      </div>
+      <div class="sent-note" id="sentNote">✓ 送付完了 — 入金予定 9/30 として自動管理されます。期限超過時は督促メールを自動送信（デモ）</div>
+      <div class="priv-note">🔒 請求書の生成・送付・入金管理は<b>自社サーバー内テンプレート処理で完結し、外部AIに取引先名・金額を送信しません</b>。AIで督促文面等を作る場合も「【取引先A】【金額X】」にマスキングして送信し、端末内で復元します。</div>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toastEl"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const jobs=[
+  {to:"株式会社アオバ商事 御中",no:"INV-2026-0814",item:"Webサイト保守業務（2026年8月分）",qty:1,unit:100000},
+  {to:"有限会社ミドリ製作所 御中",no:"INV-2026-0815",item:"業務システム開発（第2回検収分）",qty:1,unit:500000},
+  {to:"株式会社ソラノ物流 御中",no:"INV-2026-0811",item:"業務改善コンサルティング（8月分）",qty:1,unit:200000},
+  {to:"タカダ建設株式会社 御中",no:"INV-2026-0798",item:"測定機器レンタル（7月分）",qty:2,unit:81819}
+];
+document.querySelectorAll(".job").forEach(j=>j.addEventListener("click",()=>{
+  document.querySelectorAll(".job").forEach(x=>x.classList.remove("on"));
+  j.classList.add("on");
+  const d=jobs[+j.dataset.i];
+  $("gen").classList.add("show");
+  $("invWrap").classList.add("dim");
+  setTimeout(()=>{
+    $("gen").classList.remove("show");
+    $("invWrap").classList.remove("dim");
+    const sub=d.qty*d.unit, tax=Math.round(sub*0.1);
+    $("invTo").textContent=d.to;
+    $("invNo").textContent=d.no;
+    $("invRows").innerHTML=`<tr><td>${d.item}</td><td class="num">${d.qty}</td><td class="num">${d.unit.toLocaleString()}</td><td class="num">${sub.toLocaleString()}</td></tr>`;
+    $("invSub").textContent="¥"+sub.toLocaleString();
+    $("invTax").textContent="¥"+tax.toLocaleString();
+    $("invTotal").textContent="¥"+(sub+tax).toLocaleString();
+    $("sentNote").classList.remove("show");
+    $("sendBtn").disabled=false;$("sendBtn").textContent="メールで送付する";
+  },900);
+}));
+$("sendBtn").addEventListener("click",()=>{
+  $("sentNote").classList.add("show");
+  $("sendBtn").disabled=true;$("sendBtn").textContent="送付済み";
+  const on=document.querySelector(".job.on .st");
+  if(on){on.textContent="送付済";on.className="st sent"}
+  toast("請求書をメール送付しました（デモ）");
+});
+function toast(m){const t=$("toastEl");t.textContent=m;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),2400)}
+</script>
+</body>
+</html>

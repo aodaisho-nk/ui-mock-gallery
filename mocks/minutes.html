@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI議事録｜リアルタイム文字起こし → 要約 デモ</title>
+<style>
+:root{
+  --bg:#F4F6FB; --panel:#FFFFFF; --panel2:#F2F5FA; --line:#DEE4EE;
+  --ink:#1B2432; --ink-soft:#66748A; --accent:#4A5BD8; --accent-soft:#EAECFB;
+  --green:#12A87A; --green-soft:#E4F5EE; --red:#D6453F;
+  --mono:"Consolas","SFMono-Regular",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.7}
+button{font-family:inherit;cursor:pointer}
+
+header{border-bottom:1px solid var(--line);padding:13px 24px;display:flex;align-items:center;gap:12px}
+.logo{width:30px;height:30px;border-radius:8px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+.pane{box-shadow:0 1px 3px rgba(27,36,50,.05)}
+header h1{font-size:16px}
+header .sub{font-size:11.5px;color:var(--ink-soft)}
+.chip{margin-left:auto;font-size:11px;letter-spacing:.12em;border:1px solid var(--accent);color:var(--accent);border-radius:4px;padding:2px 10px}
+.chip.lock{margin-left:8px;border-color:var(--green);color:var(--green);background:var(--green-soft);letter-spacing:.04em}
+.priv-card{
+  background:var(--green-soft);border:1px solid rgba(76,201,143,.4);border-radius:10px;
+  padding:11px 14px;margin-bottom:12px;font-size:12px;color:var(--ink);
+}
+.priv-card b{color:var(--green)}
+.priv-card .flow{font-family:var(--mono);font-size:10.5px;color:var(--ink-soft);margin-top:6px;line-height:1.9}
+.priv-card .mask{background:#FBF1DC;color:#B07A22;border-radius:3px;padding:0 4px}
+
+main{max-width:1120px;margin:20px auto;padding:0 18px 60px;display:grid;grid-template-columns:1fr 380px;gap:18px;align-items:start}
+@media(max-width:860px){main{grid-template-columns:1fr}}
+.pane{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px}
+.pane h2{font-size:12px;letter-spacing:.16em;color:var(--ink-soft);margin-bottom:14px;display:flex;gap:10px;align-items:center}
+.pane h2::after{content:"";flex:1;height:1px;background:var(--line)}
+
+.rec-bar{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.rec-btn{
+  border:none;border-radius:10px;padding:12px 26px;font-size:14px;font-weight:700;
+  background:var(--red);color:#fff;display:flex;align-items:center;gap:10px;transition:.15s;
+}
+.rec-btn:hover{opacity:.9}
+.rec-btn .dot{width:10px;height:10px;border-radius:50%;background:#fff}
+.rec-btn.recording{background:var(--panel2);border:1px solid var(--red);color:var(--red)}
+.rec-btn.recording .dot{background:var(--red);animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.2}}
+.timer{font-family:var(--mono);font-size:20px;color:var(--ink-soft)}
+.wave{display:flex;gap:3px;align-items:center;height:28px}
+.wave i{width:3px;background:var(--accent);border-radius:2px;height:6px}
+.wave.on i{animation:wv .7s ease-in-out infinite alternate}
+.wave i:nth-child(2){animation-delay:.1s}.wave i:nth-child(3){animation-delay:.2s}
+.wave i:nth-child(4){animation-delay:.3s}.wave i:nth-child(5){animation-delay:.15s}
+.wave i:nth-child(6){animation-delay:.25s}.wave i:nth-child(7){animation-delay:.05s}
+@keyframes wv{from{height:5px}to{height:26px}}
+
+.feed{min-height:340px;max-height:420px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding-right:6px}
+.feed-empty{color:var(--ink-soft);font-size:12.5px;text-align:center;padding:60px 20px;border:2px dashed var(--line);border-radius:10px}
+.utt{display:flex;gap:10px;animation:uttIn .35s ease}
+@keyframes uttIn{from{opacity:0;transform:translateY(8px)}to{opacity:1}}
+.avatar{
+  width:32px;height:32px;border-radius:50%;flex:none;
+  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;
+}
+.utt .bubble{background:var(--panel2);border:1px solid var(--line);border-radius:4px 12px 12px 12px;padding:8px 13px;font-size:13px}
+.utt .meta{font-size:10.5px;color:var(--ink-soft);margin-bottom:2px;font-family:var(--mono)}
+
+.sum-block{display:none}
+.sum-block.show{display:block;animation:uttIn .4s ease}
+.sum-card{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:13px 15px;margin-bottom:12px}
+.sum-card h3{font-size:12px;color:var(--accent);letter-spacing:.1em;margin-bottom:7px}
+.sum-card p,.sum-card li{font-size:12.5px;color:var(--ink)}
+.sum-card ul{padding-left:18px}
+.task{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--line);font-size:12.5px}
+.task:last-child{border-bottom:none}
+.task .who{font-family:var(--mono);font-size:10.5px;background:var(--accent-soft);color:var(--accent);border-radius:4px;padding:1px 7px;white-space:nowrap}
+.task .due{margin-left:auto;font-size:11px;color:var(--ink-soft);white-space:nowrap}
+.gen-status{display:none;align-items:center;gap:9px;color:var(--ink-soft);font-size:12.5px;padding:20px 0}
+.gen-status.show{display:flex}
+.spinner{width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.export{display:flex;gap:8px;margin-top:4px}
+.export button{
+  flex:1;border:1px solid var(--line);background:var(--panel2);color:var(--ink);
+  border-radius:8px;padding:9px;font-size:12.5px;
+}
+.export button:hover{border-color:var(--accent);color:var(--accent)}
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--ink);color:#fff;padding:10px 22px;border-radius:8px;font-size:13px;
+  opacity:0;pointer-events:none;transition:.25s;z-index:50;
+}
+.toast.show{opacity:1;transform:translateX(-50%)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">議</div>
+  <div><h1>AI議事録</h1><div class="sub">リアルタイム文字起こし → 要約・タスク抽出</div></div>
+  <span class="chip">UI デモ版</span>
+  <span class="chip lock">🔒 実名はAI非送信</span>
+</header>
+
+<main>
+  <!-- 左：文字起こし -->
+  <section class="pane">
+    <h2>文字起こし — 定例会議 2026/08/17</h2>
+    <div class="rec-bar">
+      <button class="rec-btn" id="recBtn"><span class="dot"></span><span id="recLabel">録音を開始（デモ）</span></button>
+      <span class="timer" id="timer">00:00</span>
+      <div class="wave" id="wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    </div>
+    <div class="feed" id="feed">
+      <div class="feed-empty" id="feedEmpty">「録音を開始」を押すと、会議の音声がリアルタイムで<br>話者ごとに文字起こしされていきます。</div>
+    </div>
+  </section>
+
+  <!-- 右：AI要約 -->
+  <section class="pane">
+    <h2>AI要約・タスク</h2>
+    <div class="gen-status" id="genStatus"><span class="spinner"></span>会議内容を要約しています…</div>
+    <div class="feed-empty" id="sumEmpty">録音を停止すると、要約・決定事項・<br>宿題リストが自動生成されます。</div>
+    <div class="sum-block" id="sumBlock">
+      <div class="priv-card">
+        🔒 <b>要約時、実名・社名は端末内で仮名に置換してからAIへ送信</b>。画面表示時にローカルの対応表で復元しています（音声・文字起こしデータは社内サーバー保管）。
+        <div class="flow">AI送信例：「<span class="mask">【話者A】</span>がデザイン会社3社から相見積を取得（〜8/22）」→ 表示時に「田中」へ復元</div>
+      </div>
+      <div class="sum-card">
+        <h3>■ 要約</h3>
+        <p>新製品の展示会出展について協議。出展費用は80万円以内とし、ブース設計は外部委託の方向で決定。9月末までにデモ機を2台準備する。</p>
+      </div>
+      <div class="sum-card">
+        <h3>■ 決定事項</h3>
+        <ul>
+          <li>展示会（10/15〜17）へ出展する</li>
+          <li>予算上限は80万円とする</li>
+          <li>ブース設計は外部デザイン会社へ委託</li>
+        </ul>
+      </div>
+      <div class="sum-card">
+        <h3>■ 宿題（自動抽出）</h3>
+        <div class="task"><span class="who">田中</span>デザイン会社3社から相見積を取得<span class="due">〜8/22</span></div>
+        <div class="task"><span class="who">鈴木</span>デモ機の仕様を確定し製造部へ連絡<span class="due">〜8/29</span></div>
+        <div class="task"><span class="who">佐藤</span>出展申込書の提出<span class="due">〜8/20</span></div>
+      </div>
+      <div class="export">
+        <button onclick="toast('Wordファイルを出力しました（デモ）')">📄 Word出力</button>
+        <button onclick="toast('チャットに共有しました（デモ）')">💬 チャット共有</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toastEl"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const script=[
+  ["佐藤","S","#6C8CFF","それでは定例会議を始めます。今日は10月の展示会出展について決めたいと思います。"],
+  ["田中","T","#4CC98F","出展費用ですが、ブース設計を外注すると全体で75万円ほどの見込みです。"],
+  ["鈴木","Z","#E0A45C","デモ機は2台必要ですね。9月末までに準備できるよう製造部と調整します。"],
+  ["佐藤","S","#6C8CFF","では予算上限は80万円としましょう。田中さんはデザイン会社の相見積を来週金曜までにお願いします。"],
+  ["田中","T","#4CC98F","承知しました。3社から取って比較表にまとめます。"],
+  ["佐藤","S","#6C8CFF","申込書は私が8月20日までに提出します。それでは本日はここまでにしましょう。"]
+];
+let recording=false,sec=0,timerIv,idx=0,feedIv;
+
+$("recBtn").addEventListener("click",()=>recording?stopRec():startRec());
+
+function startRec(){
+  recording=true;idx=0;sec=0;
+  $("recBtn").classList.add("recording");
+  $("recLabel").textContent="録音を停止";
+  $("wave").classList.add("on");
+  $("feedEmpty").style.display="none";
+  $("feed").innerHTML="";
+  $("sumBlock").classList.remove("show");
+  $("sumEmpty").style.display="";
+  timerIv=setInterval(()=>{sec++;$("timer").textContent=String(Math.floor(sec/60)).padStart(2,"0")+":"+String(sec%60).padStart(2,"0")},1000);
+  feedIv=setInterval(pushUtt,1900);
+  pushUtt();
+}
+function pushUtt(){
+  if(idx>=script.length){stopRec();return}
+  const [name,ini,color,text]=script[idx++];
+  const t=$("timer").textContent;
+  const el=document.createElement("div");
+  el.className="utt";
+  el.innerHTML=`<div class="avatar" style="background:${color}">${ini}</div>
+    <div><div class="meta">${name}　${t}</div><div class="bubble">${text}</div></div>`;
+  $("feed").appendChild(el);
+  $("feed").scrollTop=$("feed").scrollHeight;
+}
+function stopRec(){
+  recording=false;
+  clearInterval(timerIv);clearInterval(feedIv);
+  $("recBtn").classList.remove("recording");
+  $("recLabel").textContent="録音を開始（デモ）";
+  $("wave").classList.remove("on");
+  if(!$("feed").children.length)return;
+  $("sumEmpty").style.display="none";
+  $("genStatus").classList.add("show");
+  setTimeout(()=>{
+    $("genStatus").classList.remove("show");
+    $("sumBlock").classList.add("show");
+    toast("議事録を生成しました。宿題3件を自動抽出（デモ）");
+  },2200);
+}
+function toast(m){const t=$("toastEl");t.textContent=m;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),2400)}
+</script>
+</body>
+</html>

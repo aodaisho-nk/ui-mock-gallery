@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UIモック集｜業務システム デモギャラリー</title>
+<style>
+:root{
+  --bg:#F4F7FB; --bg2:#FFFFFF; --card:#FFFFFF; --line:#DFE6EF;
+  --ink:#1B2432; --ink-soft:#6C7A8D; --accent:#1F7AC7; --accent2:#12A87A;
+  --gothic:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic","Meiryo",sans-serif;
+  --mono:"Consolas","SFMono-Regular",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--gothic);background:var(--bg);color:var(--ink);font-size:14px;line-height:1.7}
+a{color:inherit;text-decoration:none}
+
+.hero{
+  padding:56px 24px 36px;text-align:center;
+  background:
+    radial-gradient(620px 320px at 20% 0%,rgba(31,122,199,.09),transparent),
+    radial-gradient(620px 320px at 80% 0%,rgba(18,168,122,.08),transparent),
+    var(--bg2);
+  border-bottom:1px solid var(--line);
+}
+.hero .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.35em;color:var(--accent);margin-bottom:14px}
+.hero h1{font-size:clamp(26px,4.5vw,40px);font-weight:700;letter-spacing:.04em}
+.hero h1 .grad{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{color:var(--ink-soft);margin-top:12px;font-size:13.5px}
+
+.filters{
+  max-width:1140px;margin:26px auto 0;padding:0 20px;
+  display:flex;gap:8px;flex-wrap:wrap;
+}
+.fbtn{
+  font-family:inherit;font-size:12.5px;cursor:pointer;
+  border:1px solid var(--line);background:var(--card);color:var(--ink-soft);
+  border-radius:20px;padding:6px 16px;transition:all .15s;
+}
+.fbtn:hover{border-color:var(--accent);color:var(--ink)}
+.fbtn.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+
+.grid{
+  max-width:1140px;margin:20px auto 0;padding:0 20px 20px;
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;
+}
+.card{
+  background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;
+  display:flex;flex-direction:column;transition:transform .18s,border-color .18s,box-shadow .18s;
+}
+.card{box-shadow:0 1px 3px rgba(27,36,50,.06)}
+.card:hover{transform:translateY(-4px);border-color:var(--accent);box-shadow:0 14px 34px rgba(31,122,199,.18)}
+.thumb{
+  position:relative;height:210px;overflow:hidden;background:#EEF1F4;
+  border-bottom:1px solid var(--line);
+}
+.thumb iframe{
+  width:1200px;height:840px;border:0;
+  transform:scale(.29);transform-origin:top left;pointer-events:none;
+}
+.thumb .veil{
+  position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(15,23,32,.35));
+  opacity:0;transition:opacity .18s;display:flex;align-items:flex-end;justify-content:flex-end;padding:12px;
+}
+.card:hover .veil{opacity:1}
+.veil span{
+  background:var(--accent);color:#fff;font-size:12px;font-weight:700;
+  border-radius:6px;padding:6px 14px;
+}
+.body{padding:16px 18px 18px;display:flex;flex-direction:column;gap:8px;flex:1}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{
+  font-family:var(--mono);font-size:10px;letter-spacing:.08em;
+  border:1px solid var(--line);color:var(--ink-soft);border-radius:4px;padding:1px 8px;
+}
+.tag.hl{border-color:rgba(99,208,168,.5);color:var(--accent2)}
+.body h2{font-size:16px;font-weight:700}
+.body p{font-size:12.5px;color:var(--ink-soft);flex:1}
+
+.soon-sec{max-width:1140px;margin:28px auto 0;padding:0 20px 70px}
+.soon-sec h3{
+  font-size:13px;letter-spacing:.2em;color:var(--ink-soft);
+  display:flex;align-items:center;gap:12px;margin-bottom:16px;
+}
+.soon-sec h3::after{content:"";flex:1;height:1px;background:var(--line)}
+.soon-grid{display:flex;gap:10px;flex-wrap:wrap}
+.soon{
+  border:1px dashed #C9D4E2;border-radius:10px;padding:10px 16px;
+  color:var(--ink-soft);font-size:12.5px;background:#fff;
+}
+.soon b{color:var(--ink);font-weight:600;display:block;font-size:13px}
+
+footer{
+  border-top:1px solid var(--line);padding:22px;text-align:center;
+  font-size:11.5px;color:var(--ink-soft);
+}
+.privacy-bar{
+  max-width:1140px;margin:22px auto 0;padding:12px 18px;
+  border:1px solid #BFE4D5;border-radius:12px;
+  background:#EAF7F1;color:var(--ink);font-size:13px;
+  display:flex;gap:10px;align-items:center;
+}
+.privacy-bar b{color:#0E7A57}
+.privacy-bar .shield{font-size:18px}
+@media(max-width:1180px){.privacy-bar{margin-left:20px;margin-right:20px}}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="eyebrow">UI MOCKUP GALLERY</div>
+  <h1>業務システム <span class="grad">UIモック集</span></h1>
+  <p>導入後の操作イメージを、実際に触って確かめられるデモ集です。各カードをクリックすると動くモックが開きます。</p>
+</div>
+
+<div class="privacy-bar">
+  <span class="shield">🔒</span>
+  <span>全モック共通の設計：<b>個人情報・社外秘は端末内で処理／マスキングしてからAIへ</b>。氏名・取引先名などの生データは外部AIに送信しません。各デモ内の「AI送信内容」表示で仕組みを確認できます。</span>
+</div>
+
+<div class="filters" id="filters">
+  <button class="fbtn on" data-f="all">すべて</button>
+  <button class="fbtn" data-f="ocr">OCR・データ入力</button>
+  <button class="fbtn" data-f="ai">AI活用</button>
+  <button class="fbtn" data-f="workflow">ワークフロー</button>
+  <button class="fbtn" data-f="report">帳票・書類</button>
+  <button class="fbtn" data-f="sales">営業・大手向け</button>
+</div>
+
+<div class="grid" id="grid">
+
+  <a class="card" href="mocks/doda-sheets.html" target="_blank" data-c="workflow ocr">
+    <div class="thumb"><iframe src="mocks/doda-sheets.html" loading="lazy" tabindex="-1" title="DODA自動転記"></iframe>
+      <div class="veil"><span>デモを開く →</span></div></div>
+    <div class="body">
+      <div class="tags"><span class="tag hl">Chrome拡張</span><span class="tag">採用・人事</span><span class="tag">転記自動化</span></div>
+      <h2>DODA応募者情報 → シート自動転記</h2>
+      <p>応募者ページを開くだけで全項目を自動抽出。原稿IDで求人を判定し、書類選考ルール（管理物件NG・転居確認）まで自動適用してシートと採用管理システムへ同時転記します。</p>
+    </div>
+  </a>
+
+  <a class="card" href="mocks/pipeline.html" target="_blank" data-c="sales ai">
+    <div class="thumb"><iframe src="mocks/pipeline.html" loading="lazy" tabindex="-1" title="営業パイプライン"></iframe>
+      <div class="veil"><span>デモを開く →</span></div></div>
+    <div class="body">
+      <div class="tags"><span class="tag hl">SFA</span><span class="tag">予実管理</span><span class="tag">着地予測</span></div>
+      <h2>営業パイプライン・予実ダッシュボード</h2>
+      <p>全社／本部／個人を同じ数字で可視化。ステージ別の滞留と転換率、AIによる通期着地予測まで。「どこが詰まっているか」が一目で分かります。</p>
+    </div>
+  </a>
+
+  <a class="card" href="mocks/dealrisk.html" target="_blank" data-c="sales ai">
+    <div class="thumb"><iframe src="mocks/dealrisk.html" loading="lazy" tabindex="-1" title="商談リスク検知AI"></iframe>
+      <div class="veil"><span>デモを開く →</span></div></div>
+    <div class="body">
+      <div class="tags"><span class="tag hl">リスク検知</span><span class="tag">キーマン相関図</span><span class="tag">大型案件</span></div>
+      <h2>商談リスク検知AI・キーマン相関図</h2>
+      <p>決裁者未接触・停滞・競合出現をAIが検知し、根拠つきで警告。意思決定マップで「誰に会えていないか」を可視化し、次の一手まで提案します。</p>
+    </div>
+  </a>
+
+  <a class="card" href="mocks/crmsync.html" target="_blank" data-c="sales ai">
+    <div class="thumb"><iframe src="mocks/crmsync.html" loading="lazy" tabindex="-1" title="CRM自動入力"></iframe>
+      <div class="veil"><span>デモを開く →</span></div></div>
+    <div class="body">
+      <div class="tags"><span class="tag hl">CRM連携</span><span class="tag">入力工数ゼロ</span><span class="tag">SFA定着</span></div>
+      <h2>商談メモ → CRM自動入力</h2>
+      <p>訪問メモや録音から、フェーズ・金額・決裁者・次回予定をAIが抽出しCRMへ差分反映。入力18分が40秒に。SFAが「使われない」問題を解消します。</p>
+    </div>
+  </a>
+
+  <a class="card" href="mocks/ocr-demo.html" target="_blank" data-c="ocr">
+    <div class="thumb"><iframe src="mocks/ocr-demo.html" loading="lazy" tabindex="-1" title="帳票OCR"></iframe>
+      <div class="veil"><span>デモを開く →</span></div></div>
+    <div class="body">
+      <div class="tags"><span class="tag hl">OCR</span><span class="tag">データ入力</span><span class="tag">給与・勤怠</span></div>
+      <h2>帳票OCR 取り込みデモ</h2>
+      <p>画面キャプチャ → 範囲をドラッグ選定 → 給与ソフトへ自動反映。手入力ゼロの帳票取り込みを体験できます。</p>
+    </div>
+  </a>
+
+  <a class="card" href="mocks/doc-assistant.html" target="_blank" data-c="ai report">
+    <div class="thumb"><iframe src="mocks/doc-assistant.html" loading="lazy" tabindex="-1" title="文書作成アシスタント"></iframe>
+      <div class="veil"><span>デモを開く →</span></div></div>
+    <div class="body">
+      <div class="tags"><span class="tag hl">AI</span><span class="tag">セキュリティ</span><span class="tag">文書作成</span></div>
+      <h2>文書作成アシスタント</h2>
+      <p>個人情報をローカルでマスキングしてからAIで議事録・稟議書等を生成。機密を外に出さない安全な文書作成。</p>
+    </div>
+  </a>
+
+  <a class="card" href="mocks/expense.html" target="_blank" data-c="ocr ai">
+    <div class="thumb"><iframe src="mocks/expense.html" loading="lazy" tabindex="-1" title="経費精算AI"></iframe>
+      <div class="veil"><span>デモを開く →</span></div></div>
+    <div class="body">
+      <div class="tags"><span class="tag hl">AI-OCR</span><span class="tag">経理</span><span class="tag">自動仕訳</span></div>
+      <h2>経費精算AI</h2>
+      <p>レシートを読み込むと日付・金額・勘定科目までAIが自動判定。申請から承認までワンストップの経費精算。</p>
+    </div>
+  </a>
+
+  <a class="card" href="mocks/minutes.html" target="_blank" data-c="ai">
+    <div class="thumb"><iframe src="mocks/minutes.html" loading="lazy" tabindex="-1" title="AI議事録"></iframe>
+      <div class="veil"><span>デモを開く →</span></div></div>
+    <div class="body">
+      <div class="tags"><span class="tag hl">AI</span><span class="tag">音声認識</span><span class="tag">会議</span></div>
+      <h2>AI議事録・要約</h2>
+      <p>会議音声をリアルタイム文字起こしし、終了と同時に要約・決定事項・宿題リストを自動生成します。</p>
+    </div>
+  </a>
+
+  <a class="card" href="mocks/workflow.html" target="_blank" data-c="workflow">
+    <div class="thumb"><iframe src="mocks/workflow.html" loading="lazy" tabindex="-1" title="承認ワークフロー"></iframe>
+      <div class="veil"><span>デモを開く →</span></div></div>
+    <div class="body">
+      <div class="tags"><span class="tag hl">ワークフロー</span><span class="tag">稟議</span><span class="tag">電子承認</span></div>
+      <h2>稟議・承認ワークフロー</h2>
+      <p>紙とハンコの稟議をそのまま電子化。申請一覧から承認ボタンひとつで決裁が回る様子を体験できます。</p>
+    </div>
+  </a>
+
+  <a class="card" href="mocks/aislides.html" target="_blank" data-c="ai report">
+    <div class="thumb"><iframe src="mocks/aislides.html" loading="lazy" tabindex="-1" title="AIスライドエージェント"></iframe>
+      <div class="veil"><span>デモを開く →</span></div></div>
+    <div class="body">
+      <div class="tags"><span class="tag hl">チャットAI</span><span class="tag">自動デザイン</span><span class="tag">作図まで一括</span></div>
+      <h2>AIスライドエージェント</h2>
+      <p>「DX提案資料をつくって」と話しかけるだけ。構成設計・デザイン選定・グラフ作図までAIが一括制作。「もっとダークに」「表にして」と追加指示すれば即座に作り替えます。</p>
+    </div>
+  </a>
+
+  <a class="card" href="mocks/slidegen.html" target="_blank" data-c="ai report">
+    <div class="thumb"><iframe src="mocks/slidegen.html" loading="lazy" tabindex="-1" title="AIスライド自動作成"></iframe>
+      <div class="veil"><span>デモを開く →</span></div></div>
+    <div class="body">
+      <div class="tags"><span class="tag hl">スライド生成</span><span class="tag">テンプレ登録式</span><span class="tag">手修正対応</span></div>
+      <h2>AIスライド自動作成</h2>
+      <p>Web公開情報を収集し、登録した自社テンプレでスライドをワンクリック生成。画面上でそのまま手修正でき、個人情報はマスキングしてAIへ送ります。</p>
+    </div>
+  </a>
+
+  <a class="card" href="mocks/interview.html" target="_blank" data-c="ai workflow">
+    <div class="thumb"><iframe src="mocks/interview.html" loading="lazy" tabindex="-1" title="面接評価シート自動生成"></iframe>
+      <div class="veil"><span>デモを開く →</span></div></div>
+    <div class="body">
+      <div class="tags"><span class="tag hl">Zoom連携</span><span class="tag">採用・人事</span><span class="tag">文体学習</span></div>
+      <h2>面接評価シート自動生成</h2>
+      <p>Zoom面接しながら星評価、文字起こしを自動取得。ワンクリックで評価シートを生成し指定フォルダへ納品。面接官のコメントを学習し、使うほど自分の書き方に近づきます。</p>
+    </div>
+  </a>
+
+  <a class="card" href="mocks/leadgen.html" target="_blank" data-c="ai">
+    <div class="thumb"><iframe src="mocks/leadgen.html" loading="lazy" tabindex="-1" title="営業リスト自動作成"></iframe>
+      <div class="veil"><span>デモを開く →</span></div></div>
+    <div class="body">
+      <div class="tags"><span class="tag hl">Web収集</span><span class="tag">営業支援</span><span class="tag">AIスコア</span></div>
+      <h2>営業リスト自動作成</h2>
+      <p>業種・地域を選ぶだけでWeb公開情報から見込み客リストを自動生成。重複除外とAIスコアリングでアタック優先度まで判定します。</p>
+    </div>
+  </a>
+
+  <a class="card" href="mocks/invoice.html" target="_blank" data-c="report workflow">
+    <div class="thumb"><iframe src="mocks/invoice.html" loading="lazy" tabindex="-1" title="請求書発行"></iframe>
+      <div class="veil"><span>デモを開く →</span></div></div>
+    <div class="body">
+      <div class="tags"><span class="tag hl">帳票</span><span class="tag">請求書</span><span class="tag">インボイス対応</span></div>
+      <h2>請求書 自動発行</h2>
+      <p>案件を選ぶだけで適格請求書を自動生成し、メール送付・入金ステータスまで一元管理します。</p>
+    </div>
+  </a>
+
+</div>
+
+<div class="soon-sec">
+  <h3>COMING SOON — 制作予定のモック</h3>
+  <div class="soon-grid">
+    <div class="soon"><b>勤怠管理ダッシュボード</b>打刻・残業アラート・シフト管理</div>
+    <div class="soon"><b>在庫・発注管理</b>バーコード棚卸と自動発注点アラート</div>
+    <div class="soon"><b>問い合わせAIチャットボット</b>社内FAQ・顧客対応の自動化</div>
+    <div class="soon"><b>営業日報・案件管理（SFA）</b>訪問記録から売上予測まで</div>
+    <div class="soon"><b>経営ダッシュボード</b>売上・粗利・資金繰りをリアルタイム可視化</div>
+    <div class="soon"><b>予約・順番待ち管理</b>店舗・クリニック向け受付システム</div>
+  </div>
+</div>
+
+<footer>UI MOCKUP GALLERY — 画面はすべてデモです。実データは使用していません。／個人情報・機密情報を外部AIに送信しない設計を標準としています。</footer>
+
+<script>
+document.querySelectorAll(".fbtn").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll(".fbtn").forEach(x=>x.classList.remove("on"));
+  b.classList.add("on");
+  const f=b.dataset.f;
+  document.querySelectorAll(".card").forEach(c=>{
+    c.style.display=(f==="all"||c.dataset.c.split(" ").includes(f))?"":"none";
+  });
+}));
+</script>
+</body>
+</html>

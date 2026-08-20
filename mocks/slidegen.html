@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI資料作成ワークスペース｜用途別テンプレ・収集/マスキング一元管理 デモ</title>
+<style>
+:root{
+  --bg:#F1F3F7; --paper:#fff; --ink:#1B2432; --ink-soft:#66738A; --line:#DCE2EC;
+  --accent:#0E7490; --accent-soft:#E2F3F7; --ok:#2E7D5B; --ok-soft:#E6F3EE;
+  --warn:#9A6B00; --warn-soft:#FBF3DC; --mask:#B45309; --mask-soft:#FCEFDC; --red:#C7423C;
+  --mono:"Consolas","SFMono-Regular",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.7}
+button{font-family:inherit;cursor:pointer}
+header{background:var(--paper);border-bottom:1px solid var(--line);padding:12px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{width:30px;height:30px;border-radius:8px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+header h1{font-size:16px}
+header .sub{font-size:11.5px;color:var(--ink-soft)}
+.chip{margin-left:auto;font-size:11px;border:1px solid var(--ok);color:var(--ok);background:var(--ok-soft);border-radius:4px;padding:2px 10px}
+
+/* タブ */
+.tabs{background:var(--paper);border-bottom:1px solid var(--line);padding:0 24px;display:flex;gap:4px;overflow-x:auto}
+.tab{border:none;background:none;padding:11px 20px;font-size:13.5px;font-weight:700;color:var(--ink-soft);border-bottom:3px solid transparent;white-space:nowrap;display:flex;align-items:center;gap:7px}
+.tab:hover{color:var(--ink)}
+.tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+.tab .ic{font-size:15px}
+
+.console-banner{max-width:1300px;margin:14px auto 0;padding:11px 18px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;background:linear-gradient(90deg,#0E7490,#12889E);color:#fff;border-radius:12px}
+.console-banner .t{font-weight:700;font-size:14px}
+.console-banner .d{font-size:11.5px;opacity:.92}
+.console-banner .stats{margin-left:auto;display:flex;gap:16px;flex-wrap:wrap}
+.console-banner .stat{text-align:center}
+.console-banner .stat b{display:block;font-family:var(--mono);font-size:17px}
+.console-banner .stat span{font-size:10px;opacity:.9}
+
+main{max-width:1300px;margin:14px auto;padding:0 18px 60px;display:grid;grid-template-columns:390px 1fr;gap:18px;align-items:start}
+@media(max-width:1040px){main{grid-template-columns:1fr}}
+.pane{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:15px 17px;margin-bottom:14px}
+.pane h2{font-size:12px;letter-spacing:.08em;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pane h2 .badge{font-size:9.5px;background:var(--accent-soft);color:var(--accent);border-radius:9px;padding:1px 8px}
+.pane h2 .badge.admin{background:var(--warn-soft);color:var(--warn)}
+.pane .note{font-size:10.5px;color:var(--ink-soft);margin-bottom:10px}
+
+.src-row,.mask-row{display:flex;align-items:center;gap:9px;padding:6px 9px;border:1px solid var(--line);border-radius:8px;margin-bottom:5px;font-size:12.5px}
+.src-row.off,.mask-row.off{opacity:.5}
+.sw{width:33px;height:18px;border-radius:11px;background:#CBD3DF;position:relative;flex:none;transition:.18s;cursor:pointer}
+.sw::after{content:"";position:absolute;left:2px;top:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:.18s}
+.sw.on{background:var(--accent)}.sw.on::after{left:17px}
+.src-row .tag{margin-left:auto;font-size:9.5px;border-radius:9px;padding:1px 7px;font-family:var(--mono)}
+.tag.live{background:var(--ok-soft);color:var(--ok)}.tag.demo{background:#EEF1F5;color:var(--ink-soft)}
+.mask-row .tok{font-family:var(--mono);font-size:10.5px;background:var(--mask-soft);color:var(--mask);border-radius:4px;padding:0 6px}
+.mask-row .cnt{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--ink-soft)}
+.mask-row .cnt.hit{color:var(--mask);font-weight:700}
+.mask-row .del{border:none;background:none;color:var(--ink-soft);font-size:13px}
+.add-row{display:flex;gap:6px;margin-top:7px}
+.add-row input{flex:1;border:1px solid var(--line);border-radius:7px;padding:6px 10px;font-size:12px;font-family:inherit;background:#FBFCFD}
+.add-row button{border:1px solid var(--accent);background:var(--paper);color:var(--accent);border-radius:7px;padding:6px 12px;font-size:12px;font-weight:700}
+.mask-summary{margin-top:9px;background:var(--mask-soft);border:1px solid #EBD6B8;border-radius:8px;padding:8px 12px;font-size:12px;color:var(--mask);font-weight:700;display:none}
+.mask-summary.show{display:block}
+
+.inp{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 12px;font-size:13px;font-family:inherit;background:#FBFCFD;margin-bottom:8px}
+textarea.inp{min-height:96px;resize:vertical;font-size:12px;line-height:1.6}
+.run{width:100%;border:none;background:var(--accent);color:#fff;font-weight:700;border-radius:8px;padding:11px;font-size:13.5px}
+
+.tpl-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tplc{border:2px solid var(--line);border-radius:10px;overflow:hidden;cursor:pointer;transition:.15s}
+.tplc:hover{border-color:var(--accent);transform:translateY(-2px)}
+.tplc.on{border-color:var(--accent);box-shadow:0 4px 12px rgba(14,116,144,.2)}
+.tplc .mini{aspect-ratio:16/9;padding:7px 8px;display:flex;flex-direction:column;justify-content:center;gap:3px;font-size:5px}
+.tplc .cap{padding:5px 8px;border-top:1px solid var(--line);font-size:10.5px;font-weight:700}
+.tplc .cap small{display:block;font-weight:400;color:var(--ink-soft);font-size:9px}
+.mini .m-t{font-weight:700;line-height:1.3}
+.mini .m-l{height:2px;border-radius:2px;opacity:.55}
+.mini .m-tag{font-size:4px;letter-spacing:.1em}
+.tpl-add{width:100%;border:2px dashed var(--line);background:none;border-radius:9px;padding:9px;font-size:11.5px;color:var(--ink-soft);margin-top:8px}
+.gen-btn{width:100%;border:none;background:var(--accent);color:#fff;font-weight:700;border-radius:9px;padding:13px;font-size:14px;margin-top:10px}
+.gen-btn:disabled{opacity:.42;cursor:default}
+
+.res-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.res-head h2{font-size:12px;font-weight:700}
+.toggle{margin-left:auto;display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:11.5px}
+.toggle button{border:none;background:var(--paper);padding:5px 12px;font-weight:600;color:var(--ink-soft)}
+.toggle button.on{background:var(--accent);color:#fff}
+.g-card{border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-size:12px;margin-bottom:8px;word-break:break-word;animation:up .35s ease}
+@keyframes up{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+.g-card .src{font-family:var(--mono);font-size:10px;color:var(--accent)}
+.g-card .t{font-weight:700;font-size:12.5px}
+.masktag{background:var(--mask-soft);color:var(--mask);border-radius:4px;padding:0 5px;font-family:var(--mono);font-size:11px}
+.rawtag{background:#FDE8E7;color:var(--red);border-radius:4px;padding:0 5px}
+.gather-status{display:none;align-items:center;gap:8px;font-size:12px;color:var(--ink-soft);margin:8px 0}
+.gather-status.show{display:flex}
+.spinner{width:13px;height:13px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{color:var(--ink-soft);font-size:12.5px;text-align:center;padding:30px 20px;border:2px dashed var(--line);border-radius:10px}
+.ai-payload{margin-top:10px;border:1px solid var(--line);border-radius:8px;overflow:hidden;display:none}
+.ai-payload.show{display:block}
+.ai-payload .hd{background:#EDF2F0;color:var(--ok);font-size:10.5px;font-weight:700;padding:5px 11px}
+.ai-payload pre{margin:0;padding:8px 11px;font-family:var(--mono);font-size:10.5px;line-height:1.8;background:#FBFCFD;white-space:pre-wrap;word-break:break-word}
+.ai-payload .mk{background:var(--mask-soft);color:var(--mask);border-radius:3px;padding:0 4px}
+
+.editor{background:var(--paper);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:none}
+.editor.show{display:block;animation:up .4s ease}
+.ed-bar{background:#F7F8FB;border-bottom:1px solid var(--line);padding:9px 16px;display:flex;align-items:center;gap:10px;font-size:12px;flex-wrap:wrap}
+.ed-bar .tt{font-weight:700}
+.ed-bar .hint{color:var(--ink-soft);font-size:11px}
+.ed-bar .btns{margin-left:auto;display:flex;gap:8px}
+.ed-bar button{border:1px solid var(--line);background:var(--paper);border-radius:7px;padding:6px 13px;font-size:12px;font-weight:600}
+.ed-bar button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.ed-body{display:grid;grid-template-columns:148px 1fr;min-height:400px}
+@media(max-width:720px){.ed-body{grid-template-columns:1fr}}
+.thumbs{border-right:1px solid var(--line);padding:11px;display:flex;flex-direction:column;gap:9px;background:#FAFBFC;overflow-y:auto;max-height:520px}
+.tn{border:1.5px solid var(--line);border-radius:6px;aspect-ratio:16/9;cursor:pointer;position:relative;overflow:hidden}
+.tn.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.tn .no{position:absolute;left:4px;top:2px;font-family:var(--mono);font-size:9px;z-index:2;opacity:.6}
+.tn .edited{position:absolute;right:3px;top:2px;font-size:8px;color:var(--warn);z-index:2}
+.tn .prev{position:absolute;inset:0;transform:scale(.126);transform-origin:top left;width:740px;height:416px;pointer-events:none}
+.stage{padding:20px;display:flex;align-items:center;justify-content:center;background:#EEF1F5}
+
+.slide{width:100%;max-width:680px;aspect-ratio:16/9;position:relative;overflow:hidden;box-shadow:0 10px 30px rgba(27,36,50,.18);background:var(--s-bg);color:var(--s-ink);font-family:var(--s-font);padding:34px 40px;display:flex;flex-direction:column}
+.slide .pg{position:absolute;right:16px;bottom:10px;font-family:var(--mono);font-size:9.5px;opacity:.5}
+.slide h3{font-size:21px;font-weight:700;margin-bottom:12px}
+.slide .lead{font-size:10px;letter-spacing:.2em;color:var(--s-accent);margin-bottom:6px;font-family:var(--mono)}
+.slide ul{font-size:12px;line-height:1.85;list-style:none}
+.slide ul li{position:relative;padding-left:15px;margin-bottom:4px}
+.slide ul li::before{content:"";position:absolute;left:0;top:.7em;width:7px;height:7px;background:var(--s-accent);border-radius:var(--s-dot)}
+.slide table{width:100%;border-collapse:collapse;font-size:10.5px}
+.slide th{text-align:left;padding:5px 7px;border-bottom:2px solid var(--s-accent);color:var(--s-accent);font-family:var(--mono);font-size:9.5px;letter-spacing:.05em}
+.slide td{padding:5px 7px;border-bottom:1px solid rgba(128,128,128,.28)}
+.slide td.n{font-family:var(--mono);text-align:right}
+.slide .bars{display:flex;flex-direction:column;gap:7px;font-size:11px;margin-top:4px}
+.slide .bars .b{display:flex;align-items:center;gap:8px}
+.slide .bars .b .nm{width:110px;flex:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.slide .bars .b .tr{flex:1;height:9px;background:rgba(128,128,128,.2);border-radius:5px;overflow:hidden}
+.slide .bars .b .tr i{display:block;height:100%;background:var(--s-accent)}
+.slide .bars .b .v{font-family:var(--mono);font-size:10px;width:44px;text-align:right}
+.slide.cover{justify-content:center;gap:10px}
+.slide.cover .to{font-size:12.5px;opacity:.75;letter-spacing:.1em}
+.slide.cover .big{font-size:31px;font-weight:800;line-height:1.35}
+.slide.cover .from{font-size:10.5px;opacity:.6;margin-top:16px;font-family:var(--mono)}
+.src-tag{font-size:9px;opacity:.55;font-family:var(--mono);border:1px solid currentColor;border-radius:3px;padding:0 4px;margin-left:4px}
+[contenteditable]{outline:none;border-radius:4px}
+[contenteditable]:hover{box-shadow:0 0 0 2px rgba(125,125,125,.25)}
+[contenteditable]:focus{box-shadow:0 0 0 2px var(--s-accent)}
+
+.t-hard{--s-bg:#0B0E14;--s-ink:#E9EDF5;--s-accent:#C6FF3D;--s-font:"Helvetica Neue","Hiragino Kaku Gothic ProN",sans-serif;--s-dot:0}
+.t-hard h3{border-bottom:1px solid rgba(233,237,245,.18);padding-bottom:8px}
+.t-hard::after{content:"";position:absolute;right:-90px;top:-90px;width:260px;height:260px;border:1px solid rgba(198,255,61,.28);border-radius:50%}
+.t-mono{--s-bg:#FAFAF8;--s-ink:#14161A;--s-accent:#14161A;--s-font:"Times New Roman","Hiragino Mincho ProN",serif;--s-dot:0}
+.t-mono h3{border-bottom:3px solid #14161A;padding-bottom:8px}
+.t-mono ul li::before{width:12px;height:1.5px;top:.95em}
+.t-navy{--s-bg:linear-gradient(140deg,#101A34,#24487F);--s-ink:#EAF1FF;--s-accent:#5BC8FF;--s-font:"Hiragino Kaku Gothic ProN",sans-serif;--s-dot:2px}
+.t-navy h3{border-left:5px solid #5BC8FF;padding-left:12px}
+.t-warm{--s-bg:#F5EFE6;--s-ink:#2A211A;--s-accent:#B4531F;--s-font:"Hiragino Mincho ProN","Yu Mincho",serif;--s-dot:50%}
+.t-warm h3{color:#B4531F;border-bottom:1px solid #D8C7B2;padding-bottom:8px}
+.t-corp{--s-bg:#fff;--s-ink:#1B2430;--s-accent:#1D5FA8;--s-font:"Hiragino Kaku Gothic ProN",sans-serif;--s-dot:2px;border-top:9px solid #1D5FA8}
+.t-corp h3{color:#1D5FA8}
+.t-data{--s-bg:#12141A;--s-ink:#DFE5EE;--s-accent:#FF6B4A;--s-font:"Helvetica Neue",sans-serif;--s-dot:0;background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);background-size:34px 34px}
+.t-data h3{font-family:var(--mono);border-bottom:1px dashed rgba(223,229,238,.3);padding-bottom:8px}
+.t-data ul li::before{width:9px;height:9px;transform:rotate(45deg);top:.6em}
+
+.edit-log{border-top:1px solid var(--line);padding:8px 16px;font-size:11px;color:var(--ink-soft)}
+.edit-log b{color:var(--warn)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:10px 22px;border-radius:8px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:50}
+.toast.show{opacity:1;transform:translateX(-50%)}
+.hidden{display:none !important}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">AI</div>
+  <div><h1>AI資料作成ワークスペース</h1><div class="sub">用途別テンプレ｜収集ソースとマスキングを全社一元管理</div></div>
+  <span class="chip">🔒 UIデモ版・マスキング全社共通</span>
+</header>
+
+<div class="tabs">
+  <button class="tab on" data-m="sales"><span class="ic">📊</span>営業用スライド</button>
+  <button class="tab" data-m="comp"><span class="ic">⚔️</span>競合調査</button>
+  <button class="tab" data-m="data"><span class="ic">🧮</span>データ整理</button>
+  <button class="tab" data-m="research"><span class="ic">🔎</span>情報収集（キーワード）</button>
+</div>
+
+<div class="console-banner">
+  <span style="font-size:21px">🛡️</span>
+  <div>
+    <div class="t">どのタブでも、収集ソースとマスキングルールは共通設定が適用されます</div>
+    <div class="d">用途ごとに専用テンプレへ切替。設定は1か所で管理し、全社の生成物に即反映されます。</div>
+  </div>
+  <div class="stats">
+    <div class="stat"><b id="stMode">営業</b><span>現在のモード</span></div>
+    <div class="stat"><b id="stSrc">3</b><span>有効ソース</span></div>
+    <div class="stat"><b id="stRule">4</b><span>マスク規則</span></div>
+    <div class="stat"><b id="stMask">0</b><span>マスク件数</span></div>
+  </div>
+</div>
+
+<main>
+  <!-- 左 -->
+  <section>
+    <!-- 入力（モード別） -->
+    <div class="pane">
+      <h2 id="inTitle">📊 営業用スライド</h2>
+      <div class="note" id="inNote">提案先の会社名かURLを入力すると、公開情報を収集して提案書を作ります。</div>
+
+      <div id="in-sales">
+        <input class="inp" id="q-sales" value="トヨタ自動車" placeholder="会社名 または https://〜">
+        <button class="run" data-run="sales">公開情報を収集</button>
+      </div>
+      <div id="in-comp" class="hidden">
+        <input class="inp" id="q-comp" value="トヨタ自動車, 本田技研工業, 日産自動車" placeholder="比較したい企業をカンマ区切りで（2〜4社）">
+        <button class="run" data-run="comp">競合をまとめて収集</button>
+      </div>
+      <div id="in-data" class="hidden">
+        <textarea class="inp" id="q-data">商品,数量,金額
+A商品,120,480000
+B商品,85,255000
+C商品,40,320000
+D商品,ｰ,90000</textarea>
+        <button class="run" data-run="data">貼り付けデータを整形</button>
+      </div>
+      <div id="in-research" class="hidden">
+        <input class="inp" id="q-research" value="生成AI 業務効率化" placeholder="調べたいキーワード">
+        <button class="run" data-run="research">キーワードで収集</button>
+        <button id="diagBtn" style="width:100%;margin-top:7px;border:1px solid var(--line);background:var(--paper);color:var(--ink-soft);border-radius:8px;padding:8px;font-size:12px;font-weight:600">🔌 接続テスト（つながらない時）</button>
+      </div>
+    </div>
+
+    <!-- ソース -->
+    <div class="pane">
+      <h2>🌐 収集ソース <span class="badge">一元管理</span> <span class="badge admin">管理者のみ</span></h2>
+      <div class="note">オフのソースは誰が使っても収集されません（全タブ共通）。</div>
+      <div id="srcList"></div>
+      <div class="add-row"><input id="newSrc" placeholder="許可ドメイン追加（例：nikkei.com）"><button id="addSrc">＋追加</button></div>
+    </div>
+
+    <!-- マスキング -->
+    <div class="pane">
+      <h2>🔒 マスキング辞書 <span class="badge">一元管理</span> <span class="badge admin">全社共通</span></h2>
+      <div class="note">AIへ送る前に必ず置換。自社の禁止ワードも登録できます。</div>
+      <div id="maskList"></div>
+      <div class="add-row"><input id="newWord" placeholder="マスクする語句（例：未公開案件名）"><button id="addWord">＋登録</button></div>
+      <div class="mask-summary" id="maskSummary"></div>
+    </div>
+
+    <!-- テンプレ（モード別） -->
+    <div class="pane">
+      <h2>🎨 <span id="tplTitle">営業用テンプレート</span> <span class="badge">用途専用</span></h2>
+      <div class="note" id="tplNote">この用途に最適化されたテンプレのみ表示されます。</div>
+      <div class="tpl-grid" id="tplGrid"></div>
+      <button class="tpl-add" id="tplAdd">＋ 自社のPowerPointを登録</button>
+      <button class="gen-btn" id="genBtn" disabled>📑 資料を生成（ワンクリック）</button>
+    </div>
+  </section>
+
+  <!-- 右 -->
+  <section>
+    <div class="pane">
+      <div class="res-head">
+        <h2>📥 収集・整形結果</h2>
+        <div class="toggle">
+          <button id="tgMask" class="on">マスク後（AI送信形）</button>
+          <button id="tgRaw">原文（社内のみ）</button>
+        </div>
+      </div>
+      <div class="gather-status" id="gStatus"><span class="spinner"></span><span id="gMsg">処理中…</span></div>
+      <div id="gather"><div class="empty" id="gEmpty">上のタブで用途を選び、左で実行してください。</div></div>
+      <div class="ai-payload" id="aiPayload">
+        <div class="hd">🔒 AIへ実際に送信されるデータ（マスキング適用済み）</div>
+        <pre id="aiPre"></pre>
+      </div>
+    </div>
+
+    <div class="editor" id="editor">
+      <div class="ed-bar">
+        <span class="tt" id="edTitle">資料</span>
+        <span class="hint">✏️ 文字はクリックで手修正</span>
+        <div class="btns">
+          <button onclick="toast('PPTXで出力しました（デモ）')">PPTX出力</button>
+          <button onclick="toast('Excelで出力しました（デモ）')">Excel出力</button>
+          <button class="primary" onclick="toast('共有リンクを発行しました（デモ）')">共有</button>
+        </div>
+      </div>
+      <div class="ed-body">
+        <div class="thumbs" id="thumbs"></div>
+        <div class="stage"><div id="stageSlot" style="width:100%;display:flex;justify-content:center"></div></div>
+      </div>
+      <div class="edit-log"><span>編集履歴：</span><span id="logItems">（まだ手修正はありません）</span></div>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toastEl"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+let mode="sales",col=null,slides=[],currentSlide=0,editCount=0,showRaw=false,lastMaskCount=0;
+
+/* ── モード定義 ── */
+const MODES={
+  sales:{icon:"📊",title:"営業用スライド",note:"提案先の会社名かURLを入力すると、公開情報を収集して提案書を作ります。",tplTitle:"営業用テンプレート",stat:"営業",
+    tpls:[{id:"prop5",n:"提案書 5枚",d:"課題→提案→効果"},{id:"intro",n:"会社紹介",d:"自社紹介＋実績"},{id:"quick",n:"クイック提案",d:"3枚・初回訪問用"},{id:"exec",n:"経営層向け",d:"要点1枚＋根拠"}]},
+  comp:{icon:"⚔️",title:"競合調査",note:"比較したい企業をカンマ区切りで入力。各社の公開情報を一括収集して比較資料にします。",tplTitle:"競合調査テンプレート",stat:"競合",
+    tpls:[{id:"matrix",n:"競合比較表",d:"項目×社のマトリクス"},{id:"posi",n:"ポジショニング",d:"シェア/強み可視化"},{id:"swot",n:"SWOT分析",d:"自社視点の整理"},{id:"digest",n:"競合ダイジェスト",d:"1社1枚サマリー"}]},
+  data:{icon:"🧮",title:"データ整理",note:"CSVや表を貼り付けると、表記ゆれ・欠損を整えて集計資料にします。",tplTitle:"データ整理テンプレート",stat:"データ",
+    tpls:[{id:"table",n:"整形テーブル",d:"クレンジング結果"},{id:"kpi",n:"KPIサマリー",d:"合計・構成比"},{id:"rank",n:"ランキング",d:"上位項目を可視化"},{id:"audit",n:"データ品質",d:"欠損・異常値レポート"}]},
+  research:{icon:"🔎",title:"情報収集（キーワード）",note:"キーワードで複数の公開情報を収集し、出典付きのリサーチ資料にします。",tplTitle:"リサーチテンプレート",stat:"収集",
+    tpls:[{id:"summary",n:"リサーチ要約",d:"論点＋出典"},{id:"trend",n:"トレンド整理",d:"時系列・動向"},{id:"memo",n:"社内共有メモ",d:"箇条書き中心"},{id:"brief",n:"経営ブリーフ",d:"示唆と提言"}]}
+};
+const themes=[
+  {id:"t-hard",n:"Hardtech Dark",bg:"#0B0E14",ink:"#E9EDF5",ac:"#C6FF3D"},
+  {id:"t-mono",n:"Editorial Mono",bg:"#FAFAF8",ink:"#14161A",ac:"#14161A"},
+  {id:"t-navy",n:"Deep Navy",bg:"linear-gradient(140deg,#101A34,#24487F)",ink:"#EAF1FF",ac:"#5BC8FF"},
+  {id:"t-warm",n:"Warm Editorial",bg:"#F5EFE6",ink:"#2A211A",ac:"#B4531F"},
+  {id:"t-corp",n:"Corporate Clean",bg:"#fff",ink:"#1B2430",ac:"#1D5FA8"},
+  {id:"t-data",n:"Data Grid",bg:"#12141A",ink:"#DFE5EE",ac:"#FF6B4A"}
+];
+const defTheme={sales:"t-corp",comp:"t-data",data:"t-mono",research:"t-navy"};
+let tpl="prop5",theme="t-corp";
+
+/* ── タブ切替 ── */
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));
+  t.classList.add("on");mode=t.dataset.m;
+  const M=MODES[mode];
+  $("inTitle").textContent=M.icon+" "+M.title;
+  $("inNote").textContent=M.note;
+  $("tplTitle").textContent=M.tplTitle;
+  $("stMode").textContent=M.stat;
+  ["sales","comp","data","research"].forEach(k=>$("in-"+k).classList.toggle("hidden",k!==mode));
+  theme=defTheme[mode];tpl=M.tpls[0].id;
+  renderTpl();
+  col=null;slides=[];$("editor").classList.remove("show");$("genBtn").disabled=true;
+  $("gather").innerHTML='<div class="empty">左で実行すると、この用途に合わせた収集・整形を行います。</div>';
+  $("aiPayload").classList.remove("show");
+  toast(`「${M.title}」モードに切替（専用テンプレを表示）`);
+}));
+
+function renderTpl(){
+  const M=MODES[mode];
+  $("tplGrid").innerHTML=M.tpls.map(t=>{
+    const th=themes.find(x=>x.id===theme);
+    return `<div class="tplc ${t.id===tpl?"on":""}" data-id="${t.id}">
+      <div class="mini" style="background:${th.bg};color:${th.ink}">
+        <div class="m-tag" style="color:${th.ac}">${t.n}</div>
+        <div class="m-t">${t.d}</div>
+        <div class="m-l" style="background:${th.ac};width:60%"></div>
+        <div class="m-l" style="background:${th.ink};width:85%"></div>
+      </div><div class="cap">${t.n}<small>${t.d}</small></div></div>`}).join("")
+    +`<div style="grid-column:1/-1;display:flex;gap:5px;flex-wrap:wrap;margin-top:4px">
+      ${themes.map(th=>`<button class="thbtn" data-th="${th.id}" style="border:2px solid ${th.id===theme?"#0E7490":"#DCE2EC"};background:${th.bg};width:26px;height:26px;border-radius:6px" title="${th.n}"></button>`).join("")}
+      <span style="font-size:10px;color:var(--ink-soft);align-self:center">← 配色テーマ</span></div>`;
+  document.querySelectorAll(".tplc").forEach(c=>c.addEventListener("click",()=>{tpl=c.dataset.id;renderTpl();if(slides.length)generate();}));
+  document.querySelectorAll(".thbtn").forEach(b=>b.addEventListener("click",()=>{theme=b.dataset.th;renderTpl();if(slides.length){slides.forEach(s=>s.theme=theme);renderThumbs();showSlide(currentSlide)}}));
+}
+$("tplAdd").addEventListener("click",()=>toast("自社pptxを解析してこの用途のテンプレに登録（デモ）"));
+
+/* ── ソース・マスキング（全タブ共通） ── */
+let sources=[
+  {id:"wiki",name:"Wikipedia（公開情報）",live:true,on:true},
+  {id:"site",name:"企業サイト（URL指定）",live:true,on:true},
+  {id:"news",name:"ニュース検索",live:false,on:true},
+  {id:"gov",name:"公的DB（法人番号）",live:false,on:false},
+  {id:"crm",name:"自社CRM・名刺DB",live:false,on:false}
+];
+function renderSrc(){
+  $("srcList").innerHTML=sources.map(s=>`<div class="src-row ${s.on?"":"off"}">
+    <span class="sw ${s.on?"on":""}" data-id="${s.id}"></span><span>${s.name}</span>
+    <span class="tag ${s.live?"live":"demo"}">${s.live?"実接続":"本番接続"}</span></div>`).join("");
+  $("srcList").querySelectorAll(".sw").forEach(sw=>sw.addEventListener("click",()=>{
+    const s=sources.find(x=>x.id===sw.dataset.id);s.on=!s.on;renderSrc();
+    toast(`「${s.name}」を${s.on?"有効":"無効"}に（全社・全タブへ即反映）`)}));
+  $("stSrc").textContent=sources.filter(s=>s.on).length;
+}
+$("addSrc").addEventListener("click",()=>{const v=$("newSrc").value.trim();if(!v)return;
+  sources.push({id:"c"+Date.now(),name:v,live:false,on:true});$("newSrc").value="";renderSrc()});
+
+let rules=[
+  {label:"メールアドレス",token:"【メール】",re:/[\w.+-]+@[\w-]+\.[\w.-]+/g,on:true,sys:true,cnt:0},
+  {label:"電話番号",token:"【電話】",re:/(0\d{1,4})[-‐−ー(]\d{1,4}[-‐−ー)]\d{3,4}/g,on:true,sys:true,cnt:0},
+  {label:"郵便番号・住所",token:"【住所】",re:/〒\s?\d{3}[-‐−ー]\d{4}/g,on:true,sys:true,cnt:0},
+  {label:"人名（代表者・担当者）",token:"【氏名】",re:/(代表取締役|取締役|代表者|担当)\s*[^\s、。（(]{2,8}/g,on:true,sys:true,cnt:0},
+  {label:"金額（社外秘）",token:"【金額】",re:/\d[\d,]*\s?(億|万)?円/g,on:false,sys:true,cnt:0}
+];
+function renderMask(){
+  $("maskList").innerHTML=rules.map((r,i)=>`<div class="mask-row ${r.on?"":"off"}">
+    <span class="sw ${r.on?"on":""}" data-i="${i}"></span><span>${r.label}</span>
+    <span class="tok">${r.token}</span><span class="cnt ${r.cnt?"hit":""}">${r.cnt?r.cnt+"件":"—"}</span>
+    ${r.sys?"":`<button class="del" data-d="${i}">✕</button>`}</div>`).join("");
+  $("maskList").querySelectorAll(".sw").forEach(sw=>sw.addEventListener("click",()=>{
+    rules[+sw.dataset.i].on=!rules[+sw.dataset.i].on;renderMask();if(col)recalc();toast("マスク規則を更新（全社即反映）")}));
+  $("maskList").querySelectorAll(".del").forEach(b=>b.addEventListener("click",()=>{rules.splice(+b.dataset.d,1);renderMask();if(col)recalc()}));
+  $("stRule").textContent=rules.filter(r=>r.on).length;
+}
+$("addWord").addEventListener("click",()=>{const v=$("newWord").value.trim();if(!v)return;
+  rules.push({label:"カスタム「"+v+"」",token:"【マスク】",re:new RegExp(v.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"g"),on:true,sys:false,cnt:0});
+  $("newWord").value="";renderMask();if(col)recalc();toast("辞書に登録。以後AIに送信されません")});
+
+function esc(s){return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+function mk(t){let s=t||"";rules.forEach(r=>{if(r.on)s=s.replace(r.re,r.token)});return s}
+function maskHTML(t){return esc(mk(t)).replace(/【[^】]{1,8}】/g,m=>`<span class="masktag">${m}</span>`)}
+function rawHTML(t){let h=esc(t||"");rules.forEach(r=>{if(r.on)h=h.replace(r.re,m=>`<span class="rawtag">${esc(m)}</span>`)});return h}
+
+/* ── 実行 ── */
+document.querySelectorAll(".run").forEach(b=>b.addEventListener("click",()=>run(b.dataset.run)));
+function jsonp(url){return new Promise((res,rej)=>{
+  const cb="__wp"+Date.now()+Math.floor(Math.random()*1e5),s=document.createElement("script");
+  const clean=()=>{try{delete window[cb]}catch(e){window[cb]=undefined};s.remove()};
+  window[cb]=d=>{clean();res(d)};
+  s.onerror=()=>{clean();rej(new Error("スクリプト読込失敗"))};
+  s.src=url+"&format=json&callback="+cb;document.head.appendChild(s);
+  setTimeout(()=>{if(window[cb]){clean();rej(new Error("タイムアウト(15秒)"))}},15000)})}
+
+/* 3系統フォールバック：JSONP(ja) → JSONP(モバイル版) → fetch(CORS) */
+let apiRoute="未接続";
+async function api(params){
+  const errs=[];
+  for(const h of ["https://ja.wikipedia.org","https://ja.m.wikipedia.org"]){
+    try{const d=await jsonp(h+"/w/api.php?"+params);apiRoute="JSONP "+h.replace("https://","");return d}
+    catch(e){errs.push(h.replace("https://","")+":"+e.message)}
+  }
+  try{
+    const r=await fetch("https://ja.wikipedia.org/w/api.php?"+params+"&format=json&origin=*");
+    if(!r.ok)throw new Error("HTTP "+r.status);
+    apiRoute="fetch(CORS)";return await r.json();
+  }catch(e){errs.push("fetch:"+e.message)}
+  /* 経路4：中継サービス経由（Wikipedia直アクセスが遮断されている環境向け） */
+  for(const px of ["https://r.jina.ai/","https://api.allorigins.win/raw?url="]){
+    try{
+      const target="https://ja.wikipedia.org/w/api.php?"+params+"&format=json";
+      const r=await fetch(px+(px.includes("url=")?encodeURIComponent(target):target));
+      if(!r.ok)throw new Error("HTTP "+r.status);
+      const d=JSON.parse(await r.text());
+      apiRoute="中継 "+px.replace(/https:\/\/|\/.*$/g,"");return d;
+    }catch(e){errs.push("proxy:"+e.message)}
+  }
+  throw new Error("Wikipediaに接続できません ["+errs.join(" / ")+"]");
+}
+/* 外部接続そのものが可能かを切り分け */
+function pingImg(url){return new Promise(res=>{
+  const i=new Image();const t=setTimeout(()=>{i.src="";res(false)},7000);
+  i.onload=()=>{clearTimeout(t);res(true)};i.onerror=()=>{clearTimeout(t);res(false)};
+  i.src=url+"?_="+Date.now();})}
+/* 接続診断 */
+async function diag(){
+  $("gather").innerHTML="";$("gStatus").classList.add("show");$("gMsg").textContent="接続を診断中…";
+  const isFile=location.protocol==="file:";
+  card("環境","診断開始","表示元："+(isFile?"file://（ファイル直開き）":location.origin)+"／ブラウザのオンライン状態："+(navigator.onLine?"オンライン":"オフライン"));
+  const cdn=await pingImg("https://cdnjs.cloudflare.com/favicon.ico");
+  const wp=await pingImg("https://ja.wikipedia.org/static/favicon/wikipedia.ico");
+  card("外部接続テスト","cdnjs（一般CDN）："+(cdn?"✅ 到達":"❌ 不可")+" ／ Wikipedia："+(wp?"✅ 到達":"❌ 不可"),
+    !cdn&&!wp ? "外部サイト全般に接続できていません。ネットワーク未接続、またはブラウザ/セキュリティソフトがこのページからの外部通信を遮断しています。"
+    : (cdn&&!wp) ? "一般サイトには繋がるが Wikipedia だけ遮断されています。社内フィルタで ja.wikipedia.org がブロックされている可能性が高いです。"
+    : "外部接続は可能です。API側の応答を確認します。");
+  try{
+    const d=await api("action=query&list=search&srlimit=1&srsearch="+encodeURIComponent("テスト"));
+    const n=d.query&&d.query.search&&d.query.search.length;
+    card("API接続","✅ 成功（経路："+apiRoute+"）","検索結果 "+n+" 件を取得。キーワード収集が利用できます。");
+  }catch(e){
+    card("API接続","❌ 失敗",(e.message||"")+
+      "｜対処：① 社内フィルタで ja.wikipedia.org を許可 ② 公開URL（https配信）から開く ③ 別ネットワーク（テザリング等）で再試行。"+
+      (isFile?" ※ファイル直開き(file://)では一部ブラウザが外部通信を制限します。まずは公開URL上でお試しください。":""));
+  }
+  $("gStatus").classList.remove("show");
+}
+async function wiki(q){
+  const s=await api("action=opensearch&limit=1&search="+encodeURIComponent(q));
+  let title=s[1]&&s[1][0];
+  if(!title){ // 前方一致で無ければ全文検索にフォールバック
+    const hits=await searchWiki(q,1);
+    if(!hits.length)throw new Error("該当なし："+q);
+    title=hits[0].title;
+  }
+  const r=await api("action=query&prop=extracts&exintro=1&explaintext=1&redirects=1&titles="+encodeURIComponent(title));
+  const pg=r.query.pages,p=pg[Object.keys(pg)[0]];
+  return {title,text:(p.extract||"").replace(/\s+/g," ").slice(0,300)};
+}
+/* キーワード全文検索（複数語・自然文に対応） */
+async function searchWiki(kw,limit){
+  const r=await api("action=query&list=search&srlimit="+(limit||5)+"&srsearch="+encodeURIComponent(kw));
+  return ((r.query&&r.query.search)||[]).map(x=>({
+    title:x.title,
+    snippet:(x.snippet||"").replace(/<[^>]+>/g,"").replace(/&[a-z]+;/g," ").trim()
+  }));
+}
+/* 複数タイトルの本文を1リクエストでまとめて取得 */
+async function extracts(titles){
+  const r=await api("action=query&prop=extracts&exintro=1&explaintext=1&redirects=1&titles="+encodeURIComponent(titles.join("|")));
+  const pg=(r.query&&r.query.pages)||{};
+  return Object.keys(pg).map(k=>({
+    title:pg[k].title,
+    text:((pg[k].extract)||"").replace(/\s+/g," ").slice(0,300)
+  })).filter(x=>x.text);
+}
+function card(src,title,text){
+  const d=document.createElement("div");d.className="g-card";d.dataset.text=text;
+  d.innerHTML=`<span class="src">[${esc(src)}]</span> <span class="t">${esc(title)}</span><br><span class="bd">${showRaw?rawHTML(text):maskHTML(text)}</span>`;
+  $("gather").appendChild(d);
+}
+async function run(m){
+  rules.forEach(r=>r.cnt=0);
+  $("gather").innerHTML="";$("aiPayload").classList.remove("show");$("genBtn").disabled=true;
+  $("gStatus").classList.add("show");$("gMsg").textContent="処理中…";
+  try{
+    if(m==="sales"){
+      const q=$("q-sales").value.trim();
+      if(!sources.find(s=>s.id==="wiki").on)throw new Error("ソース「Wikipedia」が無効です（左の設定で有効化）");
+      $("gMsg").textContent="公開情報を収集中…";
+      const w=await wiki(q);col={mode:m,name:w.title,lines:[{src:"Wikipedia",text:w.text}]};
+      card("Wikipedia（実取得）",w.title,w.text);
+    }
+    if(m==="comp"){
+      const names=$("q-comp").value.split(/[,、]/).map(s=>s.trim()).filter(Boolean).slice(0,4);
+      $("gMsg").textContent=`競合${names.length}社を収集中…`;
+      col={mode:m,name:"競合比較",lines:[],comps:[]};
+      for(const n of names){
+        try{const w=await wiki(n);
+          col.comps.push({name:w.title,text:w.text,score:60+Math.floor(Math.random()*38)});
+          col.lines.push({src:"Wikipedia",text:w.text});
+          card("競合（実取得）",w.title,w.text);
+        }catch(e){card("取得失敗",n,"情報を取得できませんでした")}
+      }
+      if(!col.comps.length)throw new Error("競合情報を取得できませんでした");
+    }
+    if(m==="data"){
+      const raw=$("q-data").value.trim();
+      const rows=raw.split(/\n/).map(r=>r.split(/[,\t]/).map(c=>c.trim()));
+      const head=rows.shift();
+      const clean=rows.map(r=>{const o=r.slice();
+        o.forEach((c,i)=>{if(/^(ｰ|-|―|なし|N\/A|)$/.test(c))o[i]="0"});return o});
+      col={mode:m,name:"データ整理",head,rows:clean,issues:rows.filter(r=>r.some(c=>/^(ｰ|-|―|なし|N\/A|)$/.test(c))).length,
+        lines:[{src:"貼付データ",text:raw.slice(0,200)}]};
+      card("貼付データ",`${clean.length}行 × ${head.length}列`,raw.slice(0,200));
+      card("クレンジング結果",`欠損 ${col.issues}件を0に補正・全角/半角統一`,"表記ゆれ・欠損値を自動補正しました。金額は数値型へ変換。");
+    }
+    if(m==="research"){
+      const k=$("q-research").value.trim();
+      if(!k)throw new Error("キーワードを入力してください");
+      $("gMsg").textContent=`「${k}」で全文検索中…`;
+      let hits=await searchWiki(k,5);
+      if(!hits.length){ // 語を分解して再検索
+        const parts=k.split(/[\s　,、]+/).filter(Boolean);
+        for(const p of parts){const h=await searchWiki(p,3);if(h.length){hits=h;card("検索補正",`「${k}」で0件のため「${p}」で再検索`,"キーワードを分解して関連記事を取得しました。");break}}
+      }
+      if(!hits.length)throw new Error(`「${k}」に該当する記事が見つかりませんでした`);
+      $("gMsg").textContent=`${hits.length}件ヒット。本文を取得中…`;
+      col={mode:m,name:k,lines:[],hits:hits.length};
+      const ex=await extracts(hits.slice(0,4).map(h=>h.title));
+      const got={};ex.forEach(e=>got[e.title]=e.text);
+      hits.slice(0,4).forEach(h=>{
+        const body=got[h.title]||h.snippet;
+        if(!body)return;
+        col.lines.push({src:"Wikipedia",text:body,title:h.title});
+        card("記事（実取得）",h.title,body);
+      });
+      if(!col.lines.length)throw new Error("本文を取得できませんでした");
+      card("検索サマリー",`「${k}」`,`${hits.length}件の関連記事を検出し、上位${col.lines.length}件の本文を取得しました。`);
+    }
+    toast("処理が完了しました（マスキング適用済み）");
+  }catch(e){
+    card("エラー",(e&&e.message)||"失敗","サンプルデータで続行します。代表取締役 山田太郎／03-1234-5678／info@example.co.jp");
+    col=col||{mode:m,name:"サンプル",lines:[{src:"サンプル",text:"代表取締役 山田太郎／03-1234-5678／info@example.co.jp"}]};
+  }
+  $("gStatus").classList.remove("show");recalc();$("genBtn").disabled=false;
+}
+function recalc(){
+  rules.forEach(r=>r.cnt=0);lastMaskCount=0;
+  document.querySelectorAll(".g-card").forEach(c=>{
+    rules.forEach(r=>{if(r.on){const m=(c.dataset.text||"").match(r.re);if(m){r.cnt+=m.length;lastMaskCount+=m.length}}});
+    c.querySelector(".bd").innerHTML=showRaw?rawHTML(c.dataset.text):maskHTML(c.dataset.text);
+  });
+  renderMask();$("stMask").textContent=lastMaskCount;
+  const sm=$("maskSummary");
+  if(lastMaskCount){sm.classList.add("show");sm.textContent=`🔒 ${lastMaskCount}件の個人情報・禁止ワードを検出し、AI送信前に置換しました`}else sm.classList.remove("show");
+  if(col){
+    const t=mk((col.lines||[]).map(l=>l.text).join(" ")).slice(0,120);
+    $("aiPre").innerHTML=`{\n "用途": "${MODES[mode].title}",\n "対象": <span class="mk">"【対象A】"</span>,\n "収集要約": "${esc(t)}…",\n "マスク件数": <span class="mk">${lastMaskCount}</span>\n}`;
+    $("aiPayload").classList.add("show");
+  }
+}
+$("tgMask").addEventListener("click",()=>{showRaw=false;$("tgMask").classList.add("on");$("tgRaw").classList.remove("on");recalc()});
+$("tgRaw").addEventListener("click",()=>{showRaw=true;$("tgRaw").classList.add("on");$("tgMask").classList.remove("on");recalc();toast("原文表示：赤字はAIに送られません")});
+
+/* ── 生成（用途別） ── */
+$("genBtn").addEventListener("click",generate);
+function S(lead,h,body,n,tot){return {thumb:h,edited:false,theme,type:"n",html:`<div class="lead">${lead}</div><h3 contenteditable>${h}</h3>${body}<span class="pg">${n} / ${tot}</span>`}}
+function finishGen(T){
+  $("edTitle").textContent=`${MODES[mode].title}／${T.n}`;
+  $("editor").classList.add("show");editCount=0;$("logItems").textContent="（まだ手修正はありません）";
+  renderThumbs();showSlide(0);
+  toast(`「${T.n}」テンプレで生成（${slides.length}枚・構成が切り替わりました）`);
+}
+function COVER(to,big,from,tot){return {thumb:"表紙",edited:false,theme,type:"cover",
+  html:`<div class="to" contenteditable>${to}</div><div class="big" contenteditable>${big}</div><div class="from" contenteditable>${from}</div><span class="pg">1 / ${tot}</span>`}}
+function UL(items){return `<ul contenteditable>${items.map(i=>`<li>${i}</li>`).join("")}</ul>`}
+
+/* ── テンプレごとに構成・文面を変える ── */
+function buildByTpl(){
+  if(!col)return null;
+  const L=col.lines||[],name=esc(col.name||"");
+  const src=t=>`<span class="src-tag">出典</span>`;
+  const D="2026.08.17";
+
+  /* ===== 営業用スライド ===== */
+  if(mode==="sales"){
+    const facts=L.map(l=>maskHTML(l.text.slice(0,95))+src());
+    if(tpl==="prop5")return[COVER(name+" 御中","業務効率化・DX推進のご提案",D+" ／ 株式会社サンプル",5),
+      S("SECTION 01 ／ CONTEXT","貴社の現状",UL(facts),2,5),
+      S("SECTION 02 ／ ISSUE","想定される課題",UL(["管理業務・手入力の増加","拠点間の情報共有の遅れ","業務の属人化"]),3,5),
+      S("SECTION 03 ／ SOLUTION","ご提案内容",UL(["帳票OCR＋承認ワークフロー","部門共通のクラウド基盤","効果の出やすい部門から段階導入"]),4,5),
+      S("SECTION 04 ／ IMPACT","効果と進め方",UL(["処理時間 ▲60%","9月要件定義 → 12月本稼働","初期費用を抑えた月額プラン"]),5,5)];
+    if(tpl==="intro")return[COVER("会社紹介","株式会社サンプル",D+" ／ "+name+" 御中",5),
+      S("ABOUT ／ 01","私たちについて",UL(["2015年設立・業務システム専業","累計導入 320社／継続率 96%","中小企業のDX支援に特化"]),2,5),
+      S("SERVICE ／ 02","提供サービス",`<table contenteditable><thead><tr><th>領域</th><th>内容</th><th>期間</th></tr></thead><tbody>
+        <tr><td>帳票OCR</td><td>紙・PDFの自動データ化</td><td class="n">1ヶ月</td></tr>
+        <tr><td>ワークフロー</td><td>稟議・承認の電子化</td><td class="n">2ヶ月</td></tr>
+        <tr><td>AI活用支援</td><td>議事録・資料作成の自動化</td><td class="n">1ヶ月</td></tr></tbody></table>`,3,5),
+      S("CASE ／ 03","導入実績",UL(["製造業A社：月80時間の事務削減","建設業B社：稟議リードタイム 5日→1日","物流C社：請求書発行の完全自動化"]),4,5),
+      S("CONTACT ／ 04","ご相談の流れ",UL(["無料ヒアリング（60分）","業務棚卸しと概算見積","スモールスタートで検証"]),5,5)];
+    if(tpl==="quick")return[COVER(name+" 御中","ご提案（サマリー）",D,3),
+      S("QUICK ／ 01","現状と課題",UL(facts.slice(0,2).concat(["→ 管理業務の負荷増加が想定されます"])),2,3),
+      S("QUICK ／ 02","ご提案と次アクション",UL(["帳票OCRで入力業務を自動化","まずは1部門・1ヶ月の試験導入","次回：業務ヒアリング（60分）のお願い"]),3,3)];
+    if(tpl==="exec")return[COVER(name+" 御中","経営層向けサマリー",D+" ／ 1枚要約＋根拠",3),
+      S("EXECUTIVE SUMMARY","結論：管理業務を3年で半減できます",
+        `<div style="font-size:14px;line-height:1.9" contenteditable>投資回収は約14ヶ月。初年度は1部門で検証し、2年目に全社展開する段階導入を推奨します。</div>`+
+        UL(["投資：初期0円＋月額28万円","効果：年間2,400時間の削減","リスク：段階導入により最小化"]),2,3),
+      S("EVIDENCE","根拠（公開情報・実績）",UL(facts.concat(["同規模企業3社での平均削減率 58%"])),3,3)];
+  }
+
+  /* ===== 競合調査 ===== */
+  if(mode==="comp"){
+    const C=col.comps||[];
+    if(!C.length)return null;
+    const rows=C.map(c=>`<tr><td>${esc(c.name)}</td><td>${maskHTML(c.text.slice(0,40))}…</td><td class="n">${c.score}</td></tr>`).join("");
+    const bars=C.map(c=>`<div class="b"><span class="nm">${esc(c.name)}</span><span class="tr"><i style="width:${c.score}%"></i></span><span class="v">${c.score}</span></div>`).join("");
+    if(tpl==="matrix")return[COVER("競合調査レポート",esc(C.map(c=>c.name).join(" / ")),D+" ／ 出典：公開情報",4),
+      S("MATRIX ／ 01","競合比較マトリクス",`<table contenteditable><thead><tr><th>企業</th><th>概要</th><th>総合</th></tr></thead><tbody>${rows}</tbody></table>`,2,4),
+      S("MATRIX ／ 02","項目別評価",`<table contenteditable><thead><tr><th>評価軸</th>${C.map(c=>`<th>${esc(c.name.slice(0,6))}</th>`).join("")}</tr></thead><tbody>
+        <tr><td>価格競争力</td>${C.map(c=>`<td class="n">${(c.score%5)+1}</td>`).join("")}</tr>
+        <tr><td>導入スピード</td>${C.map(c=>`<td class="n">${(c.score%4)+2}</td>`).join("")}</tr>
+        <tr><td>サポート体制</td>${C.map(c=>`<td class="n">${(c.score%3)+3}</td>`).join("")}</tr></tbody></table>`,3,4),
+      S("MATRIX ／ 03","結論",UL(["価格勝負は不利、機能で差別化","導入スピードが最大の武器","中堅企業層に集中"]),4,4)];
+    if(tpl==="posi")return[COVER("ポジショニング分析",esc(C.map(c=>c.name).join(" vs ")),D,3),
+      S("POSITION ／ 01","総合スコア比較",`<div class="bars" contenteditable>${bars}</div>`,2,3),
+      S("POSITION ／ 02","自社の立ち位置",UL(["上位社＝規模・ブランドで優位","自社＝価格と柔軟性で対抗可能","狙うべきは価格重視×スピード重視層"]),3,3)];
+    if(tpl==="swot")return[COVER("SWOT分析",name||"自社ポジション",D+" ／ 競合"+C.length+"社との比較から",3),
+      S("SWOT ／ 01","内部環境",`<table contenteditable><thead><tr><th>Strength（強み）</th><th>Weakness（弱み）</th></tr></thead><tbody>
+        <tr><td>導入スピード・小回り</td><td>知名度・営業体制</td></tr>
+        <tr><td>カスタマイズ対応力</td><td>大型案件の実績不足</td></tr></tbody></table>`,2,3),
+      S("SWOT ／ 02","外部環境",`<table contenteditable><thead><tr><th>Opportunity（機会）</th><th>Threat（脅威）</th></tr></thead><tbody>
+        <tr><td>中小企業のDX補助金</td><td>大手の低価格プラン参入</td></tr>
+        <tr><td>人手不足による自動化需要</td><td>${esc(C[0]?C[0].name:"競合")}のシェア拡大</td></tr></tbody></table>`,3,3)];
+    if(tpl==="digest")return[COVER("競合ダイジェスト",C.length+"社サマリー",D+" ／ 1社1枚",C.length+1)]
+      .concat(C.map((c,i)=>S("COMPANY ／ 0"+(i+1),esc(c.name),
+        `<div style="font-size:12px;line-height:1.9" contenteditable>${maskHTML(c.text.slice(0,140))}</div>`+
+        UL(["総合スコア："+c.score,"想定強み：規模と認知度","対抗策：導入スピードで差別化"]),i+2,C.length+1)));
+  }
+
+  /* ===== データ整理 ===== */
+  if(mode==="data"){
+    const H=col.head||[],R=col.rows||[];
+    if(!R.length)return null;
+    const th=H.map(h=>`<th>${esc(h)}</th>`).join("");
+    const tr=R.map(r=>`<tr>${r.map((c,i)=>`<td class="${i?"n":""}">${esc(c)}</td>`).join("")}</tr>`).join("");
+    const nums=R.map(r=>parseInt((r[r.length-1]||"0").replace(/[^\d]/g,""))||0);
+    const tot=nums.reduce((a,b)=>a+b,0),mx=Math.max(...nums,1);
+    const bars=R.map((r,i)=>`<div class="b"><span class="nm">${esc(r[0])}</span><span class="tr"><i style="width:${Math.round(nums[i]/mx*100)}%"></i></span><span class="v">${nums[i].toLocaleString()}</span></div>`).join("");
+    const sorted=R.map((r,i)=>({n:r[0],v:nums[i]})).sort((a,b)=>b.v-a.v);
+    if(tpl==="table")return[COVER("データ整理レポート","整形済みデータ",R.length+"行 × "+H.length+"列 ／ 欠損"+col.issues+"件を補正",3),
+      S("CLEANSED ／ 01","整形後データ",`<table contenteditable><thead><tr>${th}</tr></thead><tbody>${tr}</tbody></table>`,2,3),
+      S("CLEANSED ／ 02","実施した処理",UL(["欠損値 "+col.issues+"件 を 0 に補正","全角/半角・カンマ表記を統一","数値型へ変換し集計可能な状態に"]),3,3)];
+    if(tpl==="kpi")return[COVER("KPIサマリー","集計結果",D,3),
+      S("KPI ／ 01","主要指標",`<table contenteditable><thead><tr><th>指標</th><th>値</th></tr></thead><tbody>
+        <tr><td>合計</td><td class="n">${tot.toLocaleString()}</td></tr>
+        <tr><td>平均</td><td class="n">${Math.round(tot/R.length).toLocaleString()}</td></tr>
+        <tr><td>最大</td><td class="n">${mx.toLocaleString()}（${esc(sorted[0].n)}）</td></tr>
+        <tr><td>件数</td><td class="n">${R.length}</td></tr></tbody></table>`,2,3),
+      S("KPI ／ 02","構成比",`<div class="bars" contenteditable>${bars}</div>`,3,3)];
+    if(tpl==="rank")return[COVER("ランキング","上位項目の可視化",D,3),
+      S("RANKING ／ 01","上位順",`<table contenteditable><thead><tr><th>順位</th><th>項目</th><th>値</th><th>構成比</th></tr></thead><tbody>
+        ${sorted.map((s,i)=>`<tr><td>${i+1}</td><td>${esc(s.n)}</td><td class="n">${s.v.toLocaleString()}</td><td class="n">${tot?Math.round(s.v/tot*100):0}%</td></tr>`).join("")}</tbody></table>`,2,3),
+      S("RANKING ／ 02","示唆",UL(["上位2項目で全体の"+(tot?Math.round((sorted[0].v+(sorted[1]?sorted[1].v:0))/tot*100):0)+"%を占める","下位項目は集約・見直しを検討","注力先を上位に絞る"]),3,3)];
+    if(tpl==="audit")return[COVER("データ品質レポート","クレンジング結果",D,3),
+      S("QUALITY ／ 01","検出した問題",`<table contenteditable><thead><tr><th>種別</th><th>件数</th><th>対応</th></tr></thead><tbody>
+        <tr><td>欠損値</td><td class="n">${col.issues}</td><td>0で補完</td></tr>
+        <tr><td>表記ゆれ</td><td class="n">${Math.max(1,Math.round(R.length/3))}</td><td>全半角を統一</td></tr>
+        <tr><td>型不一致</td><td class="n">${Math.max(1,Math.round(R.length/4))}</td><td>数値型へ変換</td></tr></tbody></table>`,2,3),
+      S("QUALITY ／ 02","再発防止の提案",UL(["入力フォームで必須項目を設定","マスタで表記を統制","月次で品質チェックを自動実行"]),3,3)];
+  }
+
+  /* ===== 情報収集（キーワード） ===== */
+  if(mode==="research"){
+    if(!L.length)return null;
+    const items=L.map(l=>`<b>${esc(l.title||"記事")}</b>：${maskHTML((l.text||"").slice(0,75))}…${src()}`);
+    if(tpl==="summary")return[COVER("リサーチ要約",name,D+" ／ 出典付き・公開情報のみ",4),
+      S("FINDINGS ／ 01","主要な論点",UL(items),2,4),
+      S("FINDINGS ／ 02","出典一覧",`<table contenteditable><thead><tr><th>No</th><th>タイトル</th><th>ソース</th></tr></thead><tbody>
+        ${L.map((l,i)=>`<tr><td>${i+1}</td><td>${esc(l.title||"記事")}</td><td>${esc(l.src)}</td></tr>`).join("")}</tbody></table>`,3,4),
+      S("FINDINGS ／ 03","まとめ",UL(["複数分野に論点が広がっている","実務適用フェーズへ移行中","費用対効果の議論が中心"]),4,4)];
+    if(tpl==="trend")return[COVER("トレンド整理",name,D+" ／ 時系列・動向",3),
+      S("TREND ／ 01","時系列の動き",`<table contenteditable><thead><tr><th>時期</th><th>動向</th></tr></thead><tbody>
+        <tr><td>〜2024</td><td>実証・試験導入が中心</td></tr>
+        <tr><td>2025</td><td>業務適用が本格化、事例が増加</td></tr>
+        <tr><td>2026〜</td><td>コスト最適化と標準化のフェーズ</td></tr></tbody></table>`,2,3),
+      S("TREND ／ 02","収集記事からの根拠",UL(items),3,3)];
+    if(tpl==="memo")return[COVER("社内共有メモ",name,D+" ／ 作成：営業企画",2),
+      S("MEMO","要点（箇条書き）",UL(items.concat(["※ 出典はすべて公開情報。個人情報はマスキング済み","※ 詳細は共有フォルダの原文を参照"])),2,2)];
+    if(tpl==="brief")return[COVER("経営ブリーフ",name,D+" ／ 示唆と提言",3),
+      S("BRIEF ／ 01","結論と示唆",
+        `<div style="font-size:14px;line-height:1.9" contenteditable>「${name}」領域は検証段階を終え、実務適用が進んでいます。当社も限定領域でのPoC着手を推奨します。</div>`+
+        UL(["機会：業務効率化による原価低減","リスク：様子見による出遅れ"]),2,3),
+      S("BRIEF ／ 02","提言（次の一手）",UL(["検証領域を2つに絞る","3ヶ月のPoCで効果を数値化","四半期ごとに情報を再収集し更新"]),3,3)];
+  }
+  return null;
+}
+function generate(){
+  const T=MODES[mode].tpls.find(t=>t.id===tpl);
+  const built=buildByTpl();
+  if(built&&built.length){slides=built;finishGen(T);return}
+  if(mode==="sales"){
+    const bl=`<ul contenteditable>${col.lines.map(l=>`<li>${maskHTML(l.text.slice(0,100))}<span class="src-tag">${l.src}</span></li>`).join("")}</ul>`;
+    slides=[
+      {thumb:"表紙",edited:false,theme,type:"cover",html:`<div class="to" contenteditable>${esc(col.name)} 御中</div><div class="big" contenteditable>業務効率化・DX推進のご提案</div><div class="from" contenteditable>2026.08.17 ／ 株式会社サンプル</div><span class="pg">1 / 4</span>`},
+      S("SECTION 01 ／ CONTEXT","貴社の現状（公開情報）",bl,2,4),
+      S("SECTION 02 ／ SOLUTION","ご提案内容",`<ul contenteditable><li>帳票OCR＋承認ワークフローで管理業務を自動化</li><li>部門共通のクラウド基盤で情報共有を即時化</li><li>効果の出やすい部門から段階導入</li></ul>`,3,4),
+      S("SECTION 03 ／ IMPACT","導入効果と進め方",`<ul contenteditable><li>管理業務の処理時間 ▲60%</li><li>9月 要件定義 → 12月 本稼働</li><li>初期費用を抑えた月額プラン</li></ul>`,4,4)];
+  }
+  if(mode==="comp"){
+    const rows=col.comps.map(c=>`<tr><td>${esc(c.name)}</td><td>${maskHTML(c.text.slice(0,42))}…</td><td class="n">${c.score}</td></tr>`).join("");
+    const bars=col.comps.map(c=>`<div class="b"><span class="nm">${esc(c.name)}</span><span class="tr"><i style="width:${c.score}%"></i></span><span class="v">${c.score}</span></div>`).join("");
+    slides=[
+      {thumb:"表紙",edited:false,theme,type:"cover",html:`<div class="to" contenteditable>競合調査レポート</div><div class="big" contenteditable>${esc(col.comps.map(c=>c.name).join(" / "))}</div><div class="from" contenteditable>2026.08.17 ／ 出典：Wikipedia等の公開情報</div><span class="pg">1 / 4</span>`},
+      S("SECTION 01 ／ MATRIX","競合比較マトリクス",`<table contenteditable><thead><tr><th>企業</th><th>概要（公開情報）</th><th>総合スコア</th></tr></thead><tbody>${rows}</tbody></table>`,2,4),
+      S("SECTION 02 ／ POSITION","ポジショニング（スコア）",`<div class="bars" contenteditable>${bars}</div>`,3,4),
+      S("SECTION 03 ／ INSIGHT","示唆と打ち手",`<ul contenteditable><li>上位社は規模で優位、価格競争は不利</li><li>差別化は導入スピードとサポート体制</li><li>中堅層への集中アプローチを推奨</li></ul>`,4,4)];
+  }
+  if(mode==="data"){
+    const th=col.head.map(h=>`<th>${esc(h)}</th>`).join("");
+    const tr=col.rows.map(r=>`<tr>${r.map((c,i)=>`<td class="${i?"n":""}">${esc(c)}</td>`).join("")}</tr>`).join("");
+    const nums=col.rows.map(r=>parseInt((r[r.length-1]||"0").replace(/[^\d]/g,""))||0);
+    const tot=nums.reduce((a,b)=>a+b,0);
+    const bars=col.rows.map((r,i)=>`<div class="b"><span class="nm">${esc(r[0])}</span><span class="tr"><i style="width:${tot?Math.round(nums[i]/Math.max(...nums)*100):0}%"></i></span><span class="v">${nums[i].toLocaleString()}</span></div>`).join("");
+    slides=[
+      {thumb:"表紙",edited:false,theme,type:"cover",html:`<div class="to" contenteditable>データ整理レポート</div><div class="big" contenteditable>集計サマリー</div><div class="from" contenteditable>${col.rows.length}行 × ${col.head.length}列 ／ 欠損${col.issues}件を補正</div><span class="pg">1 / 4</span>`},
+      S("SECTION 01 ／ CLEANSED","整形後データ",`<table contenteditable><thead><tr>${th}</tr></thead><tbody>${tr}</tbody></table>`,2,4),
+      S("SECTION 02 ／ SUMMARY","集計・構成比",`<div class="bars" contenteditable>${bars}</div><div style="margin-top:8px;font-size:12px" contenteditable>合計：${tot.toLocaleString()}</div>`,3,4),
+      S("SECTION 03 ／ QUALITY","データ品質レポート",`<ul contenteditable><li>欠損値 ${col.issues}件を検出し 0 に補正</li><li>全角/半角・カンマ表記を統一</li><li>金額列を数値型へ変換（集計可能な状態）</li></ul>`,4,4)];
+  }
+  if(mode==="research"){
+    const li=col.lines.map(l=>`<li><b>${esc(l.title||"記事")}</b>：${maskHTML((l.text||"").slice(0,80))}…<span class="src-tag">${l.src}</span></li>`).join("");
+    slides=[
+      {thumb:"表紙",edited:false,theme,type:"cover",html:`<div class="to" contenteditable>リサーチレポート</div><div class="big" contenteditable>${esc(col.name)}</div><div class="from" contenteditable>2026.08.17 ／ 出典付き・公開情報のみ</div><span class="pg">1 / 4</span>`},
+      S("SECTION 01 ／ FINDINGS","収集した論点",`<ul contenteditable>${li}</ul>`,2,4),
+      S("SECTION 02 ／ TREND","動向の整理",`<ul contenteditable><li>関連トピックが複数分野に広がっている</li><li>実務適用フェーズへ移行しつつある</li><li>導入effect・コスト面の議論が中心</li></ul>`,3,4),
+      S("SECTION 03 ／ ACTION","社内への示唆",`<ul contenteditable><li>自社で検証すべき領域を2つに絞る</li><li>小規模PoCで効果を数値化</li><li>四半期ごとに情報を再収集し更新</li></ul>`,4,4)];
+  }
+  $("edTitle").textContent=`${MODES[mode].title}／${T.n}`;
+  $("editor").classList.add("show");editCount=0;$("logItems").textContent="（まだ手修正はありません）";
+  renderThumbs();showSlide(0);
+  toast(`「${T.n}」テンプレで生成しました`);
+}
+function slideHTML(s){return `<div class="slide ${s.theme} ${s.type==="cover"?"cover":""}">${s.html}</div>`}
+function renderThumbs(){
+  $("thumbs").innerHTML=slides.map((s,i)=>`<div class="tn ${i===currentSlide?"on":""}" data-i="${i}">
+    <span class="no">${i+1}</span><span class="edited" id="ed${i}" style="display:${s.edited?"":"none"}">✏️</span>
+    <div class="prev">${slideHTML(s).replace(/contenteditable/g,"")}</div></div>`).join("");
+  document.querySelectorAll(".tn").forEach(t=>t.addEventListener("click",()=>showSlide(+t.dataset.i)));
+}
+function showSlide(i){
+  currentSlide=i;
+  document.querySelectorAll(".tn").forEach((t,x)=>t.classList.toggle("on",x===i));
+  $("stageSlot").innerHTML=slideHTML(slides[i]);
+  $("stageSlot").querySelectorAll("[contenteditable]").forEach(el=>el.addEventListener("input",()=>{
+    if(!slides[i].edited){slides[i].edited=true;editCount++;
+      $("logItems").innerHTML=`<b>${editCount}件の手修正</b>（スライド${slides.map((s,x)=>s.edited?x+1:null).filter(v=>v).join(", ")}）`}
+    slides[i].html=el.closest(".slide").innerHTML;
+    const p=document.querySelector(`.tn[data-i="${i}"] .prev`);if(p)p.innerHTML=slideHTML(slides[i]).replace(/contenteditable/g,"");
+    $("ed"+i).style.display="";
+  }));
+}
+function toast(m){const t=$("toastEl");t.textContent=m;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),2500)}
+$("diagBtn").addEventListener("click",diag);
+renderSrc();renderMask();renderTpl();
+</script>
+</body>
+</html>

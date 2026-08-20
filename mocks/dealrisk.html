@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>商談リスク検知AI・キーマン相関図 デモ</title>
+<style>
+:root{
+  --bg:#F4F6FB; --panel:#FFFFFF; --panel2:#F2F5FA; --line:#DEE4EE;
+  --ink:#1B2432; --ink-soft:#66748A; --accent:#5A63D8; --ok:#12A87A; --warn:#C98200; --red:#D6453F;
+  --mono:"Consolas","SFMono-Regular",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.7}
+button{font-family:inherit;cursor:pointer}
+header{background:var(--panel);border-bottom:1px solid var(--line);padding:12px 22px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{width:29px;height:29px;border-radius:8px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+.card{box-shadow:0 1px 3px rgba(27,36,50,.05)}
+header h1{font-size:15.5px}
+header .sub{font-size:11px;color:var(--ink-soft)}
+.chip{margin-left:auto;font-size:10.5px;border:1px solid var(--accent);color:#B5BDFF;border-radius:4px;padding:2px 9px}
+main{max-width:1320px;margin:16px auto;padding:0 20px 50px;display:grid;grid-template-columns:330px 1fr;gap:16px;align-items:start}
+@media(max-width:1020px){main{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px 17px;margin-bottom:14px}
+.card h2{font-size:12px;letter-spacing:.09em;color:var(--ink-soft);margin-bottom:12px;display:flex;align-items:center;gap:9px}
+.card h2::after{content:"";flex:1;height:1px;background:var(--line)}
+/* 案件リスト */
+.deal{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:9px;cursor:pointer;transition:.15s;position:relative}
+.deal:hover{border-color:var(--accent)}
+.deal.on{border-color:var(--accent);background:#EEF0FD}
+.deal .t{font-weight:700;font-size:13px;padding-right:52px}
+.deal .m{font-size:11px;color:var(--ink-soft)}
+.score{position:absolute;right:10px;top:9px;width:42px;height:42px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--mono);font-weight:700;font-size:14px;line-height:1}
+.score small{font-size:8px;font-weight:400;opacity:.8}
+.s-h{background:#E4F5EE;color:var(--ok);border:2px solid #9BDCC4}
+.s-m{background:#FBF1DC;color:var(--warn);border:2px solid #EFCE92}
+.s-l{background:#FBE7E6;color:var(--red);border:2px solid #EEAFAC}
+/* リスク詳細 */
+.head{display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.head .big{font-size:19px;font-weight:800}
+.head .sub2{font-size:12px;color:var(--ink-soft)}
+.head .amt{margin-left:auto;text-align:right}
+.head .amt b{font-family:var(--mono);font-size:22px}
+.rk{display:flex;align-items:flex-start;gap:11px;padding:10px 12px;border-radius:10px;margin-bottom:8px;font-size:12.5px;border:1px solid var(--line)}
+.rk .ic{width:24px;height:24px;border-radius:7px;flex:none;display:flex;align-items:center;justify-content:center;font-size:12px}
+.rk.hi{background:#FCEDEC;border-color:#F0C4C1}
+.rk.hi .ic{background:#F7D6D4;color:var(--red)}
+.rk.md{background:#FDF5E6;border-color:#EFD9A8}
+.rk.md .ic{background:#F8E6BE;color:var(--warn)}
+.rk.ok{background:#EAF7F1;border-color:#BFE4D5}
+.rk.ok .ic{background:#CDEEE0;color:var(--ok)}
+.rk b{display:block;margin-bottom:1px}
+.rk .ev{font-size:11px;color:var(--ink-soft)}
+/* キーマン相関図 */
+.map{position:relative;height:262px;background:var(--panel2);border:1px solid var(--line);border-radius:11px;overflow:hidden}
+.node{position:absolute;transform:translate(-50%,-50%);text-align:center;width:112px}
+.node .av{width:46px;height:46px;border-radius:50%;margin:0 auto 5px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;border:2px solid var(--line);background:var(--panel)}
+.node .nm{font-size:11.5px;font-weight:700;line-height:1.35}
+.node .ro{font-size:10px;color:var(--ink-soft)}
+.node.champ .av{border-color:var(--ok);background:#E4F5EE;color:var(--ok)}
+.node.eb .av{border-color:var(--red);background:#FBE7E6;color:var(--red)}
+.node.blk .av{border-color:var(--warn);background:#FBF1DC;color:var(--warn)}
+.node .badge{font-size:9px;border-radius:8px;padding:0 7px;margin-top:3px;display:inline-block}
+.node.champ .badge{background:#E4F5EE;color:var(--ok)}
+.node.eb .badge{background:#FBE7E6;color:var(--red)}
+.node.blk .badge{background:#FBF1DC;color:var(--warn)}
+svg.lines{position:absolute;inset:0;width:100%;height:100%}
+.legend{display:flex;gap:14px;font-size:10.5px;color:var(--ink-soft);margin-top:9px;flex-wrap:wrap}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px}
+/* アクション */
+.act{display:flex;align-items:flex-start;gap:10px;background:#EEF0FD;border:1px solid #C9CEF5;border-radius:10px;padding:11px 13px;margin-bottom:8px;font-size:12.5px}
+.act .no{font-family:var(--mono);font-size:11px;background:var(--accent);color:#fff;border-radius:6px;padding:1px 7px;flex:none;font-weight:700}
+.act .why{font-size:11px;color:var(--ink-soft);margin-top:2px}
+.btns{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.btns button{flex:1;border:1px solid var(--line);background:var(--panel2);color:var(--ink);border-radius:9px;padding:10px;font-size:12px;font-weight:700;min-width:150px}
+.btns button.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+/* タイムライン */
+.tl{display:flex;flex-direction:column;gap:0}
+.tl .e{display:flex;gap:11px;font-size:12px;padding:5px 0;position:relative}
+.tl .e .d{font-family:var(--mono);font-size:10.5px;color:var(--ink-soft);width:52px;flex:none;padding-top:2px}
+.tl .e .dot{width:9px;height:9px;border-radius:50%;background:var(--line);flex:none;margin-top:6px;position:relative}
+.tl .e.gap .dot{background:var(--red)}
+.tl .e .dot::after{content:"";position:absolute;left:50%;top:100%;width:1px;height:22px;background:var(--line);transform:translateX(-50%)}
+.tl .e:last-child .dot::after{display:none}
+.tl .e.gap span{color:var(--red)}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:#000;color:#fff;padding:9px 20px;border-radius:8px;font-size:12.5px;opacity:0;pointer-events:none;transition:.25s;z-index:60}
+.toast.show{opacity:1;transform:translateX(-50%)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">AI</div>
+  <div><h1>商談リスク検知AI・キーマン相関図</h1><div class="sub">失注する前に気づく。大型案件の"抜け"を自動で可視化</div></div>
+  <span class="chip">UI デモ版</span>
+</header>
+
+<main>
+  <section>
+    <div class="card">
+      <h2>担当案件（AIヘルススコア順）</h2>
+      <div id="deals"></div>
+    </div>
+    <div class="card">
+      <h2>チーム全体のアラート</h2>
+      <div style="font-size:12.5px;line-height:2">
+        <div>🔴 決裁者未接触のまま最終フェーズ … <b>4件</b></div>
+        <div>🟠 30日以上停滞 … <b>9件</b></div>
+        <div>🟡 Champion不在（推進者なし） … <b>6件</b></div>
+        <div style="color:var(--ink-soft);font-size:11px;margin-top:6px">※ 毎朝8時に本部長へサマリー配信（デモ）</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="card" id="detail"></div>
+  </section>
+</main>
+
+<div class="toast" id="toastEl"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const DEALS=[
+  {n:"データ基盤統合",co:"みらい銀行",amt:150000000,sc:38,cls:"s-l",st:"提案",stall:62,
+   risks:[["hi","👤","決裁者と一度も接触していません","CFO・情報システム担当役員との面談記録が0件。過去の同規模案件では、提案から30日以内に決裁者面談がない場合の受注率は11%"],
+          ["hi","⚔️","競合が優位に進んでいる兆候","直近の議事録に競合A社の製品名が5回出現。前回商談で「他社比較表を作成中」との発言あり"],
+          ["md","⏳","62日間フェーズが動いていません","同ステージの平均滞留は28日。停滞60日超の案件の失注率は74%"],
+          ["ok","💰","予算は確保済み","次年度IT投資枠として計上済みと確認（4/12 議事録）"]],
+   acts:[["01","情報システム部長経由で役員面談を設定","Champion（部長）は前向き。役員紹介を依頼できる関係性がある"],
+         ["02","競合比較表をこちらから提示","比較軸を自社優位（運用コスト・移行実績）に置くことで土俵を変える"],
+         ["03","本部長同行で温度感を確認","金額1.5億超は本部長同行案件が受注率1.8倍"]],
+   people:[{x:50,y:20,nm:"役員 A",ro:"最終決裁者",cls:"eb",bd:"未接触"},
+           {x:20,y:62,nm:"情シス部長",ro:"推進者",cls:"champ",bd:"Champion"},
+           {x:80,y:62,nm:"経理部長",ro:"コスト管理",cls:"blk",bd:"慎重"},
+           {x:50,y:88,nm:"担当課長",ro:"実務窓口",cls:"",bd:"接触済"}],
+   tl:[["4/12","キックオフ商談（部長・課長）",0],["5/08","要件ヒアリング",0],["5/22","提案書提出",0],["6/03","競合比較の依頼あり",0],["— 62日間 接触なし —","",1]]},
+
+  {n:"全社ライセンス更改",co:"日本総合商事",amt:240000000,sc:61,cls:"s-m",st:"提案",stall:41,
+   risks:[["md","👤","決裁者との面談から45日経過","関係維持のための定期接点が途切れています"],
+          ["md","⏳","41日停滞","四半期末までに稟議を上げないと次年度送りのリスク"],
+          ["ok","🤝","Championが明確","購買部長が社内で推進中"],
+          ["ok","📄","要件は合意済み","仕様面での懸念はクリア"]],
+   acts:[["01","稟議スケジュールを逆算して提示","期末処理から逆算すると承認期限は今月20日"],
+         ["02","購買部長へ社内説明資料を提供","Championが社内を通しやすい形にする"]],
+   people:[{x:50,y:20,nm:"購買担当役員",ro:"決裁者",cls:"blk",bd:"面談45日前"},
+           {x:22,y:64,nm:"購買部長",ro:"推進者",cls:"champ",bd:"Champion"},
+           {x:78,y:64,nm:"法務",ro:"契約審査",cls:"",bd:"未着手"}],
+   tl:[["3/20","更改協議 開始",0],["4/18","要件合意",0],["5/06","役員面談",0],["— 41日間 停滞 —","",1]]},
+
+  {n:"基幹システム刷新",co:"東邦重工業",amt:320000000,sc:86,cls:"s-h",st:"最終交渉",stall:3,
+   risks:[["ok","👑","決裁者と合意形成済み","役員から「進めてよい」の発言を取得（6/10）"],
+          ["ok","🧭","社内プロセスを把握","稟議ルート・決裁期日ともに確認済み"],
+          ["md","📝","契約条件の一部が未確定","検収条件について法務レビュー中"]],
+   acts:[["01","法務確認の期日を握る","残タスクは契約条件のみ。期日設定で確実にクローズ"],
+         ["02","導入体制図を先に共有","受注後の立ち上がりを早め、追加案件につなげる"]],
+   people:[{x:50,y:20,nm:"担当役員",ro:"最終決裁者",cls:"champ",bd:"合意済"},
+           {x:22,y:64,nm:"情シス部長",ro:"推進者",cls:"champ",bd:"Champion"},
+           {x:78,y:64,nm:"法務部",ro:"契約審査",cls:"blk",bd:"レビュー中"}],
+   tl:[["5/15","経営層プレゼン",0],["6/02","見積提出",0],["6/10","役員合意",0],["6/18","契約条件協議",0]]}
+];
+let cur=0;
+function yen(n){return (n/100000000).toFixed(2)+"億円"}
+function renderList(){
+  $("deals").innerHTML=DEALS.map((d,i)=>`<div class="deal ${i===cur?"on":""}" data-i="${i}">
+    <div class="score ${d.cls}">${d.sc}<small>score</small></div>
+    <div class="t">${d.n}</div>
+    <div class="m">${d.co}／${yen(d.amt)}</div>
+    <div class="m">${d.st}・停滞${d.stall}日</div></div>`).join("");
+  document.querySelectorAll(".deal").forEach(e=>e.addEventListener("click",()=>{cur=+e.dataset.i;renderList();renderDetail()}));
+}
+function renderDetail(){
+  const d=DEALS[cur];
+  const lines=d.people.length>1?d.people.slice(1).map(p=>
+    `<line x1="${d.people[0].x}%" y1="${d.people[0].y}%" x2="${p.x}%" y2="${p.y}%" stroke="${p.cls==="champ"?"#12A87A":p.cls==="blk"?"#C98200":"#C4CDDA"}" stroke-width="1.5" stroke-dasharray="${p.cls==="champ"?"0":"5 4"}" opacity=".7"/>`).join(""):"";
+  $("detail").innerHTML=`
+    <div class="head">
+      <div><div class="big">${d.n}</div><div class="sub2">${d.co}／${d.st}／担当：営業一部</div></div>
+      <div class="amt"><b>${yen(d.amt)}</b><div class="sub2">AIヘルススコア <span style="color:${d.sc>=75?"var(--ok)":d.sc>=50?"var(--warn)":"var(--red)"};font-weight:700">${d.sc}/100</span></div></div>
+    </div>
+
+    <h2>🚨 AIが検知したリスク</h2>
+    ${d.risks.map(r=>`<div class="rk ${r[0]}"><span class="ic">${r[1]}</span>
+      <span><b>${r[2]}</b><span class="ev">根拠：${r[3]}</span></span></div>`).join("")}
+
+    <h2 style="margin-top:16px">🗺 キーマン相関図（意思決定マップ）</h2>
+    <div class="map">
+      <svg class="lines">${lines}</svg>
+      ${d.people.map(p=>`<div class="node ${p.cls}" style="left:${p.x}%;top:${p.y}%">
+        <div class="av">${p.nm.slice(0,2)}</div><div class="nm">${p.nm}</div><div class="ro">${p.ro}</div>
+        <span class="badge">${p.bd}</span></div>`).join("")}
+    </div>
+    <div class="legend">
+      <span><i style="background:#12A87A"></i>推進者（Champion）</span>
+      <span><i style="background:#D6453F"></i>未接触の決裁者</span>
+      <span><i style="background:#C98200"></i>慎重・障害になりうる</span>
+      <span>点線＝関係が弱い</span>
+    </div>
+
+    <h2 style="margin-top:16px">✅ 次にやるべきこと（AI提案）</h2>
+    ${d.acts.map(a=>`<div class="act"><span class="no">${a[0]}</span>
+      <span><b>${a[1]}</b><div class="why">理由：${a[2]}</div></span></div>`).join("")}
+
+    <h2 style="margin-top:16px">🕒 活動履歴</h2>
+    <div class="tl">${d.tl.map(t=>`<div class="e ${t[2]?"gap":""}"><span class="d">${t[2]?"":t[0]}</span><span class="dot"></span><span>${t[2]?t[0]:t[1]}</span></div>`).join("")}</div>
+
+    <div class="btns">
+      <button class="pri" onclick="toast('本部長に同行依頼を送信しました（デモ）')">本部長に同行依頼</button>
+      <button onclick="toast('推奨アクションをタスク登録しました（デモ）')">アクションをタスク化</button>
+      <button onclick="toast('この案件のレポートをSlackに共有しました（デモ）')">Slackで共有</button>
+    </div>`;
+}
+renderList();renderDetail();
+function toast(m){const t=$("toastEl");t.textContent=m;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),2500)}
+</script>
+</body>
+</html>
