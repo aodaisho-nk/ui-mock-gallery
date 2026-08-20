@@ -18,7 +18,7 @@ header{background:var(--panel);border-bottom:1px solid var(--line);padding:12px 
 .card,.kpi{box-shadow:0 1px 3px rgba(27,36,50,.05)}
 header h1{font-size:15.5px}
 header .sub{font-size:11px;color:var(--ink-soft)}
-.chip{margin-left:auto;font-size:10.5px;border:1px solid var(--accent);color:#A8CDFF;border-radius:4px;padding:2px 9px}
+.chip{margin-left:auto;font-size:10.5px;border:1px solid var(--accent);color:var(--accent);border-radius:4px;padding:2px 9px}
 .filters{padding:11px 22px;display:flex;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--line);background:var(--panel)}
 .fb{border:1px solid var(--line);background:var(--panel2);color:var(--ink-soft);border-radius:18px;padding:5px 15px;font-size:12px}
 .fb.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
@@ -138,9 +138,9 @@ const ROWS=[
   ["物流DX基盤","カワサキ物流","鈴木","最終交渉",180000000,"A","7日","健全：稟議進行中","p-a"],
   ["データ基盤統合","みらい銀行","高橋","提案",150000000,"C","62日","危険：競合が優勢","p-c"],
   ["生産管理刷新","中部製作所","伊藤","商談化",120000000,"B","18日","要注意：予算未確定","p-b"],
-  ["営業支援ツール","関西ホールディングス","渡辺",  98000000,"B","12日","健全：POC実施中","p-a"]
+  ["営業支援ツール","関西ホールディングス","渡辺","商談化",98000000,"B","12日","健全：POC実施中","p-a"]
 ];
-function yen(n){return (n/100000000).toFixed(2)+"億"}
+function yen(n){return n<100000000?Math.round(n/10000).toLocaleString()+"万":(n/100000000).toFixed(2)+"億"}
 function render(scale){
   const mx=Math.max(...FUN.map(f=>f[1]));
   $("fun").innerHTML=FUN.map(f=>`<div class="fs"><span class="nm">${f[0]}</span>

@@ -4,7 +4,26 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>文書作成アシスタント - UIモック</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.24.0/dist/tabler-icons.min.css">
+<style>
+/* アイコン（外部CDN非依存・完全オフライン動作） */
+.ti{font-style:normal;display:inline-block;line-height:1;font-size:14px}
+.ti-file-text::before{content:"📄"}
+.ti-notes::before{content:"📝"}
+.ti-list-check::before{content:"☑"}
+.ti-report::before{content:"📊"}
+.ti-stamp::before{content:"㊞"}
+.ti-folder::before{content:"📁"}
+.ti-lock::before{content:"🔒"}
+.ti-plus::before{content:"＋"}
+.ti-eye-off::before{content:"🔏"}
+.ti-sparkles::before{content:"✨"}
+.ti-shield-check::before{content:"🛡"}
+.ti-arrow-back-up::before{content:"↩"}
+.ti-printer::before{content:"🖨"}
+.ti-copy::before{content:"📋"}
+.ti-arrow-left::before{content:"←"}
+.ti-x::before{content:"✕"}
+</style>
 <style>
   :root{
     --bg:#f4f3ef; --card:#ffffff; --border:#e2e0da; --border-strong:#c9c7c0;

@@ -35,6 +35,12 @@ header .sub{font-size:11.5px;color:var(--ink-soft)}
 .console-banner .stat b{display:block;font-family:var(--mono);font-size:17px}
 .console-banner .stat span{font-size:10px;opacity:.9}
 
+.netbox{margin-top:9px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.netlab{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-soft);cursor:pointer;flex:1}
+.netlab input{accent-color:var(--accent);width:14px;height:14px;cursor:pointer}
+.netbox.live .netlab span{color:var(--accent);font-weight:700}
+#diagBtn{border:1px solid var(--line);background:var(--paper);color:var(--ink-soft);border-radius:8px;padding:6px 12px;font-size:11.5px;font-weight:600}
+#diagBtn:disabled{opacity:.4;cursor:default}
 main{max-width:1300px;margin:14px auto;padding:0 18px 60px;display:grid;grid-template-columns:390px 1fr;gap:18px;align-items:start}
 @media(max-width:1040px){main{grid-template-columns:1fr}}
 .pane{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:15px 17px;margin-bottom:14px}
@@ -205,11 +211,11 @@ textarea.inp{min-height:96px;resize:vertical;font-size:12px;line-height:1.6}
       <div class="note" id="inNote">提案先の会社名かURLを入力すると、公開情報を収集して提案書を作ります。</div>
 
       <div id="in-sales">
-        <input class="inp" id="q-sales" value="トヨタ自動車" placeholder="会社名 または https://〜">
+        <input class="inp" id="q-sales" value="東邦重工業" placeholder="会社名 または https://〜">
         <button class="run" data-run="sales">公開情報を収集</button>
       </div>
       <div id="in-comp" class="hidden">
-        <input class="inp" id="q-comp" value="トヨタ自動車, 本田技研工業, 日産自動車" placeholder="比較したい企業をカンマ区切りで（2〜4社）">
+        <input class="inp" id="q-comp" value="東邦重工業, 中部製作所, 関西ホールディングス" placeholder="比較したい企業をカンマ区切りで（2〜4社）">
         <button class="run" data-run="comp">競合をまとめて収集</button>
       </div>
       <div id="in-data" class="hidden">
@@ -223,8 +229,13 @@ D商品,ｰ,90000</textarea>
       <div id="in-research" class="hidden">
         <input class="inp" id="q-research" value="生成AI 業務効率化" placeholder="調べたいキーワード">
         <button class="run" data-run="research">キーワードで収集</button>
-        <button id="diagBtn" style="width:100%;margin-top:7px;border:1px solid var(--line);background:var(--paper);color:var(--ink-soft);border-radius:8px;padding:8px;font-size:12px;font-weight:600">🔌 接続テスト（つながらない時）</button>
       </div>
+
+      <div class="netbox" id="netbox">
+        <label class="netlab"><input type="checkbox" id="liveTgl"><span>実データ取得（Wikipedia）を試す</span></label>
+        <button id="diagBtn">🔌 接続テスト</button>
+      </div>
+      <div class="note" id="netNote">現在は<b>オフラインのサンプルデータ</b>で動作中。外部通信を一切行わないため、客先ネットワークやオフラインでも確実に動きます。</div>
     </div>
 
     <!-- ソース -->
@@ -404,15 +415,53 @@ function rawHTML(t){let h=esc(t||"");rules.forEach(r=>{if(r.on)h=h.replace(r.re,
 
 /* ── 実行 ── */
 document.querySelectorAll(".run").forEach(b=>b.addEventListener("click",()=>run(b.dataset.run)));
+
+/* ── オフラインのサンプルデータ（既定）──────────────────────────
+   商談デモが客先ネットワークの遮断で止まらないよう、標準では外部通信を行わない。
+   登場する企業・氏名・連絡先はすべて架空。マスキング規則が確実に発火する形にしてある。 */
+let liveMode=false;
+const SRCSUF=()=>liveMode?"（実取得）":"（サンプル）";
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const DEMO_DB={
+"東邦重工業":"東邦重工業株式会社は、神奈川県川崎市に本社を置く総合重機メーカー。1948年創業、連結従業員数8,420名、直近期の連結売上高は4,180億円。プラント設備・産業機械・環境エネルギーの3事業を柱とし、近年は保守サービスのサブスクリプション化とIoT遠隔監視への投資を加速している。〒210-0007 神奈川県川崎市川崎区駅前本町1-1／代表取締役 大町健一／広報部 044-222-3300／pr@toho-jukogyo.example.jp",
+"日本総合商事":"日本総合商事株式会社は、東京都千代田区に本社を置く総合商社。1952年設立、連結従業員数12,600名、直近期の連結売上高は2兆1,400億円。資源・食料・機械の3セグメントを持ち、全社ライセンスの統合とデータ基盤の刷新を経営課題に挙げている。〒100-0005 東京都千代田区丸の内2-4-1／代表取締役社長 篠原達也／IR窓口 03-3211-5000／ir@nihon-sogo.example.jp",
+"カワサキ物流":"カワサキ物流株式会社は、大阪府大阪市に本社を置く3PL事業者。1966年創業、従業員数3,180名、直近期の売上高は980億円。全国18か所の物流センターを運営し、庫内作業の自動化とWMS刷新による物流DXを推進している。〒550-0013 大阪府大阪市西区新町1-4-26／代表取締役 川崎宗一／営業本部 06-6535-1200／sales@kawasaki-butsuryu.example.jp",
+"中部製作所":"中部製作所株式会社は、愛知県刈谷市に本社を置く精密部品メーカー。1955年設立、従業員数1,940名、直近期の売上高は612億円。自動車向け機能部品を主力とし、生産管理システムの刷新と多品種少量生産への対応力強化を課題としている。〒448-0027 愛知県刈谷市相生町2-1／代表取締役 鈴木和彦／総務部 0566-24-1100／info@chubu-seisakusho.example.jp",
+"みらい銀行":"株式会社みらい銀行は、福岡県福岡市に本店を置く地方銀行。1899年創業、従業員数4,260名、直近期の経常収益は1,340億円。県内シェア首位を維持しつつ、勘定系と情報系のデータ基盤統合、法人向けデジタルチャネルの拡充を進めている。〒812-0011 福岡県福岡市博多区博多駅前3-1-1／頭取 中原まりこ／広報 092-411-8000／koho@mirai-bank.example.jp",
+"関西ホールディングス":"関西ホールディングス株式会社は、京都府京都市に本社を置く事業持株会社。2004年設立、連結従業員数2,750名、直近期の連結売上高は870億円。傘下に小売・外食・不動産の8社を持ち、グループ横断の営業支援基盤の整備を検討している。〒600-8216 京都府京都市下京区東塩小路町901／代表取締役 高梨佑介／経営企画部 075-343-2000／planning@kansai-hd.example.jp"
+};
+const DEMO_ARTICLES=[
+{title:"業務効率化",text:"業務効率化とは、投入する時間・人手・コストを抑えつつ同等以上の成果を得るための改善活動を指す。手順の標準化、重複作業の排除、システムによる自動化の3段階で進めるのが一般的で、近年は定型業務の自動化に加え、判断を伴う業務の支援にAIを用いる例が増えている。"},
+{title:"ロボティック・プロセス・オートメーション",text:"ロボティック・プロセス・オートメーション（RPA）は、人がPC上で行う定型操作をソフトウェアロボットが代行する技術。転記・照合・帳票出力といったルールが明確な作業に適する一方、画面変更に弱く、例外処理の設計と運用体制の整備が導入成否を分けるとされる。"},
+{title:"生成的人工知能",text:"生成的人工知能は、学習したデータの分布をもとに文章・画像・音声などを新規に生成するモデルの総称。業務利用では要約・下書き作成・分類などで効果が報告される一方、機密情報の外部送信リスクへの対応として、送信前のマスキングや社内閉域での運用が実務上の論点となっている。"},
+{title:"ナレッジマネジメント",text:"ナレッジマネジメントは、個人が持つ暗黙知を組織の形式知へ転換し、共有・再利用する経営手法。文書化そのものより、検索して見つかる状態を保つ運用設計が重要とされ、社内文書を根拠として提示できる質問応答の仕組みが定着の後押しになると指摘される。"},
+{title:"文書管理システム",text:"文書管理システムは、電子文書の登録・版管理・権限制御・保存期間管理を行う仕組み。電子帳簿保存法など法令要件への対応と、日常の検索性の両立が求められ、担当窓口 03-1234-5678／info@example.co.jp のような連絡先情報を含む文書の取り扱い規程を併せて整備する必要がある。"}
+];
+function demoDoc(name){
+  if(DEMO_DB[name])return {title:name,text:DEMO_DB[name]};
+  const art=DEMO_ARTICLES.find(a=>a.title===name);
+  if(art)return {title:art.title,text:art.text};
+  const h=Math.abs([...name].reduce((a,c)=>(a*31+c.charCodeAt(0))|0,7));
+  const emp=(h%9000+800),sale=(h%3800+180);
+  return {title:name,text:`${name}は、国内で事業を展開する企業（オフラインデモ用のサンプル記事）。従業員数${emp.toLocaleString()}名、直近期の売上高は${sale}億円。主力事業の収益改善と、業務プロセスのデジタル化を重点課題として掲げている。〒100-0001 東京都千代田区サンプル1-2-3／代表取締役 山田太郎／代表窓口 03-1234-5678／info@example.co.jp`};
+}
+function demoSearch(kw,limit){
+  const parts=kw.split(/[\s\u3000,、]+/).filter(Boolean);
+  const scored=DEMO_ARTICLES.map(a=>({a,n:parts.filter(p=>(a.title+a.text).includes(p)).length}));
+  let hits=scored.filter(x=>x.n>0).sort((x,y)=>y.n-x.n).map(x=>x.a);
+  if(!hits.length)hits=DEMO_ARTICLES.slice(0,3);
+  return hits.slice(0,limit||5).map(a=>({title:a.title,snippet:a.text.slice(0,90)}));
+}
+
 function jsonp(url){return new Promise((res,rej)=>{
   const cb="__wp"+Date.now()+Math.floor(Math.random()*1e5),s=document.createElement("script");
   const clean=()=>{try{delete window[cb]}catch(e){window[cb]=undefined};s.remove()};
   window[cb]=d=>{clean();res(d)};
   s.onerror=()=>{clean();rej(new Error("スクリプト読込失敗"))};
   s.src=url+"&format=json&callback="+cb;document.head.appendChild(s);
-  setTimeout(()=>{if(window[cb]){clean();rej(new Error("タイムアウト(15秒)"))}},15000)})}
+  setTimeout(()=>{if(window[cb]){clean();rej(new Error("タイムアウト(2.5秒)"))}},2500)})}
 
-/* 3系統フォールバック：JSONP(ja) → JSONP(モバイル版) → fetch(CORS) */
+/* 実データ取得時のみ使用：JSONP(ja) → JSONP(モバイル版) → fetch(CORS)。各2.5秒で打ち切り */
 let apiRoute="未接続";
 async function api(params){
   const errs=[];
@@ -425,27 +474,20 @@ async function api(params){
     if(!r.ok)throw new Error("HTTP "+r.status);
     apiRoute="fetch(CORS)";return await r.json();
   }catch(e){errs.push("fetch:"+e.message)}
-  /* 経路4：中継サービス経由（Wikipedia直アクセスが遮断されている環境向け） */
-  for(const px of ["https://r.jina.ai/","https://api.allorigins.win/raw?url="]){
-    try{
-      const target="https://ja.wikipedia.org/w/api.php?"+params+"&format=json";
-      const r=await fetch(px+(px.includes("url=")?encodeURIComponent(target):target));
-      if(!r.ok)throw new Error("HTTP "+r.status);
-      const d=JSON.parse(await r.text());
-      apiRoute="中継 "+px.replace(/https:\/\/|\/.*$/g,"");return d;
-    }catch(e){errs.push("proxy:"+e.message)}
-  }
   throw new Error("Wikipediaに接続できません ["+errs.join(" / ")+"]");
 }
 /* 外部接続そのものが可能かを切り分け */
 function pingImg(url){return new Promise(res=>{
-  const i=new Image();const t=setTimeout(()=>{i.src="";res(false)},7000);
+  const i=new Image();const t=setTimeout(()=>{i.src="";res(false)},2500);
   i.onload=()=>{clearTimeout(t);res(true)};i.onerror=()=>{clearTimeout(t);res(false)};
   i.src=url+"?_="+Date.now();})}
 /* 接続診断 */
 async function diag(){
   $("gather").innerHTML="";$("gStatus").classList.add("show");$("gMsg").textContent="接続を診断中…";
   const isFile=location.protocol==="file:";
+  card("動作モード",liveMode?"実データ取得：ON":"オフライン（既定）",
+    liveMode?"Wikipediaへ実際に接続します。各経路2.5秒で打ち切り、失敗時はサンプルデータへ自動復帰します。"
+            :"外部通信は行いません。この状態でも全機能がサンプルデータで動作するため、商談では通常こちらのままで問題ありません。");
   card("環境","診断開始","表示元："+(isFile?"file://（ファイル直開き）":location.origin)+"／ブラウザのオンライン状態："+(navigator.onLine?"オンライン":"オフライン"));
   const cdn=await pingImg("https://cdnjs.cloudflare.com/favicon.ico");
   const wp=await pingImg("https://ja.wikipedia.org/static/favicon/wikipedia.ico");
@@ -465,6 +507,7 @@ async function diag(){
   $("gStatus").classList.remove("show");
 }
 async function wiki(q){
+  if(!liveMode){await sleep(420);return demoDoc(q)}
   const s=await api("action=opensearch&limit=1&search="+encodeURIComponent(q));
   let title=s[1]&&s[1][0];
   if(!title){ // 前方一致で無ければ全文検索にフォールバック
@@ -478,6 +521,7 @@ async function wiki(q){
 }
 /* キーワード全文検索（複数語・自然文に対応） */
 async function searchWiki(kw,limit){
+  if(!liveMode){await sleep(380);return demoSearch(kw,limit)}
   const r=await api("action=query&list=search&srlimit="+(limit||5)+"&srsearch="+encodeURIComponent(kw));
   return ((r.query&&r.query.search)||[]).map(x=>({
     title:x.title,
@@ -486,6 +530,7 @@ async function searchWiki(kw,limit){
 }
 /* 複数タイトルの本文を1リクエストでまとめて取得 */
 async function extracts(titles){
+  if(!liveMode){await sleep(320);return titles.map(t=>demoDoc(t))}
   const r=await api("action=query&prop=extracts&exintro=1&explaintext=1&redirects=1&titles="+encodeURIComponent(titles.join("|")));
   const pg=(r.query&&r.query.pages)||{};
   return Object.keys(pg).map(k=>({
@@ -508,7 +553,7 @@ async function run(m){
       if(!sources.find(s=>s.id==="wiki").on)throw new Error("ソース「Wikipedia」が無効です（左の設定で有効化）");
       $("gMsg").textContent="公開情報を収集中…";
       const w=await wiki(q);col={mode:m,name:w.title,lines:[{src:"Wikipedia",text:w.text}]};
-      card("Wikipedia（実取得）",w.title,w.text);
+      card("Wikipedia"+SRCSUF(),w.title,w.text);
     }
     if(m==="comp"){
       const names=$("q-comp").value.split(/[,、]/).map(s=>s.trim()).filter(Boolean).slice(0,4);
@@ -518,7 +563,7 @@ async function run(m){
         try{const w=await wiki(n);
           col.comps.push({name:w.title,text:w.text,score:60+Math.floor(Math.random()*38)});
           col.lines.push({src:"Wikipedia",text:w.text});
-          card("競合（実取得）",w.title,w.text);
+          card("競合"+SRCSUF(),w.title,w.text);
         }catch(e){card("取得失敗",n,"情報を取得できませんでした")}
       }
       if(!col.comps.length)throw new Error("競合情報を取得できませんでした");
@@ -552,14 +597,18 @@ async function run(m){
         const body=got[h.title]||h.snippet;
         if(!body)return;
         col.lines.push({src:"Wikipedia",text:body,title:h.title});
-        card("記事（実取得）",h.title,body);
+        card("記事"+SRCSUF(),h.title,body);
       });
       if(!col.lines.length)throw new Error("本文を取得できませんでした");
       card("検索サマリー",`「${k}」`,`${hits.length}件の関連記事を検出し、上位${col.lines.length}件の本文を取得しました。`);
     }
     toast("処理が完了しました（マスキング適用済み）");
   }catch(e){
-    card("エラー",(e&&e.message)||"失敗","サンプルデータで続行します。代表取締役 山田太郎／03-1234-5678／info@example.co.jp");
+    card("実データ取得に失敗",(e&&e.message)||"失敗","オフラインのサンプルデータへ自動で切り替えて続行します。以降の画面はすべて通常どおり動作します。");
+    if(liveMode){liveMode=false;$("liveTgl").checked=false;$("netbox").classList.remove("live");
+      $("netNote").innerHTML="実データ取得に失敗したため<b>オフラインのサンプルデータ</b>へ戻しました。";
+      const w=demoDoc(($("q-sales").value||"東邦重工業").trim());card("サンプルデータ",w.title,w.text);
+      col={mode:m,name:w.title,lines:[{src:"サンプル",text:w.text}]};}
     col=col||{mode:m,name:"サンプル",lines:[{src:"サンプル",text:"代表取締役 山田太郎／03-1234-5678／info@example.co.jp"}]};
   }
   $("gStatus").classList.remove("show");recalc();$("genBtn").disabled=false;
@@ -780,6 +829,14 @@ function showSlide(i){
   }));
 }
 function toast(m){const t=$("toastEl");t.textContent=m;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),2500)}
+$("liveTgl").addEventListener("change",e=>{
+  liveMode=e.target.checked;
+  $("netbox").classList.toggle("live",liveMode);
+  $("netNote").innerHTML=liveMode
+    ? "<b>実データ取得：ON</b>。Wikipediaへ接続します（各経路2.5秒で打ち切り）。失敗した場合はサンプルデータへ自動で戻ります。"
+    : "現在は<b>オフラインのサンプルデータ</b>で動作中。外部通信を一切行わないため、客先ネットワークやオフラインでも確実に動きます。";
+  toast(liveMode?"実データ取得をON（社内ネットワークでは遮断される場合があります）":"オフラインのサンプルデータに戻しました");
+});
 $("diagBtn").addEventListener("click",diag);
 renderSrc();renderMask();renderTpl();
 </script>
