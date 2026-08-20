@@ -101,6 +101,20 @@ header .sub{font-size:11px;color:var(--ink-soft)}
 .total .v{margin-left:auto;font-size:14px;color:var(--ok)}
 .warnbox{background:var(--warn-bg);border:1px solid #EFD9A0;color:var(--warn);border-radius:8px;padding:6px 9px;font-size:10.5px;margin-top:7px;display:none}
 .warnbox.show{display:block}
+/* 面接官コメント（文字起こしから自動生成） */
+.cmt{border:1px solid var(--line);border-radius:8px;margin-top:8px;overflow:hidden}
+.cmt .ch{background:#F3EEFB;color:#5B4FC7;padding:5px 9px;font-size:10.5px;font-weight:700;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.cmt .ch .bdg{background:#fff;border:1px solid #D6CDF5;border-radius:8px;padding:0 7px;font-size:9px}
+.cmt .cb{padding:7px 9px}
+.cmt .wait{font-size:10.5px;color:var(--ink-soft);text-align:center;padding:12px 6px;border:1px dashed var(--line);border-radius:7px;line-height:1.7}
+.cmt textarea{width:100%;border:1px solid var(--line);border-radius:7px;padding:6px 9px;font-size:11px;
+  font-family:inherit;min-height:74px;resize:vertical;background:#FBFAF7;line-height:1.75}
+.cmt .gen{width:100%;border:none;background:#5B4FC7;color:#fff;font-weight:700;border-radius:7px;padding:7px;font-size:11px;margin-top:5px}
+.cmt .gen:disabled{opacity:.4;cursor:not-allowed}
+.cmt .src{font-size:9.5px;color:var(--ink-soft);margin-top:4px;line-height:1.6}
+.cmt .src b{color:#5B4FC7}
+.dots3::after{content:"";animation:dots 1.2s steps(4,end) infinite}
+@keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
 
 /* フッターバー */
 .wfoot{border-top:1px solid var(--line);padding:8px 14px;display:flex;gap:9px;align-items:center;background:#FAF8F4;flex-wrap:wrap}
@@ -222,6 +236,16 @@ table.rs td.sc{font-family:var(--mono);text-align:center;width:74px;white-space:
             <div id="evList"></div>
             <div class="total">総合判定<span class="v" id="tv">—</span></div>
             <div class="warnbox" id="warn"></div>
+
+            <!-- 面接官コメント（文字起こしから自動生成） -->
+            <div class="cmt">
+              <div class="ch">🧠 面接官コメント（総評）
+                <span class="bdg" id="cmtBdg">文字起こし待ち</span></div>
+              <div class="cb" id="cmtBody">
+                <div class="wait" id="cmtWait">面接が終わると、<b>文字起こしの内容から総評コメントを自動生成</b>します。<br>
+                  生成後はそのまま編集できます。</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -327,7 +351,6 @@ function renderEval(){
       <div style="font-size:9.5px;color:var(--ink-soft)">${e.d}</div>
       <div class="stars" data-i="${i}">${[1,2,3,4,5].map(n=>`<button data-n="${n}" class="${n<=scores[i]?"on":""}">★</button>`).join("")}</div>
       <div class="basis ${basis[i].length?"show":""}">${basis[i].map(b=>"・"+b).join("<br>")}</div>
-      ${i===EVAL.length-1?`<textarea id="memo" placeholder="特記事項">前職と同業務。即戦力として期待できる。</textarea>`:""}
     </div>`).join("");
   document.querySelectorAll(".stars").forEach(st=>st.querySelectorAll("button").forEach(b=>
     b.addEventListener("click",()=>{scores[+st.dataset.i]=+b.dataset.n;renderEval();check()})));
@@ -348,7 +371,10 @@ $("startB").addEventListener("click",()=>{
     tmr=setInterval(()=>{sec++;
       $("timer").textContent=String(Math.floor(sec/60)).padStart(2,"0")+":"+String(sec%60).padStart(2,"0")},1000);
     toast("録音を開始しました。文字起こしは別ウィンドウ（最小化中）で動いています");
-  }else clearInterval(tmr);
+  }else{
+    clearInterval(tmr);
+    if(utt>0&&!cmtDone){genComment();toast("録音を停止しました。文字起こしから面接官コメントを生成します")}
+  }
 });
 
 /* タスクバーで文字起こしウィンドウ開閉 */
@@ -379,8 +405,37 @@ $("qlist").addEventListener("click",e=>{
       if(!basis[1].length)basis[1].push("受け答えが自然で、質問の意図を汲んで回答できている")}
     renderEval();check();
     $("fnote").textContent=`「${EVAL[d.ev].k}」に根拠を自動反映しました（${asked}/${TOTALQ}問）`;
+    if(asked>=TOTALQ)setTimeout(genComment,900);   // 全問終了 → コメント自動生成
   },600);
 });
+
+/* ══ 面接官コメント：文字起こしから自動生成 ══ */
+let cmtDone=false;
+function genComment(){
+  if(cmtDone)return;cmtDone=true;
+  $("cmtBdg").textContent="生成中";
+  $("cmtBody").innerHTML=`<div class="wait"><span class="dots3">文字起こし ${utt}件を読み込み、総評を作成中</span></div>`;
+  setTimeout(()=>{
+    const hi=[];
+    if(basis[2].length)hi.push("実績を数字で説明でき、"+basis[2].find(b=>b.includes("→"))?.replace(/^.*?（?/,"")||"再現性のある成果が確認できた");
+    const txt=
+      `対面での受け答えは落ち着いており、質問の意図を汲んだ回答ができていた。`+
+      `前職では受付を4年担当し、繁忙期は1日80件の対応実績がある。`+
+      `クレーム一次解決率を62%から84%へ改善し、要因をマニュアル化してチームへ共有した点から、`+
+      `成果の再現性と周囲への波及力が期待できる。`+
+      `志望動機は当社の入居者対応の評価を踏まえたもので、説明会にも参加しており志望度は高い。`+
+      `入社後は半年で独り立ちという具体的な目標を持っている。`+
+      `情報共有を重視する姿勢は当社のチーム運営とも合致する。`+
+      `希望年収340万円はレンジ内、入社は1.5ヶ月後を想定。条件面の齟齬はない。`;
+    $("cmtBdg").textContent="文字起こしから自動生成";
+    $("cmtBody").innerHTML=
+      `<textarea id="memo">${txt}</textarea>
+       <div class="src">出典：<b>質問マニュアル ${asked}問／文字起こし ${utt}発言</b>から要点を抽出。
+         氏名はAI送信時に【候補者A】へ置換済み。<br>内容はこのまま<b>編集できます</b>（編集後の文章がシートに反映されます）。</div>`;
+    toast("文字起こしから面接官コメントを自動生成しました");
+    $("fnote").textContent="面接官コメントを自動生成しました。内容を確認して「評価シートに反映」を押してください";
+  },1600);
+}
 function push(cls,who,txt){
   if($("feed").querySelector(".emptyf"))$("feed").innerHTML="";
   const d=document.createElement("div");d.className="u";
@@ -403,6 +458,7 @@ function check(){
 
 /* 反映 → 出力ウィンドウ */
 function apply(){
+  if(!cmtDone&&utt>0){genComment();toast("面接官コメントを生成しています。数秒後にもう一度押してください");return}
   const memo=$("memo")?$("memo").value:"";
   $("rsTable").innerHTML=
     `<tr><th style="width:104px">候補者</th><td>田中 美咲（フロント職・一次）</td><th style="width:64px">面接日</th><td>2026/08/18</td></tr>
@@ -410,7 +466,7 @@ function apply(){
      <tr><th>評価項目</th><th style="text-align:center">評点</th><th colspan="2">面接での根拠（自動反映）</th></tr>`+
     EVAL.map((e,i)=>`<tr><td>${e.k}</td><td class="sc">${"★".repeat(scores[i])}${"☆".repeat(5-scores[i])}</td>
       <td colspan="2" style="font-size:11px;color:var(--ink-soft)">${basis[i].map(b=>"・"+b).join("<br>")||"—"}</td></tr>`).join("")+
-    `<tr><th>特記事項</th><td colspan="3">${memo||"—"}</td></tr>
+    `<tr><th>面接官コメント<br><span style="font-weight:400;font-size:9.5px;color:#5B4FC7">文字起こしから自動生成</span></th><td colspan="3">${memo||"—"}</td></tr>
      <tr><th>総合判定</th><td colspan="3" style="font-weight:700;color:var(--ok)">${$("tv").textContent}</td></tr>
      <tr><th>質問消化</th><td colspan="3">マニュアル ${asked}/${TOTALQ} 問を実施</td></tr>`;
   $("outWin").classList.add("show");
