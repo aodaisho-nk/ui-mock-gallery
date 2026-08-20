@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DODA応募者情報 → スプレッドシート／採用管理システム 自動転記 デモ</title>
+<title>DODA応募者情報 → スプレッドシート 自動転記 デモ</title>
 <style>
 :root{
   --bg:#F4F6FA; --paper:#fff; --ink:#1B2432; --ink-soft:#66748A; --line:#DEE4EE;
@@ -169,7 +169,6 @@ main{max-width:1500px;margin:14px auto;padding:0 20px 50px}
 .rcard{background:var(--paper);border:1px solid var(--line);border-radius:11px;overflow:hidden;margin-bottom:14px}
 .r-hd{padding:9px 14px;font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:9px;color:#fff;flex-wrap:wrap}
 .r-hd.sheet{background:var(--sheet)}
-.r-hd.sys{background:var(--accent)}
 .r-hd .st{margin-left:auto;font-size:11px;font-weight:400}
 .r-bd{padding:0;overflow-x:auto}
 .grp{padding:12px 14px;border-bottom:1px solid var(--line)}
@@ -194,7 +193,6 @@ table.sh th{background:#F1F5F9;border:1px solid #DDE4EC;padding:4px 8px;font-fam
 table.sh td{border:1px solid #DDE4EC;padding:5px 8px;white-space:nowrap}
 table.sh td.fill{background:var(--sheet-bg);font-weight:600}
 table.sh td.blank{color:#C8D1DC}
-.sysjson{margin:0;padding:12px 14px;font-family:var(--mono);font-size:10.5px;line-height:1.8;background:#FBFCFD;white-space:pre-wrap;word-break:break-word;color:#33455C}
 .kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
 @media(max-width:760px){.kpi{grid-template-columns:repeat(2,1fr)}}
 .kpi div{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:9px 13px;text-align:center}
@@ -211,7 +209,7 @@ table.sh td.blank{color:#C8D1DC}
 
 <header>
   <div class="logo">D</div>
-  <div><h1>DODA応募者情報 → スプレッドシート／採用管理システム 自動転記</h1>
+  <div><h1>DODA応募者情報 → スプレッドシート 自動転記</h1>
     <div class="sub">応募者ページを開くだけで自動抽出。書類選考ルールまで判定してワンクリック転記（Chrome拡張）</div></div>
   <span class="chip">UI デモ版</span>
   <span class="chip lock">🔒 端末内処理・中間サーバー不要</span>
@@ -366,11 +364,6 @@ table.sh td.blank{color:#C8D1DC}
       <div class="r-hd sheet">📊 Googleスプレッドシート（<span id="shName">フロント職_応募者管理</span>）
         <span class="st" id="shSt">5行目に追記</span></div>
       <div class="r-bd" id="shBody"></div>
-    </div>
-    <div class="rcard">
-      <div class="r-hd sys">🗄️ 採用管理システム（β）POST /api/v1/intake/candidates
-        <span class="st" id="sysSt">200 OK</span></div>
-      <div class="r-bd"><pre class="sysjson" id="sysJson"></pre></div>
     </div>
     <div class="priv">🔒 抽出・判定はすべて<b>ブラウザ内</b>で完結し、Google Sheets API へ直接送信します（中間サーバーなし）。個人情報が外部AIに渡ることはありません。</div>
   </div>
@@ -625,27 +618,17 @@ $("btnSend").addEventListener("click",()=>{
 
   const filled=SHEET_ORDER.filter(c=>val[c]).length;
   $("kCols").textContent=filled;$("kTime").textContent="3.2秒";$("kDup").textContent="重複なし";
-  $("sysJson").textContent=JSON.stringify({
-    applicant_id:f.応募ID,name:f.氏名,kana:f.フリガナ,gender:f.性別,age:Number(f.年齢),
-    birthday:f.生年月日,tel:f.電話番号,email:f.メール||null,address:f.住所,
-    applied_at:f.応募日,media:f.媒体,job_changes:Number(f.転職回数),
-    inflow:cur.route,screening:j.ad||null,note:j.bo||null,
-    managed_property_ng:j.bq==="TRUE",override:ovr!=="auto"?ovr:null,
-    job_title:jobName,manuscript_name:f.原稿名称,manuscript_id:f.原稿ID||null,
-    source_url:cur.url
-  },null,1);
 
   $("plog").innerHTML=
     `<div class="r"><span>✅</span><span>【${jobName}】シート5行目に追記しました（${filled}列）</span></div>`+
     (j.bq==="TRUE"?"":`<div class="r"><span>✅</span><span>住所確認シートB列に住所を追記（管理物件NGでないため）</span></div>`)+
-    `<div class="r"><span>🗄️</span><span>採用管理システム取込 ✅（applicant_id で更新／新規を判定）</span></div>`+
     `<div class="r"><span>🔎</span><span>重複チェック：CF列に同一応募IDなし → 新規追記</span></div>`+
     (ovr!=="auto"?`<div class="r"><span>✍️</span><span>判定は担当者が手動で「${ovr==="ok"?"OK":"NG"}」に上書き（操作ログに記録）</span></div>`:"");
   $("res").style.display="";
   $("res").scrollIntoView({behavior:"smooth",block:"nearest"});
   $("btnSend").disabled=true;$("btnSend").textContent="✓ 送信済み";
   $("ftMsg").textContent="送信が完了しました。";
-  toast(`【${jobName}】へ転記しました（シート＋採用管理システム）`);
+  toast(`【${jobName}】へ転記しました`);
 });
 
 load();
