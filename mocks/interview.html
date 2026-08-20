@@ -3,14 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>面接評価シート自動生成｜起動トリガー＋質問マニュアル＋評価入力 デモ</title>
+<title>面接評価シート自動生成｜Zoom連携 デモ</title>
 <style>
 :root{
   --bg:#F3F4F7; --paper:#fff; --ink:#20293A; --ink-soft:#69758C; --line:#DDE2EC;
-  --zoom:#0B5CFF; --red:#D64541;
+  --zoom:#0B5CFF; --zoom-bg:#17181C; --zoom-tile:#242530; --zoom-line:#33343E;
   --accent:#B4531F; --accent-soft:#FBEDE4; --ok:#2E7D5B; --ok-soft:#E7F3EE;
-  --warn:#9A6B00; --warn-soft:#FBF3DC;
-  --learn:#5B4FC7; --learn-soft:#EFEAFB; --learn-line:#D6CDF5;
+  --warn:#9A6B00; --warn-soft:#FBF3DC; --red:#D64541;
   --mono:"Consolas","SFMono-Regular",monospace;
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -21,10 +20,10 @@ header{background:var(--paper);border-bottom:1px solid var(--line);padding:13px 
 .logo{width:30px;height:30px;border-radius:8px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
 header h1{font-size:16px}
 header .sub{font-size:11.5px;color:var(--ink-soft)}
-.chip{margin-left:auto;font-size:11px;letter-spacing:.12em;border:1px solid var(--accent);color:var(--accent);border-radius:4px;padding:2px 10px;white-space:nowrap}
+.chip{margin-left:auto;font-size:11px;letter-spacing:.12em;border:1px solid var(--accent);color:var(--accent);border-radius:4px;padding:2px 10px}
 .chip.lock{margin-left:8px;border-color:var(--ok);color:var(--ok);background:var(--ok-soft);letter-spacing:.04em}
 
-.steps{max-width:1420px;margin:14px auto 0;padding:0 20px;display:flex;gap:8px;font-size:11.5px;color:var(--ink-soft);flex-wrap:wrap}
+.steps{max-width:1180px;margin:14px auto 0;padding:0 18px;display:flex;gap:8px;font-size:11.5px;color:var(--ink-soft);flex-wrap:wrap}
 .step{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--paper);border-radius:20px;padding:4px 14px}
 .step .n{width:17px;height:17px;border-radius:50%;background:var(--line);display:inline-flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px}
 .step.active{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
@@ -33,181 +32,65 @@ header .sub{font-size:11.5px;color:var(--ink-soft)}
 .step.done .n{background:var(--ok);color:#fff}
 .arrow{align-self:center;color:var(--line)}
 
-main{max-width:1420px;margin:14px auto;padding:0 20px 60px}
-.cap{font-size:11px;color:var(--ink-soft);margin:8px 2px 0}
-.cap b{color:var(--accent)}
+main{max-width:1180px;margin:14px auto;padding:0 18px 60px;display:grid;grid-template-columns:minmax(0,1.15fr) 360px;gap:18px;align-items:start}
+@media(max-width:920px){main{grid-template-columns:1fr}}
 
-/* ══════ PCデスクトップ ══════ */
-.desktop{position:relative;border-radius:12px;overflow:hidden;border:1px solid #1B2434;
-  background:linear-gradient(140deg,#2C3A52 0%,#1D2738 55%,#161E2B 100%);
-  padding:14px 14px 58px;box-shadow:0 10px 34px rgba(15,25,40,.26)}
-.desktop:not(.launched){min-height:922px}
+/* ── Zoom風ウィンドウ ── */
+.zoom{background:var(--zoom-bg);border-radius:12px;overflow:hidden;border:1px solid #000;box-shadow:0 8px 28px rgba(0,0,0,.25)}
+.zoom-bar{background:#212228;padding:8px 14px;display:flex;align-items:center;gap:10px;font-size:12px;color:#C9CDD6}
+.zoom-bar .zlogo{width:18px;height:18px;border-radius:5px;background:var(--zoom);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700}
+.zoom-bar .rec{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:11px;color:#FF7B76}
+.zoom-bar .rec i{width:8px;height:8px;border-radius:50%;background:var(--red)}
+.zoom-bar .rec.on i{animation:blink 1.1s infinite}
+@keyframes blink{50%{opacity:.2}}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px}
+.tile{background:var(--zoom-tile);border:1px solid var(--zoom-line);border-radius:8px;aspect-ratio:16/8.5;position:relative;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px}
+.tile .face{width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff}
+.tile .nm{position:absolute;left:8px;bottom:7px;background:rgba(0,0,0,.55);color:#E7EAF0;font-size:10.5px;border-radius:4px;padding:1px 8px}
+.tile .mic{position:absolute;right:8px;bottom:7px;font-size:11px}
+.tile.speaking{outline:2px solid #52C41A;outline-offset:-2px}
+.zoom-tools{display:flex;gap:14px;justify-content:center;padding:9px;border-top:1px solid var(--zoom-line);font-size:10.5px;color:#9AA0AD}
+.zoom-tools span{display:flex;flex-direction:column;align-items:center;gap:1px}
+.zoom-tools .ico{font-size:15px}
+.zoom-tools .app{color:#8AB4FF}
 
-/* ── 最大化されたメインウィンドウ ── */
-.dwin{background:var(--paper);border-radius:9px 9px 0 0;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.3);display:flex;flex-direction:column}
-.dtitle{background:#EDF0F5;border-bottom:1px solid #D6DCE6;padding:7px 12px;display:flex;align-items:center;gap:9px;font-size:12px;color:#3F4E60}
-.dtitle .ic{width:19px;height:19px;border-radius:5px;background:var(--accent);color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;font-weight:700;flex:none}
-.dtitle .tt{font-weight:700}
-.dtitle .sm{color:#7A8798;font-size:11px}
-.wbtns{margin-left:auto;display:flex;gap:6px}
-.wbtns b{width:22px;height:19px;border-radius:4px;background:#DCE2EA;color:#5A6B80;font-size:11px;font-weight:400;display:flex;align-items:center;justify-content:center;cursor:default}
-.wbtns b.x{background:#E8A6A2;color:#7A2420}
+/* 文字起こし */
+.trans{background:var(--paper);border:1px solid var(--line);border-radius:12px;margin-top:14px;padding:14px 16px}
+.trans h3{font-size:12px;letter-spacing:.14em;color:var(--ink-soft);margin-bottom:10px;display:flex;gap:10px;align-items:center}
+.trans h3::after{content:"";flex:1;height:1px;background:var(--line)}
+.trans h3 .live{font-size:10px;color:var(--red);border:1px solid var(--red);border-radius:3px;padding:0 6px;letter-spacing:.1em}
+.feed{max-height:190px;overflow-y:auto;display:flex;flex-direction:column;gap:7px;font-size:12.5px}
+.feed .u{display:flex;gap:8px;animation:up .3s ease}
+@keyframes up{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+.feed .who{font-family:var(--mono);font-size:10.5px;border-radius:4px;padding:1px 7px;white-space:nowrap;align-self:flex-start;margin-top:3px}
+.feed .who.iv{background:var(--accent-soft);color:var(--accent)}
+.feed .who.cd{background:#E8F0FA;color:#2B5FA8}
+.feed-empty{color:var(--ink-soft);font-size:12px;text-align:center;padding:24px;border:2px dashed var(--line);border-radius:9px}
 
-.dbody{display:grid;grid-template-columns:minmax(0,1fr) 392px;height:566px;overflow:hidden}
-@media(max-width:1150px){.dbody{grid-template-columns:1fr;height:auto;overflow:visible}.manual,.rate{overflow:visible}.mbd,.rbd{overflow:visible}}
-
-/* ── 左：質問マニュアル ── */
-.manual{border-right:1px solid var(--line);display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden}
-.mhd{padding:10px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:9px;flex-wrap:wrap;background:#FCFCFD}
-.mhd .t{font-size:13px;font-weight:700}
-.mhd .ver{font-size:10px;color:var(--ink-soft);border:1px solid var(--line);border-radius:4px;padding:0 7px;font-family:var(--mono)}
-.prog{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:11px;color:var(--ink-soft)}
-.pbar{width:104px;height:6px;border-radius:4px;background:var(--line);overflow:hidden}
-.pbar i{display:block;height:100%;background:var(--ok);width:0;transition:width .4s}
-.mbd{flex:1;min-height:0;overflow-y:auto;padding:12px 16px 16px}
-.sec{margin-bottom:13px}
-.sec .sh{display:flex;align-items:center;gap:9px;font-size:11.5px;font-weight:700;color:var(--accent);margin-bottom:6px}
-.sec .sh .mi{font-family:var(--mono);font-size:10px;color:var(--ink-soft);font-weight:400;border:1px solid var(--line);border-radius:3px;padding:0 6px}
-.sec .sh::after{content:"";flex:1;height:1px;background:var(--line)}
-.q{display:flex;gap:9px;border:1px solid var(--line);border-radius:8px;padding:8px 11px;margin-bottom:6px;background:#fff;transition:.2s;cursor:pointer}
-.q:hover{border-color:var(--accent)}
-.q .ck{width:17px;height:17px;border-radius:4px;border:1.5px solid #C3CDDA;flex:none;margin-top:3px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;transition:.2s}
-.q.done{background:#F6FBF8;border-color:#B7E0C9}
-.q.done .ck{background:var(--ok);border-color:var(--ok)}
-.q.done .ck::after{content:"✓"}
-.q.now{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 3px rgba(180,83,31,.10)}
-.q .qt{font-size:12.5px;line-height:1.65}
-.q .aim{font-size:10.5px;color:var(--ink-soft);margin-top:2px}
-.q .tie{display:inline-block;font-size:9.5px;background:#EEF2F7;color:#5A6B80;border-radius:9px;padding:0 8px;margin-top:4px}
-.q.done .tie{background:var(--ok-soft);color:var(--ok)}
-.q .auto{font-size:9.5px;color:var(--ok);margin-left:6px}
-.mfoot{border-top:1px solid var(--line);padding:8px 16px;font-size:10.5px;color:var(--ink-soft);background:#FCFCFD}
-
-/* ── 右：評価シート記入 ── */
-.rate{display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden;background:#FBFCFD}
-.rhd{padding:10px 16px;border-bottom:1px solid var(--line);background:#fff}
-.rhd .t{font-size:13px;font-weight:700}
-.rhd .c{font-size:11.5px;color:var(--ink-soft)}
-.rbd{flex:1;min-height:0;overflow-y:auto;padding:12px 16px}
-.item{margin-bottom:9px;border:1px solid transparent;border-radius:8px;padding:4px 6px;transition:.25s}
-.item.focus{border-color:var(--accent);background:var(--accent-soft)}
-.item .lb{font-size:12px;display:flex;align-items:center;gap:8px}
-.item .lb .sv{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--accent)}
-.stars{display:flex;gap:2px;align-items:center;margin-top:1px}
-.stars button{border:none;background:none;font-size:19px;color:#D8DCE5;padding:0 1px;transition:transform .1s;line-height:1}
+/* ── 右：Zoomアプリ(評価パネル) ── */
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.panel-hd{background:#F7F8FB;border-bottom:1px solid var(--line);padding:10px 16px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:8px}
+.panel-hd .zlogo{width:15px;height:15px;border-radius:4px;background:var(--zoom);color:#fff;font-size:8.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+.panel-hd small{margin-left:auto;font-weight:400;color:var(--ink-soft);font-size:10.5px}
+.panel-bd{padding:14px 16px}
+.cand{font-size:12px;color:var(--ink-soft);margin-bottom:10px}
+.cand b{color:var(--ink);font-size:13.5px}
+.item{margin-bottom:11px}
+.item .lb{font-size:12px;display:flex;justify-content:space-between}
+.item .lb span:last-child{font-family:var(--mono);font-size:11px;color:var(--accent)}
+.stars{display:flex;gap:3px;margin-top:2px}
+.stars button{border:none;background:none;font-size:19px;color:#D8DCE5;padding:0 1px;transition:transform .1s}
 .stars button:hover{transform:scale(1.2)}
 .stars button.on{color:#F5A623}
-.stars .sug{font-size:9.5px;color:var(--learn);background:var(--learn-soft);border-radius:9px;padding:0 8px;margin-left:6px;white-space:nowrap;display:none}
-.stars .sug.show{display:inline-block;animation:up .4s ease}
-textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 11px;font-size:12.5px;font-family:inherit;min-height:54px;resize:vertical;background:#fff;color:var(--ink)}
-.rfoot{border-top:1px solid var(--line);padding:11px 16px;background:#fff}
-.gen{width:100%;border:none;background:var(--accent);color:#fff;font-weight:700;border-radius:9px;padding:11px;font-size:13.5px}
-.gen:disabled{opacity:.42;cursor:default}
-.gen.start{background:#2B5FA8;margin-bottom:8px}
-.hint{font-size:10.5px;color:var(--ink-soft);margin-top:6px;text-align:center}
-.miss{display:none;margin-bottom:8px;background:var(--warn-soft);border:1px solid #F0DDA8;color:var(--warn);border-radius:8px;padding:7px 10px;font-size:11px;line-height:1.6}
-.miss.show{display:block}
+textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 11px;font-size:12.5px;font-family:inherit;min-height:56px;resize:vertical;background:#FBFCFD}
+.gen{margin-top:12px;width:100%;border:none;background:var(--accent);color:#fff;font-weight:700;border-radius:9px;padding:12px;font-size:13.5px}
+.gen:hover:not(:disabled){opacity:.9}
+.gen:disabled{opacity:.45;cursor:default}
+.hint{font-size:11px;color:var(--ink-soft);margin-top:6px;text-align:center}
 
-/* ── 下部ステータスバー ── */
-.dstat{background:#F7F8FB;border-top:1px solid var(--line);padding:6px 16px;display:flex;align-items:center;gap:16px;font-size:10.5px;color:var(--ink-soft);flex-wrap:wrap}
-.dstat .dot{width:7px;height:7px;border-radius:50%;background:#C3CDDA;display:inline-block;margin-right:5px}
-.dstat .dot.on{background:var(--red);animation:blink 1.1s infinite}
-@keyframes blink{50%{opacity:.2}}
-.dstat b{font-family:var(--mono);color:var(--ink)}
-
-/* ── 最小化された録音・文字起こしアプリ ── */
-.rec-win{position:absolute;right:22px;bottom:52px;width:344px;z-index:20;
-  background:var(--paper);border:1px solid #9AA7BA;border-radius:9px;overflow:hidden;
-  box-shadow:0 18px 46px rgba(0,0,0,.45);display:none;flex-direction:column}
-.rec-win.open{display:flex;animation:up .28s ease}
-@keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-.rw-hd{background:#212228;color:#E7EAF0;padding:7px 11px;display:flex;align-items:center;gap:8px;font-size:11.5px}
-.rw-hd .zl{width:16px;height:16px;border-radius:4px;background:var(--zoom);color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}
-.rw-hd .mn{margin-left:auto;border:none;background:rgba(255,255,255,.16);color:#fff;border-radius:4px;width:22px;height:19px;font-size:12px;line-height:1}
-.rw-tiles{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:8px;background:#17181C}
-.rw-tile{background:#242530;border:1px solid #33343E;border-radius:6px;aspect-ratio:16/9;position:relative;display:flex;align-items:center;justify-content:center}
-.rw-tile .face{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff}
-.rw-tile .nm{position:absolute;left:5px;bottom:4px;background:rgba(0,0,0,.6);color:#E7EAF0;font-size:9px;border-radius:3px;padding:0 6px}
-.rw-tile.speaking{outline:2px solid #52C41A;outline-offset:-2px}
-.rw-feed{max-height:172px;overflow-y:auto;padding:9px 11px;display:flex;flex-direction:column;gap:6px;font-size:11.5px}
-.rw-feed .u{display:flex;gap:7px;animation:up .3s ease}
-.rw-feed .who{font-family:var(--mono);font-size:9.5px;border-radius:3px;padding:0 6px;white-space:nowrap;align-self:flex-start;margin-top:2px}
-.rw-feed .who.iv{background:var(--accent-soft);color:var(--accent)}
-.rw-feed .who.cd{background:#E8F0FA;color:#2B5FA8}
-.rw-empty{color:var(--ink-soft);font-size:11px;text-align:center;padding:20px 10px}
-.rw-ft{border-top:1px solid var(--line);padding:6px 11px;font-size:10px;color:var(--ink-soft);display:flex;gap:9px;align-items:center}
-
-/* ── タスクバー ── */
-.taskbar{position:absolute;left:0;right:0;bottom:0;background:rgba(12,18,28,.86);border-top:1px solid rgba(255,255,255,.10);
-  padding:6px 14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.tsk{display:flex;align-items:center;gap:7px;border-radius:6px;padding:5px 12px;font-size:11.5px;
-  color:#C8D3E2;background:rgba(255,255,255,.07);border:1px solid transparent;white-space:nowrap}
-.tsk .ic{width:16px;height:16px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;flex:none}
-.tsk.on{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.22);color:#fff;box-shadow:inset 0 -2px 0 var(--accent)}
-.tsk.rec{cursor:pointer}
-.tsk.rec:hover{background:rgba(255,255,255,.14)}
-.tsk .rdot{width:7px;height:7px;border-radius:50%;background:#7A8798}
-.tsk.live .rdot{background:#FF5B57;animation:blink 1.1s infinite}
-.tsk .cnt{font-family:var(--mono);font-size:10.5px;opacity:.85}
-.tsk .mini{font-size:9.5px;background:rgba(255,255,255,.14);border-radius:8px;padding:0 7px}
-.clock{margin-left:auto;font-size:11px;color:#9FB0C4;font-family:var(--mono);text-align:right;line-height:1.35}
-
-
-/* ══════ 起動ランチャー ══════ */
-.launcher{position:absolute;left:0;right:0;top:0;bottom:44px;z-index:40;display:flex;align-items:center;justify-content:center;padding:14px;
-  background:rgba(16,24,36,.55);backdrop-filter:blur(3px)}
-.launcher.hide{display:none}
-.lbox{background:var(--paper);border-radius:13px;width:100%;max-width:960px;max-height:100%;overflow-y:auto;
-  box-shadow:0 24px 64px rgba(0,0,0,.42)}
-.lhd{background:var(--accent);color:#fff;padding:9px 16px;display:flex;align-items:center;gap:10px;border-radius:13px 13px 0 0}
-.lhd .ic{width:26px;height:26px;border-radius:7px;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex:none}
-.lhd .t{font-size:14.5px;font-weight:700}
-.lhd .s{font-size:11px;opacity:.9;margin-left:auto}
-.lbd{padding:12px 16px 13px;display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
-@media(max-width:820px){.lbd{grid-template-columns:1fr}}
-.lsec{border:1px solid var(--line);border-radius:10px;padding:9px 11px;background:#FCFCFD}
-.lsec.wide{grid-column:1 / -1}
-.lsec .h{font-size:11.5px;font-weight:700;color:var(--accent);margin-bottom:8px;display:flex;align-items:center;gap:8px}
-.lsec .h .n{width:17px;height:17px;border-radius:50%;background:var(--accent);color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);flex:none}
-.lsec .h .tag{margin-left:auto;font-size:9.5px;font-weight:400;border-radius:9px;padding:0 8px}
-.tag.wip{background:var(--warn-soft);color:var(--warn);border:1px solid #F0DDA8}
-.tag.ok{background:var(--ok-soft);color:var(--ok)}
-.trg{display:flex;align-items:flex-start;gap:8px;font-size:11.5px;padding:3px 7px;border:1px solid transparent;border-radius:7px;cursor:pointer}
-.trg:hover{background:#F7F8FB}
-.trg input{accent-color:var(--accent);margin-top:4px;flex:none}
-.trg .d{font-size:10.5px;color:var(--ink-soft);line-height:1.55}
-.trg.on{border-color:var(--accent);background:var(--accent-soft)}
-.lnote{font-size:10px;color:var(--ink-soft);margin-top:5px;border-top:1px dashed var(--line);padding-top:5px;line-height:1.55}
-.frow{display:grid;grid-template-columns:88px 1fr;gap:5px 9px;align-items:center;font-size:12px}
-.frow label{color:var(--ink-soft);font-size:11px}
-.frow select,.frow input{width:100%;border:1px solid var(--line);border-radius:6px;padding:4px 8px;font-size:12px;font-family:inherit;background:#fff;color:var(--ink)}
-.frow input.blank{background:#FFFBEA;border-style:dashed;border-color:#E0B400}
-.frow input.blank::placeholder{color:#B08900}
-.mapwrap{max-height:152px;overflow-y:auto;border:1px solid var(--line);border-radius:6px;margin-top:7px;background:#fff}
-.maptbl{width:100%;border-collapse:collapse;font-size:11.5px}
-.maptbl thead th{position:sticky;top:0;z-index:1}
-.maptbl th{background:#F0F2F6;border:1px solid var(--line);padding:3px 8px;font-size:10.5px;text-align:left;color:var(--ink-soft);font-weight:600}
-.maptbl td{border:1px solid var(--line);padding:3px 8px;line-height:1.5}
-.maptbl td.sys{font-family:var(--mono);font-size:10.5px;color:var(--accent);background:#FDF8F5}
-.maptbl td.tpl{color:var(--ink-soft)}
-.maptbl td.tpl.empty{background:#FFFBEA;color:#B08900;font-style:italic}
-.lft{border-top:1px solid var(--line);padding:9px 16px 12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.lft .warn{font-size:11px;color:var(--warn);flex:1;min-width:200px}
-.bigstart{border:none;background:var(--accent);color:#fff;font-weight:700;border-radius:10px;padding:11px 30px;font-size:14.5px;box-shadow:0 4px 14px rgba(180,83,31,.32)}
-.bigstart:hover{opacity:.92}
-.boot{position:absolute;left:0;right:0;top:0;bottom:44px;z-index:39;display:none;align-items:center;justify-content:center;background:rgba(16,24,36,.45);backdrop-filter:blur(2px)}
-.boot.show{display:flex}
-.bootbox{background:var(--paper);border-radius:11px;padding:18px 24px;min-width:330px;box-shadow:0 18px 46px rgba(0,0,0,.4)}
-.bootbox .bt{font-size:13px;font-weight:700;margin-bottom:10px}
-.bstep{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--ink-soft);padding:3px 0;opacity:.35;transition:.25s}
-.bstep.on{opacity:1;color:var(--ink)}
-.bstep .mk{font-family:var(--mono);font-size:11px;color:var(--ok)}
-.dwin,.rec-win{transition:opacity .35s}
-.desktop:not(.booted) .dwin{opacity:.25;filter:blur(1px)}
-
-/* ══════ 成果物（生成された評価シート） ══════ */
-.result{display:none;margin-top:18px}
-.result.show{display:block;animation:up .4s ease}
+/* ── 評価シート ── */
+.sheet-wrap{display:none;margin-top:14px}
+.sheet-wrap.show{display:block;animation:up .4s ease}
 .sheet{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:20px 22px}
 .sheet h3{font-size:15px;text-align:center;letter-spacing:.3em;border-bottom:2px solid var(--ink);padding-bottom:8px;margin-bottom:12px}
 .sheet .meta{display:grid;grid-template-columns:90px 1fr 90px 1fr;font-size:12px;border:1px solid var(--line);margin-bottom:12px}
@@ -224,6 +107,7 @@ textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 1
 .deliver{display:flex;gap:10px;margin-top:14px;align-items:center;flex-wrap:wrap}
 .deliver .path{font-family:var(--mono);font-size:11px;color:var(--ink-soft);background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:8px 12px;flex:1;min-width:220px}
 .dbtn{border:none;background:var(--ok);color:#fff;font-weight:700;border-radius:9px;padding:12px 22px;font-size:13.5px}
+.dbtn:hover:not(:disabled){opacity:.9}
 .dbtn:disabled{opacity:.5;cursor:default}
 .done-file{display:none;margin-top:10px;background:var(--ok-soft);color:var(--ok);border-radius:8px;padding:9px 14px;font-size:12.5px;font-weight:600}
 .done-file.show{display:block;animation:up .4s ease}
@@ -231,299 +115,176 @@ textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 1
 .priv-note b{color:var(--ok)}
 
 /* ── 学習機能 ── */
-.learn-badge{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;background:var(--learn-soft);color:var(--learn);border:1px solid var(--learn-line);border-radius:10px;padding:1px 9px;margin-left:6px;white-space:nowrap}
+.learn-badge{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;background:#EFEAFB;color:#5B4FC7;border:1px solid #D6CDF5;border-radius:10px;padding:1px 9px;margin-left:6px;white-space:nowrap}
 .overall{border:1px dashed var(--line);border-radius:8px;padding:10px 13px;margin-bottom:10px;font-size:12.5px;line-height:1.9}
 .overall .hd{font-size:11px;color:var(--ink-soft);font-weight:700;margin-bottom:4px;display:flex;align-items:center;flex-wrap:wrap}
 .overall [contenteditable]{outline:none;border-radius:4px;padding:2px 4px}
-.overall [contenteditable]:hover{background:#FAFAFD;box-shadow:0 0 0 2px var(--learn-soft)}
-.overall [contenteditable]:focus{box-shadow:0 0 0 2px var(--learn);background:#fff}
-.learn-panel{margin-top:14px;border:1px solid var(--learn-line);border-radius:11px;overflow:hidden;background:#FCFBFF}
-.learn-panel .hd{background:var(--learn-soft);color:var(--learn);padding:9px 14px;font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.overall [contenteditable]:hover{background:#FAFAFD;box-shadow:0 0 0 2px #EFEAFB}
+.overall [contenteditable]:focus{box-shadow:0 0 0 2px #5B4FC7;background:#fff}
+.learn-panel{margin-top:14px;border:1px solid #D6CDF5;border-radius:11px;overflow:hidden;background:#FCFBFF}
+.learn-panel .hd{background:#EFEAFB;color:#5B4FC7;padding:9px 14px;font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .learn-panel .hd .cnt{margin-left:auto;font-family:var(--mono);font-size:11px;background:#fff;border-radius:10px;padding:1px 10px}
 .learn-panel .bd{padding:12px 14px}
 .learn-panel .desc{font-size:11.5px;color:var(--ink-soft);margin-bottom:10px}
 .ph{display:flex;align-items:center;gap:9px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;margin-bottom:6px;background:#fff;font-size:12px}
 .ph .txt{flex:1}
-.ph .use{font-family:var(--mono);font-size:10.5px;color:var(--learn);background:var(--learn-soft);border-radius:9px;padding:1px 8px;white-space:nowrap}
+.ph .use{font-family:var(--mono);font-size:10.5px;color:#5B4FC7;background:#EFEAFB;border-radius:9px;padding:1px 8px;white-space:nowrap}
 .ph.new{animation:phIn .6s ease}
-@keyframes phIn{from{background:var(--learn-soft);transform:translateY(-4px)}to{background:#fff}}
-.learn-cta{display:none;margin-top:10px;gap:8px;align-items:center;flex-wrap:wrap;background:var(--learn-soft);border-radius:8px;padding:9px 12px;font-size:12px;color:#4A3FB0}
+@keyframes phIn{from{background:#EFEAFB;transform:translateY(-4px)}to{background:#fff}}
+.learn-cta{display:none;margin-top:10px;gap:8px;align-items:center;flex-wrap:wrap;background:#EFEAFB;border-radius:8px;padding:9px 12px;font-size:12px;color:#4A3FB0}
 .learn-cta.show{display:flex}
-.learn-cta button{border:none;background:var(--learn);color:#fff;border-radius:7px;padding:7px 15px;font-size:12px;font-weight:700}
-.learn-cta button.ghost{background:#fff;color:var(--learn);border:1px solid var(--learn-line)}
+.learn-cta button{border:none;background:#5B4FC7;color:#fff;border-radius:7px;padding:7px 15px;font-size:12px;font-weight:700}
+.learn-cta button.ghost{background:#fff;color:#5B4FC7;border:1px solid #D6CDF5}
 .learn-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:11px}
 .learn-stats div{background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 10px;text-align:center}
-.learn-stats b{display:block;font-family:var(--mono);font-size:16px;color:var(--learn)}
+.learn-stats b{display:block;font-family:var(--mono);font-size:16px;color:#5B4FC7}
 .learn-stats span{font-size:9.5px;color:var(--ink-soft)}
 .before-after{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11.5px;margin-top:10px}
 .before-after .bx{border:1px solid var(--line);border-radius:8px;padding:8px 11px;background:#fff}
 .before-after .bx .l{font-size:9.5px;letter-spacing:.1em;margin-bottom:3px;font-weight:700}
 .before-after .bx.b .l{color:var(--ink-soft)}
-.before-after .bx.a .l{color:var(--learn)}
-.before-after .bx.a{border-color:var(--learn-line);background:#FCFBFF}
+.before-after .bx.a .l{color:#5B4FC7}
+.before-after .bx.a{border-color:#D6CDF5;background:#FCFBFF}
 @media(max-width:640px){.before-after{grid-template-columns:1fr}}
 
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:10px 22px;border-radius:8px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:60}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:10px 22px;border-radius:8px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:50}
 .toast.show{opacity:1;transform:translateX(-50%)}
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo">面</div>
-  <div><h1>面接評価シート自動生成</h1><div class="sub">スタート1回でZoom・質問マニュアル・評価画面が同時起動 → 社内の評価シート様式に紐づけて自動生成・フォルダ納品</div></div>
+  <div class="logo">Z</div>
+  <div><h1>面接評価シート自動生成（Zoom面接）</h1><div class="sub">Zoom面接 → 評価入力＋文字起こし → シート生成 → フォルダ納品</div></div>
   <span class="chip">UI デモ版</span>
   <span class="chip lock">🔒 候補者名はAI非送信</span>
 </header>
 
 <div class="steps">
-  <span class="step active" id="s1"><span class="n">1</span>スタート → Zoom・質問マニュアル・評価画面が同時起動</span><span class="arrow">→</span>
-  <span class="step" id="s2"><span class="n">2</span>質問マニュアル通りに面接（録音は裏で自動）</span><span class="arrow">→</span>
-  <span class="step" id="s3"><span class="n">3</span>社内様式に紐づけてシート生成</span><span class="arrow">→</span>
+  <span class="step active" id="s1"><span class="n">1</span>Zoomで面接しながら評価入力</span><span class="arrow">→</span>
+  <span class="step" id="s2"><span class="n">2</span>文字起こしを取得</span><span class="arrow">→</span>
+  <span class="step" id="s3"><span class="n">3</span>ワンクリックでシート生成</span><span class="arrow">→</span>
   <span class="step" id="s4"><span class="n">4</span>指定フォルダへ納品</span>
 </div>
 
 <main>
-  <!-- ══════ 面接官のPC画面 ══════ -->
-  <div class="desktop" id="desktop">
-
-    <!-- 最大化されたメインウィンドウ -->
-    <div class="dwin">
-      <div class="dtitle">
-        <span class="ic">面</span>
-        <span class="tt">面接評価アプリ</span>
-        <span class="sm">— 山田 一郎 様／法人営業・一次面接</span>
-        <span class="wbtns"><b>—</b><b>▢</b><b class="x">✕</b></span>
+  <!-- 左：Zoom画面＋文字起こし＋生成シート -->
+  <section>
+    <div class="zoom">
+      <div class="zoom-bar">
+        <span class="zlogo">Z</span> Zoom ミーティング — 中途採用一次面接
+        <span class="rec" id="rec"><i></i><span id="recTxt">開始前</span></span>
       </div>
-
-      <div class="dbody">
-        <!-- 左：質問マニュアル -->
-        <div class="manual">
-          <div class="mhd">
-            <span class="t">📖 質問マニュアル</span>
-            <span class="ver">人事部 標準質問集 v3.2</span>
-            <span class="prog"><span id="progTxt">0 / 12 完了</span><span class="pbar"><i id="progBar"></i></span></span>
-          </div>
-          <div class="mbd" id="manual"></div>
-          <div class="mfoot">クリックで「聞いた」チェック。面接が始まると<b>文字起こしから自動でチェック</b>が入ります。</div>
+      <div class="tiles">
+        <div class="tile" id="tileIv">
+          <div class="face" style="background:#B4531F">中</div>
+          <span class="nm">面接官：中野（人事）</span><span class="mic">🎙</span>
         </div>
-
-        <!-- 右：評価シート記入 -->
-        <div class="rate">
-          <div class="rhd">
-            <div class="t">✍️ 評価シート記入</div>
-            <div class="c">候補者：山田 一郎 様／面接官：中野（人事部）</div>
-          </div>
-          <div class="rbd">
-            <div id="items"></div>
-            <div class="item"><div class="lb"><span>メモ（気づき）</span></div>
-              <textarea id="memo">受け答えが具体的。数字で語れる。少し早口。</textarea></div>
-          </div>
-          <div class="rfoot">
-            <div class="miss" id="miss"></div>
-            <button class="gen start" id="startBtn">▶ 面接を開始（録音・文字起こしを起動）</button>
-            <button class="gen" id="genBtn" disabled>📝 評価シートを作成（ワンクリック）</button>
-            <div class="hint" id="genHint">開始すると別ウィンドウの録音アプリが立ち上がります</div>
-          </div>
+        <div class="tile" id="tileCd">
+          <div class="face" style="background:#2B5FA8">山</div>
+          <span class="nm">候補者：山田 一郎 様</span><span class="mic">🎙</span>
         </div>
       </div>
-
-      <div class="dstat">
-        <span><span class="dot" id="stDot"></span><span id="stRec">録音：停止中</span></span>
-        <span>経過 <b id="stTime">00:00</b></span>
-        <span>文字起こし <b id="stLines">0</b> 行</span>
-        <span>質問 <b id="stQ">0/12</b></span>
-        <span style="margin-left:auto">🔒 音声・文字起こしの原本は社内サーバーにのみ保存</span>
+      <div class="zoom-tools">
+        <span><span class="ico">🎙</span>ミュート</span>
+        <span><span class="ico">🎥</span>ビデオ</span>
+        <span><span class="ico">👥</span>参加者</span>
+        <span class="app"><span class="ico">📋</span>評価アプリ ←右パネル</span>
+        <span><span class="ico">⏺</span>レコーディング</span>
       </div>
     </div>
 
-    <!-- 別ウィンドウ：録音・文字起こし（既定は最小化） -->
-    <div class="rec-win" id="recWin">
-      <div class="rw-hd"><span class="zl">Z</span>Zoom 録音・文字起こし
-        <button class="mn" id="recMin" title="最小化">—</button></div>
-      <div class="rw-tiles">
-        <div class="rw-tile" id="tileIv"><div class="face" style="background:#B4531F">中</div><span class="nm">面接官：中野</span></div>
-        <div class="rw-tile" id="tileCd"><div class="face" style="background:#2B5FA8">山</div><span class="nm">候補者：山田 一郎 様</span></div>
+    <div class="trans">
+      <h3>文字起こし <span class="live" id="liveTag" style="display:none">● LIVE</span></h3>
+      <div class="feed" id="feed">
+        <div class="feed-empty" id="feedEmpty">右パネルの「面接を開始」を押すと、Zoomの文字起こしが<br>リアルタイムでここに流れます（デモ）。</div>
       </div>
-      <div class="rw-feed" id="feed"><div class="rw-empty" id="feedEmpty">「面接を開始」を押すと、文字起こしがここに流れます（デモ）。</div></div>
-      <div class="rw-ft"><span id="rwSt">待機中</span><span style="margin-left:auto" id="rwLines">0 行</span></div>
     </div>
 
-    <!-- タスクバー -->
-    <div class="taskbar">
-      <span class="tsk on"><span class="ic" style="background:#B4531F">面</span>面接評価アプリ</span>
-      <button class="tsk rec" id="tskRec">
-        <span class="ic" style="background:#0B5CFF">Z</span>
-        <span class="rdot"></span>
-        <span id="tskTxt">Zoom 録音・文字起こし</span>
-        <span class="cnt" id="tskCnt"></span>
-        <span class="mini" id="tskMini">最小化中</span>
-      </button>
-      <button class="tsk rec" id="backLauncher" style="margin-left:8px">🔄 起動画面に戻る</button>
-      <span class="clock">12:58<br>2026/08/17</span>
-    </div>
+    <!-- 生成された評価シート -->
+    <div class="sheet-wrap" id="sheetWrap">
+      <div class="sheet">
+        <h3>面接評価シート</h3>
+        <div class="meta">
+          <div>候補者</div><div>山田 一郎（応募職種：法人営業）</div>
+          <div>面接日</div><div>2026年8月17日</div>
+          <div>面接官</div><div>中野（人事部）</div>
+          <div>形式</div><div>Zoom・一次面接（45分）</div>
+        </div>
+        <table>
+          <thead><tr><th>評価項目</th><th style="width:70px;text-align:center">評点</th><th>根拠（文字起こしから自動引用）</th></tr></thead>
+          <tbody id="sheetRows"></tbody>
+        </table>
+        <div class="ai-sec"><div class="t">■ AI要約（回答ハイライト）</div>
+          現職では新規開拓を中心に年間120%の目標達成を継続。転職理由は「提案の裁量を広げたい」と一貫しており、志望動機と職務内容の整合性が高い。マネジメント経験は限定的だが後輩指導の実績あり。</div>
+        <div class="ai-sec"><div class="t">■ 確認しておきたい点（AI提案）</div>
+          二次面接では①数値目標の設定プロセスへの関与度、②転居を伴う異動の可否、を確認推奨。</div>
+        <div class="overall">
+          <div class="hd">■ 総評コメント（自動生成）
+            <span class="learn-badge" id="learnBadge">🧠 過去12回のあなたの評価文から学習</span>
+          </div>
+          <div contenteditable id="overallTxt">現職での実績を数字で具体的に説明でき、再現性のある成果と判断できる。転職理由と志望動機に一貫性があり、当社の営業スタイルとの親和性も高い。マネジメント経験は限定的だが、後輩指導の実績から素地はあると見る。</div>
+        </div>
+        <div class="judge">総合判定<span class="v" id="judgeV">A：二次面接へ進む</span></div>
 
-    <!-- ══ 起動ランチャー ══ -->
-    <div class="launcher" id="launcher">
-      <div class="lbox">
-        <div class="lhd"><span class="ic">面</span>
-          <span class="t">面接アシスタント — 起動</span>
-          <span class="s">スタートを押すと、Zoom・質問マニュアル・評価画面が同時に立ち上がります</span></div>
+        <div class="deliver">
+          <span class="path">納品先：\\NAS01\人事部\採用\面接評価\2026-08\</span>
+          <button class="dbtn" id="deliverBtn">📁 指定フォルダへ納品する</button>
+        </div>
+        <div class="done-file" id="doneFile">✓ 納品完了：面接評価_山田一郎_20260817.xlsx（テンプレート書式で保存・採用管理表にも自動追記）</div>
+        <div class="priv-note">🔒 <b>AI要約時、候補者名は【候補者A】に置換してから送信</b>し、シート出力時に端末内で復元。録画・文字起こしの原本は社内サーバーにのみ保存されます。</div>
+      </div>
 
-        <div class="lbd">
-          <!-- ① トリガー -->
-          <div class="lsec">
-            <div class="h"><span class="n">1</span>起動トリガー<span class="tag wip">検討中</span></div>
-            <label class="trg on"><input type="radio" name="trg" value="manual" checked>
-              <span><b>面接官が手動でスタート</b><div class="d">この画面の「面接をスタート」を押した時に起動</div></span></label>
-            <label class="trg"><input type="radio" name="trg" value="zoom">
-              <span><b>Zoomミーティングの開始を検知して自動起動</b><div class="d">Zoom Webhook（meeting.started）を受けて、該当の面接予定と突き合わせて自動で立ち上げ</div></span></label>
-            <label class="trg"><input type="radio" name="trg" value="cal">
-              <span><b>カレンダーの面接予定 5分前に自動起動</b><div class="d">Googleカレンダーの「面接」予定を監視。候補者名・職種を予定から取得</div></span></label>
-            <label class="trg"><input type="radio" name="trg" value="ats">
-              <span><b>採用管理システムの「面接実施」から起動</b><div class="d">応募者レコードから起動するため、候補者情報の取り違えが起きない</div></span></label>
-            <div class="lnote">どれを既定にするかは運用で決定。<b>複数を併用</b>することもできます（例：通常はZoom検知、飛び込み面接は手動）。</div>
+      <!-- 学習パネル -->
+      <div class="learn-panel">
+        <div class="hd">🧠 評価文の学習（使うほど、あなたの書き方に近づきます）
+          <span class="cnt">学習済み <b id="learnCount">12</b> 回</span></div>
+        <div class="bd">
+          <div class="learn-stats">
+            <div><b id="stPhrase">6</b><span>学習フレーズ</span></div>
+            <div><b id="stFit">78</b><span>文体一致率 %</span></div>
+            <div><b id="stEdit">▲65</b><span>修正量の削減 %</span></div>
+          </div>
+          <div class="desc">面接官が総評コメントを手直しすると、その言い回し・評価の観点・文体（です・ます／である調）を学習し、<b>次回以降の自動生成文に反映</b>します。学習データは社内に保存され、AIには匿名化して渡します。</div>
+
+          <div style="font-size:11px;color:var(--ink-soft);font-weight:700;margin-bottom:6px">あなたの頻出フレーズ（学習済み）</div>
+          <div id="phraseList"></div>
+
+          <div class="learn-cta" id="learnCta">
+            <span>✏️ 総評コメントの修正を検出しました。この書き方を学習しますか？</span>
+            <button id="learnYes">学習する</button>
+            <button class="ghost" id="learnNo">今回だけ</button>
           </div>
 
-          <!-- ② 今回の面接 -->
-          <div class="lsec">
-            <div class="h"><span class="n">2</span>今回の面接<span class="tag ok">自動取得</span></div>
-            <div class="frow">
-              <label>候補者</label><select id="lCand"><option>山田 一郎 様</option><option>佐藤 花子 様</option></select>
-              <label>応募職種</label><input value="法人営業" readonly>
-              <label>面接種別</label><select id="lKind"><option>一次面接（45分）</option><option>二次面接（60分）</option><option>最終面接（30分）</option></select>
-              <label>面接官</label><input value="中野（人事部）" readonly>
-              <label>予定日時</label><input value="2026/08/17 13:00 ～ 13:45" readonly>
-            </div>
-            <div class="lnote">トリガーが「カレンダー」「採用管理システム」の場合、この欄は<b>自動で埋まります</b>。</div>
+          <div class="before-after">
+            <div class="bx b"><div class="l">学習前（初期テンプレ）</div>コミュニケーション能力は良好。経験も十分と思われる。次回面接に進めてよいと考える。</div>
+            <div class="bx a"><div class="l">学習後（あなたの文体を反映）</div>現職での実績を数字で具体的に説明でき、<b>再現性のある成果</b>と判断できる。志望動機との一貫性も高い。</div>
           </div>
-
-          <!-- ③ 質問マニュアル -->
-          <div class="lsec">
-            <div class="h"><span class="n">3</span>使用する質問マニュアル<span class="tag ok">選択済み</span></div>
-            <div class="frow">
-              <label>質問集</label><select id="lManual">
-                <option>人事部 標準質問集 v3.2（12問／45分）</option>
-                <option>営業職 深掘り版 v1.4（16問／60分）</option>
-                <option>二次面接用 v2.0（9問／30分）</option></select>
-              <label>並び順</label><select><option>セクション順（推奨）</option><option>評価項目順</option></select>
-            </div>
-            <div class="lnote">職種と面接種別から<b>既定の質問集が自動で選ばれます</b>。面接官はそのまま進めれば抜け漏れが起きません。</div>
-          </div>
-
-          <!-- ④ 出力先と紐づけ -->
-          <div class="lsec">
-            <div class="h"><span class="n">4</span>評価シートの出力先・紐づけ<span class="tag wip">未設定</span></div>
-            <div class="frow">
-              <label>出力先フォルダ</label><input id="lFolder" class="blank" placeholder="（未設定）例：\\NAS01\人事部\採用\面接評価\2026-08\">
-              <label>評価シート</label><input id="lTpl" class="blank" placeholder="（未設定）社内の評価シート様式を指定">
-              <label>ファイル名</label><input value="面接評価_{候補者名}_{面接日}.xlsx" readonly>
-            </div>
-            <div class="lnote">起動時に出力先フォルダへ<b>空の評価シートを先に作成</b>し、面接中の入力をそのまま書き込みます。様式は<b>社内の評価シートをそのまま使用</b>します。</div>
-          </div>
-
-          <!-- 項目マッピング -->
-          <div class="lsec wide">
-            <div class="h"><span class="n">5</span>項目マッピング（システム項目 → 社内評価シートの記入欄）<span class="tag wip">様式の指定待ち</span></div>
-            <div class="mapwrap"><table class="maptbl">
-              <thead><tr><th style="width:34%">システムが持つ項目</th><th style="width:33%">社内評価シートの記入欄</th><th>取得元</th></tr></thead>
-              <tbody id="mapRows"></tbody>
-            </table></div>
-            <div class="lnote">社内の評価シートを指定すると<b>見出しを読み取って候補を自動割り当て</b>し、この表で確認・修正できます。様式が変わっても、この対応表を直すだけで運用を続けられます。</div>
-          </div>
-        </div>
-
-        <div class="lft">
-          <span class="warn" id="lWarn">⚠ 出力先フォルダと評価シート様式は未設定です（デモのため未設定のままでも起動できます）。</span>
-          <button class="bigstart" id="bigStart">▶ 面接をスタート</button>
         </div>
       </div>
     </div>
+  </section>
 
-    <!-- ══ 起動シーケンス ══ -->
-    <div class="boot" id="boot">
-      <div class="bootbox">
-        <div class="bt" id="bootTitle">面接アシスタントを起動しています…</div>
-        <div class="bstep" id="b1"><span class="mk">▸</span>Zoomミーティングに接続</div>
-        <div class="bstep" id="b2"><span class="mk">▸</span>質問マニュアルを読み込み</div>
-        <div class="bstep" id="b3"><span class="mk">▸</span>出力先フォルダに評価シートを作成</div>
-        <div class="bstep" id="b4"><span class="mk">▸</span>録音・文字起こしを開始</div>
-      </div>
+  <!-- 右：Zoomアプリ評価パネル -->
+  <section class="panel">
+    <div class="panel-hd"><span class="zlogo">Z</span>面接評価アプリ<small>Zoom Apps 内で動作</small></div>
+    <div class="panel-bd">
+      <div class="cand">候補者：<b>山田 一郎 様</b>（法人営業・一次）</div>
+      <button class="gen" id="startBtn" style="background:#2B5FA8">▶ 面接を開始（文字起こしON・デモ）</button>
+      <div style="height:12px"></div>
+      <div id="items"></div>
+      <div class="item"><div class="lb"><span>メモ（気づき）</span></div>
+        <textarea id="memo">受け答えが具体的。数字で語れる。少し早口。</textarea></div>
+      <button class="gen" id="genBtn" disabled>📝 評価シートを作成（ワンクリック）</button>
+      <div class="hint" id="genHint">面接開始後に有効になります。星は面接中いつでも変更可</div>
     </div>
-  </div>
-  <div class="cap">▲ 面接官のPC画面。スタート1回で<b>Zoom・質問マニュアル・評価画面が同時に立ち上がり</b>、<b>質問マニュアルと評価入力は1画面に収まります</b>。録音・文字起こしは別ウィンドウで裏側に回り、タスクバーからいつでも開けます。</div>
-
-  <!-- ══════ 生成された評価シート ══════ -->
-  <div class="result" id="result">
-    <div class="sheet">
-      <h3>面接評価シート</h3>
-      <div class="meta">
-        <div>候補者</div><div>山田 一郎（応募職種：法人営業）</div>
-        <div>面接日</div><div>2026年8月17日</div>
-        <div>面接官</div><div>中野（人事部）</div>
-        <div>形式</div><div>Zoom・一次面接（45分）</div>
-        <div>使用様式</div><div id="tplName">（未設定：デモ用の標準様式）</div>
-        <div>質問集</div><div id="manualName">人事部 標準質問集 v3.2</div>
-      </div>
-      <table>
-        <thead><tr><th>評価項目</th><th style="width:70px;text-align:center">評点</th><th>根拠（文字起こしから自動引用）</th></tr></thead>
-        <tbody id="sheetRows"></tbody>
-      </table>
-      <div class="ai-sec"><div class="t">■ AI要約（回答ハイライト）</div>
-        現職では新規開拓を中心に年間120%の目標達成を継続。転職理由は「提案の裁量を広げたい」と一貫しており、志望動機と職務内容の整合性が高い。マネジメント経験は限定的だが後輩指導の実績あり。</div>
-      <div class="ai-sec" id="askedSec"><div class="t">■ 質問マニュアルの消化状況</div><span id="askedTxt"></span></div>
-      <div class="ai-sec"><div class="t">■ 確認しておきたい点（AI提案）</div>
-        二次面接では①数値目標の設定プロセスへの関与度、②転居を伴う異動の可否、を確認推奨。</div>
-      <div class="overall">
-        <div class="hd">■ 総評コメント（自動生成）
-          <span class="learn-badge" id="learnBadge">🧠 過去12回のあなたの評価文から学習</span>
-        </div>
-        <div contenteditable id="overallTxt">現職での実績を数字で具体的に説明でき、再現性のある成果と判断できる。転職理由と志望動機に一貫性があり、当社の営業スタイルとの親和性も高い。マネジメント経験は限定的だが、後輩指導の実績から素地はあると見る。</div>
-      </div>
-      <div class="judge">総合判定<span class="v" id="judgeV">A：二次面接へ進む</span></div>
-
-      <div class="deliver">
-        <span class="path" id="deliverPath">納品先：（未設定：一時フォルダ）</span>
-        <button class="dbtn" id="deliverBtn">📁 指定フォルダへ納品する</button>
-      </div>
-      <div class="done-file" id="doneFile">✓ 納品完了：面接評価_山田一郎_20260817.xlsx（テンプレート書式で保存・採用管理表にも自動追記）</div>
-      <div class="priv-note">🔒 <b>AI要約時、候補者名は【候補者A】に置換してから送信</b>し、シート出力時に端末内で復元。録画・文字起こしの原本は社内サーバーにのみ保存されます。</div>
-    </div>
-
-    <div class="learn-panel">
-      <div class="hd">🧠 評価文の学習（使うほど、あなたの書き方に近づきます）
-        <span class="cnt">学習済み <b id="learnCount">12</b> 回</span></div>
-      <div class="bd">
-        <div class="learn-stats">
-          <div><b id="stPhrase">6</b><span>学習フレーズ</span></div>
-          <div><b id="stFit">78</b><span>文体一致率 %</span></div>
-          <div><b id="stEdit">▲65</b><span>修正量の削減 %</span></div>
-        </div>
-        <div class="desc">面接官が総評コメントを手直しすると、その言い回し・評価の観点・文体（です・ます／である調）を学習し、<b>次回以降の自動生成文に反映</b>します。学習データは社内に保存され、AIには匿名化して渡します。</div>
-        <div style="font-size:11px;color:var(--ink-soft);font-weight:700;margin-bottom:6px">あなたの頻出フレーズ（学習済み）</div>
-        <div id="phraseList"></div>
-        <div class="learn-cta" id="learnCta">
-          <span>✏️ 総評コメントの修正を検出しました。この書き方を学習しますか？</span>
-          <button id="learnYes">学習する</button>
-          <button class="ghost" id="learnNo">今回だけ</button>
-        </div>
-        <div class="before-after">
-          <div class="bx b"><div class="l">学習前（初期テンプレ）</div>コミュニケーション能力は良好。経験も十分と思われる。次回面接に進めてよいと考える。</div>
-          <div class="bx a"><div class="l">学習後（あなたの文体を反映）</div>現職での実績を数字で具体的に説明でき、<b>再現性のある成果</b>と判断できる。志望動機との一貫性も高い。</div>
-        </div>
-      </div>
-    </div>
-  </div>
+  </section>
 </main>
 
 <div class="toast" id="toastEl"></div>
 
 <script>
 const $=id=>document.getElementById(id);
-const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-function toast(m){const t=$("toastEl");t.textContent=m;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),2600)}
-
-/* ══ 評価項目 ══ */
 const items=[["コミュニケーション",4],["専門スキル・経験",4],["志望動機の一貫性",5],["カルチャーフィット",3],["論理的思考",4]];
 const quotes=[
   "「新規開拓で年間120%達成を3年続けました」",
@@ -532,183 +293,67 @@ const quotes=[
   "「チームでは飲み会より1on1派です（笑）」",
   "「まず仮説を立ててから検証する進め方をしています」"
 ];
-
-/* ══ 質問マニュアル ══ */
-const MANUAL=[
- {sec:"① アイスブレイク・導入",min:"5分",qs:[
-   {q:"本日はお時間をいただきありがとうございます。まず簡単に自己紹介をお願いできますか。",aim:"緊張をほぐし、経歴の全体像をつかむ",item:0},
-   {q:"当社を知ったきっかけを教えてください。",aim:"応募経路と志望度の初期把握",item:null}
- ]},
- {sec:"② 経験・実績の確認",min:"15分",qs:[
-   {q:"直近で最も成果が出た仕事を、数字を交えて教えてください。",aim:"実績の具体性と再現性",item:1},
-   {q:"その成果は、どこが要因だったとご自身では考えていますか。",aim:"本人の寄与度／再現条件の言語化",item:4},
-   {q:"うまくいかなかった案件と、その後の打ち手を教えてください。",aim:"失敗からの学習サイクル",item:4}
- ]},
- {sec:"③ 志望動機・転職理由",min:"10分",qs:[
-   {q:"転職を考えた理由を教えてください。",aim:"転職理由の一貫性",item:2},
-   {q:"その中で当社を選んだ理由はどこにありますか。",aim:"志望動機と職務内容の整合",item:2},
-   {q:"入社後、最初の3か月で何をしたいですか。",aim:"入社後イメージの解像度",item:2}
- ]},
- {sec:"④ 働き方・カルチャー",min:"10分",qs:[
-   {q:"チームで仕事を進めるとき、大切にしていることは何ですか。",aim:"協働スタイル",item:3},
-   {q:"当社は少人数で裁量を持って進める場面が多いですが、抵抗はありますか。",aim:"カルチャーフィット",item:3}
- ]},
- {sec:"⑤ クロージング",min:"5分",qs:[
-   {q:"こちらから何かご質問はありますか。",aim:"関心の方向性・逆質問の質",item:0},
-   {q:"今後の選考スケジュールをご説明します。",aim:"辞退防止・次回日程の仮押さえ",item:null}
- ]}
+const script=[
+  ["iv","面接官","本日はよろしくお願いします。まず自己紹介をお願いできますか。"],
+  ["cd","候補者","山田一郎と申します。現職では法人営業として新規開拓を担当し、年間120%の目標達成を3年続けています。"],
+  ["iv","面接官","成果の要因はどこにあると考えていますか？"],
+  ["cd","候補者","CRMを自分で組んで、訪問前の仮説づくりに時間を割いたことです。提案の的中率が大きく上がりました。"],
+  ["iv","面接官","転職を考えた理由を教えてください。"],
+  ["cd","候補者","提案の裁量をもっと広げたいからです。御社の◯◯事業には前職の経験が直接活きると考えています。"]
 ];
-const FLAT=[];
-MANUAL.forEach((s,si)=>s.qs.forEach((q,qi)=>FLAT.push({...q,si,qi,key:si+"-"+qi,done:false})));
-const TOTAL=FLAT.length;
+let scores=items.map(x=>x[1]), started=false, idx=0, iv;
 
-function renderManual(){
-  $("manual").innerHTML=MANUAL.map((s,si)=>`<div class="sec">
-    <div class="sh">${s.sec}<span class="mi">${s.min}</span></div>
-    ${s.qs.map((q,qi)=>{
-      const f=FLAT.find(x=>x.key===si+"-"+qi);
-      return `<div class="q ${f.done?"done":""}" data-k="${f.key}">
-        <span class="ck"></span>
-        <span style="min-width:0">
-          <span class="qt">${q.q}</span>
-          <div class="aim">ねらい：${q.aim}</div>
-          ${q.item!==null?`<span class="tie">評価項目：${items[q.item][0]}</span>`:""}
-          ${f.auto?`<span class="auto">✓ 文字起こしから自動チェック</span>`:""}
-        </span></div>`}).join("")}
-  </div>`).join("");
-  document.querySelectorAll(".q").forEach(el=>el.addEventListener("click",()=>{
-    const f=FLAT.find(x=>x.key===el.dataset.k);
-    f.done=!f.done;f.auto=false;renderManual();updateProg();
-    if(f.done&&f.item!==null)focusItem(f.item);
-  }));
-}
-function updateProg(){
-  const n=FLAT.filter(f=>f.done).length;
-  $("progTxt").textContent=`${n} / ${TOTAL} 完了`;
-  $("progBar").style.width=Math.round(n/TOTAL*100)+"%";
-  $("stQ").textContent=`${n}/${TOTAL}`;
-}
-function focusItem(i){
-  const el=$("it"+i);if(!el)return;
-  document.querySelectorAll(".item").forEach(x=>x.classList.remove("focus"));
-  el.classList.add("focus");
-  clearTimeout(focusItem._t);focusItem._t=setTimeout(()=>el.classList.remove("focus"),2200);
-}
-renderManual();updateProg();
-
-/* ══ 星評価 ══ */
-let scores=items.map(x=>x[1]);
+// 星UI生成
 $("items").innerHTML=items.map((it,i)=>`
-  <div class="item" id="it${i}"><div class="lb"><span>${it[0]}</span><span class="sv" id="sv${i}">${it[1]}/5</span></div>
-    <div class="stars" id="st${i}">${[1,2,3,4,5].map(n=>`<button data-i="${i}" data-n="${n}" class="${n<=it[1]?"on":""}">★</button>`).join("")}
-      <span class="sug" id="sg${i}"></span></div></div>`).join("");
+  <div class="item"><div class="lb"><span>${it[0]}</span><span id="sv${i}">${it[1]}/5</span></div>
+    <div class="stars" id="st${i}">${[1,2,3,4,5].map(n=>`<button data-i="${i}" data-n="${n}" class="${n<=it[1]?"on":""}">★</button>`).join("")}</div></div>`).join("");
 document.querySelectorAll(".stars button").forEach(b=>b.addEventListener("click",()=>{
   const i=+b.dataset.i,n=+b.dataset.n;scores[i]=n;
   $("sv"+i).textContent=n+"/5";
   document.querySelectorAll(`#st${i} button`).forEach(x=>x.classList.toggle("on",+x.dataset.n<=n));
-  $("sg"+i).classList.remove("show");
 }));
 
 function setStep(n){[1,2,3,4].forEach(i=>{const el=$("s"+i);el.classList.toggle("active",i===n);el.classList.toggle("done",i<n)})}
 
-/* ══ 別ウィンドウ（録音・文字起こし）の開閉 ══ */
-let recOpen=false;
-function setRecWin(open){
-  recOpen=open;
-  $("recWin").classList.toggle("open",open);
-  $("tskMini").textContent=open?"表示中":"最小化中";
-}
-$("tskRec").addEventListener("click",()=>setRecWin(!recOpen));
-$("recMin").addEventListener("click",e=>{e.stopPropagation();setRecWin(false);toast("録音アプリを最小化しました（録音は継続中）")});
-
-/* ══ 面接開始 ══ */
-const script=[
-  ["iv","面接官","本日はよろしくお願いします。まず簡単に自己紹介をお願いできますか。","0-0"],
-  ["cd","候補者","山田一郎と申します。現職では法人営業として新規開拓を担当しています。",null],
-  ["iv","面接官","直近で最も成果が出た仕事を、数字を交えて教えてください。","1-0"],
-  ["cd","候補者","新規開拓で年間120%の目標達成を3年続けました。",null],
-  ["iv","面接官","その成果はどこが要因だったとお考えですか。","1-1"],
-  ["cd","候補者","CRMを自分で組んで、訪問前の仮説づくりに時間を割いたことです。",null],
-  ["iv","面接官","転職を考えた理由を教えてください。","2-0"],
-  ["cd","候補者","提案の裁量をもっと広げたいからです。",null],
-  ["iv","面接官","その中で当社を選んだ理由はどこにありますか。","2-1"],
-  ["cd","候補者","御社の◯◯事業には、前職の▲▲の経験が直接活きると考えています。",null],
-  ["iv","面接官","チームで仕事を進めるとき、大切にしていることは何ですか。","3-0"],
-  ["cd","候補者","認識合わせです。飲み会より1on1派ですね（笑）。",null],
-  ["iv","面接官","こちらから何かご質問はありますか。","4-0"],
-  ["cd","候補者","入社後の教育体制について伺えますか。",null]
-];
-const SUG={0:4,1:4,2:5,3:3,4:4};
-let started=false,idx=0,iv,sec=0,tick,lines=0;
-
-function beginInterview(){
-  if(started)return;started=true;setStep(2);
-  $("startBtn").textContent="● 面接中（録音・文字起こし取得中）";$("startBtn").disabled=true;
-  $("stDot").classList.add("on");$("stRec").textContent="録音：REC 中";
-  $("tskRec").classList.add("live");$("tskTxt").textContent="Zoom 録音・文字起こし";
-  $("rwSt").textContent="● REC・文字起こし ON";
-  $("feedEmpty").style.display="none";
-  $("genHint").textContent="別ウィンドウで録音中。タスクバーのボタンで開けます";
-  toast("録音アプリを別ウィンドウで起動しました（最小化状態のまま進行できます）");
-
-  tick=setInterval(()=>{sec++;
-    const m=String(Math.floor(sec/60)).padStart(2,"0"),s=String(sec%60).padStart(2,"0");
-    $("stTime").textContent=`${m}:${s}`;$("tskCnt").textContent=`${m}:${s}`;},1000);
-
+$("startBtn").addEventListener("click",()=>{
+  if(started)return;started=true;
+  $("startBtn").textContent="● 面接中（文字起こし取得中）";$("startBtn").disabled=true;
+  $("rec").classList.add("on");$("recTxt").textContent="REC・文字起こしON";
+  $("liveTag").style.display="";$("feedEmpty").style.display="none";
+  setStep(2);
   iv=setInterval(()=>{
     if(idx>=script.length){
-      clearInterval(iv);clearInterval(tick);
-      $("tileIv").classList.remove("speaking");$("tileCd").classList.remove("speaking");
+      clearInterval(iv);
       $("genBtn").disabled=false;
       $("genHint").textContent="文字起こし取得済み。ワンクリックでシート化できます";
-      $("stRec").textContent="録音：完了";$("stDot").classList.remove("on");
-      $("tskRec").classList.remove("live");$("rwSt").textContent="録音完了";
-      /* AI推奨評価 */
-      Object.keys(SUG).forEach(i=>{const e=$("sg"+i);e.textContent=`AI推奨 ★${SUG[i]}`;e.classList.add("show")});
-      toast("文字起こしを取得。AIが各項目の推奨評価を提示しました");
+      $("tileIv").classList.remove("speaking");$("tileCd").classList.remove("speaking");
+      toast("文字起こしを取得しました。評価シートを作成できます");
       return;
     }
-    const [cls,who,txt,key]=script[idx++];
+    const [cls,who,txt]=script[idx++];
     $("tileIv").classList.toggle("speaking",cls==="iv");
     $("tileCd").classList.toggle("speaking",cls==="cd");
     const d=document.createElement("div");
     d.className="u";
     d.innerHTML=`<span class="who ${cls}">${who}</span><span>${txt}</span>`;
     $("feed").appendChild(d);$("feed").scrollTop=$("feed").scrollHeight;
-    lines++;$("stLines").textContent=lines;$("rwLines").textContent=lines+" 行";
-    if(key){
-      const f=FLAT.find(x=>x.key===key);
-      if(f&&!f.done){f.done=true;f.auto=true;renderManual();updateProg();
-        if(f.item!==null)focusItem(f.item);}
-    }
-  },1250);
-}
-$("startBtn").addEventListener("click",beginInterview);
+  },1700);
+});
 
-/* ══ シート生成 ══ */
 $("genBtn").addEventListener("click",()=>{
   setStep(3);
-  const missed=FLAT.filter(f=>!f.done);
-  if(missed.length){
-    $("miss").classList.add("show");
-    $("miss").innerHTML=`⚠ 未確認の質問が <b>${missed.length}件</b> あります：${missed.slice(0,2).map(m=>"「"+m.q.slice(0,18)+"…」").join("／")}${missed.length>2?" ほか":""}`;
-  }else $("miss").classList.remove("show");
-
   $("sheetRows").innerHTML=items.map((it,i)=>
     `<tr><td>${it[0]}</td><td class="sc">${"★".repeat(scores[i])}${"☆".repeat(5-scores[i])}</td><td style="font-size:11.5px;color:var(--ink-soft)">${quotes[i]}</td></tr>`).join("")
     +`<tr><td>面接官メモ</td><td class="sc">—</td><td style="font-size:11.5px">${$("memo").value}</td></tr>`;
-  const done=FLAT.filter(f=>f.done).length;
-  $("askedTxt").innerHTML=`標準質問集 v3.2 の <b>${TOTAL}問中 ${done}問</b>を実施`+
-    (missed.length?`。未確認：${missed.map(m=>"「"+m.q.slice(0,16)+"…」").join("／")}（二次面接での確認を推奨）`:"。すべて実施済みです。");
   const avg=scores.reduce((a,b)=>a+b,0)/scores.length;
   $("judgeV").textContent=avg>=4?"A：二次面接へ進む":avg>=3?"B：要検討（他候補と比較）":"C：見送り";
   $("judgeV").style.color=avg>=4?"var(--ok)":avg>=3?"var(--warn)":"var(--red)";
-  $("result").classList.add("show");
-  $("result").scrollIntoView({behavior:"smooth",block:"start"});
-  toast("評価シートを生成しました（星評価＋文字起こし根拠＋質問消化状況）");
+  $("sheetWrap").classList.add("show");
+  $("sheetWrap").scrollIntoView({behavior:"smooth",block:"start"});
+  toast("評価シートを生成しました（星評価＋文字起こし根拠＋AI要約）");
 });
 
-/* ══ 評価文の学習 ══ */
+/* ── 評価文の学習 ── */
 let phrases=[
   {t:"数字で具体的に説明でき、再現性のある成果と判断できる",u:9},
   {t:"志望動機と職務内容の整合性が高い",u:7},
@@ -717,15 +362,19 @@ let phrases=[
   {t:"当社の営業スタイルとの親和性が高い",u:3},
   {t:"二次面接では〇〇を確認したい",u:3}
 ];
-let learnCount=12;
+let learnCount=12,origOverall="";
 function renderPhrases(){
   $("phraseList").innerHTML=phrases.slice(0,6).map(p=>
     `<div class="ph ${p.isNew?"new":""}"><span class="txt">「${p.t}」</span><span class="use">${p.u}回使用</span></div>`).join("");
   $("stPhrase").textContent=phrases.length;
 }
 renderPhrases();
+/* 総評を手直ししたら学習を提案 */
 document.addEventListener("input",e=>{
-  if(e.target&&e.target.id==="overallTxt")$("learnCta").classList.add("show");
+  if(e.target&&e.target.id==="overallTxt"){
+    if(!origOverall)origOverall=e.target.dataset.orig||"";
+    $("learnCta").classList.add("show");
+  }
 });
 $("learnYes").addEventListener("click",()=>{
   const t=($("overallTxt").textContent||"").trim();
@@ -734,10 +383,11 @@ $("learnYes").addEventListener("click",()=>{
   phrases.unshift({t:add.slice(0,34),u:1,isNew:true});
   learnCount++;
   $("learnCount").textContent=learnCount;
-  $("stFit").textContent=Math.min(97,78+(learnCount-12)*3);
+  $("stFit").textContent=Math.min(97,78+ (learnCount-12)*3);
   $("stEdit").textContent="▲"+Math.min(88,65+(learnCount-12)*4);
   $("learnBadge").textContent=`🧠 過去${learnCount}回のあなたの評価文から学習`;
-  renderPhrases();$("learnCta").classList.remove("show");
+  renderPhrases();
+  $("learnCta").classList.remove("show");
   toast("この書き方を学習しました。次回の総評コメントに反映されます");
 });
 $("learnNo").addEventListener("click",()=>{
@@ -745,89 +395,13 @@ $("learnNo").addEventListener("click",()=>{
   toast("今回限りの修正として保存しました（学習には使いません）");
 });
 
-
-/* ══ 起動ランチャー ══ */
-const MAP=[
-  ["候補者名","氏名欄","doda応募者情報／カレンダー予定"],
-  ["応募職種","応募ポジション欄","採用管理システム"],
-  ["面接日時・所要時間","面接日／実施時間欄","Zoomミーティング情報"],
-  ["面接官名","面接官欄","ログインユーザー"],
-  ["評価項目ごとの★評点","各評価項目の点数欄","面接官の入力"],
-  ["評価の根拠（発言引用）","コメント欄／備考欄","文字起こしから自動抽出"],
-  ["面接官メモ","所感欄","面接官の入力"],
-  ["総評コメント","総合所見欄","AI生成＋面接官の手直し"],
-  ["総合判定（A/B/C）","判定欄","評点の平均から自動算出"],
-  ["質問マニュアルの消化状況","（新規列／備考）","質問マニュアルのチェック状況"]
-];
-$("mapRows").innerHTML=MAP.map(m=>
-  `<tr><td class="sys">${m[0]}</td><td class="tpl empty">（様式の指定待ち）</td><td class="tpl">${m[2]}</td></tr>`).join("");
-
-document.querySelectorAll('input[name=trg]').forEach(r=>r.addEventListener("change",()=>{
-  document.querySelectorAll(".trg").forEach(l=>l.classList.toggle("on",l.querySelector("input").checked));
-  const v=document.querySelector('input[name=trg]:checked').value;
-  toast({manual:"手動スタートで起動します",zoom:"Zoomの開始検知で自動起動します（検討中）",
-    cal:"カレンダー予定の5分前に自動起動します（検討中）",ats:"採用管理システムから起動します（検討中）"}[v]);
-}));
-
-/* 出力先が入力されたら警告と納品先パスを更新 */
-function syncFolder(){
-  const f=$("lFolder").value.trim(),t=$("lTpl").value.trim();
-  $("lFolder").classList.toggle("blank",!f);
-  $("lTpl").classList.toggle("blank",!t);
-  if(t){
-    $("mapRows").querySelectorAll("tr").forEach((tr,i)=>{
-      const td=tr.cells[1];td.className="tpl";td.textContent=MAP[i][1];});
-    document.querySelectorAll(".lsec")[4].querySelector(".tag").className="tag ok";
-    document.querySelectorAll(".lsec")[4].querySelector(".tag").textContent="自動割り当て済み";
-    document.querySelectorAll(".lsec")[3].querySelector(".tag").className="tag ok";
-    document.querySelectorAll(".lsec")[3].querySelector(".tag").textContent="設定済み";
-  }
-  $("lWarn").innerHTML = (f&&t)
-    ? "✅ 起動時に「"+f+"」へ、指定様式で評価シートを作成します。"
-    : "⚠ 出力先フォルダと評価シート様式は未設定です（デモのため未設定のままでも起動できます）。";
-  $("lWarn").style.color = (f&&t) ? "var(--ok)" : "var(--warn)";
-}
-$("lFolder").addEventListener("input",syncFolder);
-$("lTpl").addEventListener("input",syncFolder);
-
-/* 起動シーケンス */
-$("bigStart").addEventListener("click",async()=>{
-  const folder=$("lFolder").value.trim();
-  const tpl=$("lTpl").value.trim();
-  const trg=document.querySelector('input[name=trg]:checked').value;
-  const trgName={manual:"手動スタート",zoom:"Zoom開始の検知",cal:"カレンダー予定の5分前",ats:"採用管理システム"}[trg];
-  $("launcher").classList.add("hide");
-  $("desktop").classList.add("launched");
-  $("boot").classList.add("show");
-  $("bootTitle").textContent=`面接アシスタントを起動しています…（トリガー：${trgName}）`;
-  $("b3").innerHTML=`<span class="mk">▸</span>${folder?folder+" に評価シートを作成":"出力先フォルダに評価シートを作成（未設定：一時フォルダを使用）"}`;
-  const bs=async(id,ms)=>{await sleep(ms);const e=$(id);e.classList.add("on");e.querySelector(".mk").textContent="✓"};
-  await bs("b1",420);await bs("b2",380);await bs("b3",420);await bs("b4",380);
-  await sleep(360);
-  $("boot").classList.remove("show");
-  $("desktop").classList.add("booted");
-  setRecWin(true);
-  /* 納品先パスへ反映 */
-  $("deliverPath").textContent="納品先："+(folder||"（未設定：一時フォルダ）");
-  $("tplName").textContent=tpl||"（未設定：デモ用の標準様式）";
-  $("manualName").textContent=$("lManual").value.replace(/（.*$/,"");
-  beginInterview();
-  toast("Zoom・質問マニュアル・評価画面を同時に立ち上げました");
-  /* 3画面を見せたあと、録音アプリは自動で最小化（面接官の画面を占有しない） */
-  await sleep(2600);
-  setRecWin(false);
-  toast("録音・文字起こしは最小化して継続します（タスクバーからいつでも開けます）");
-});
-
-/* ランチャーに戻る */
-$("backLauncher").addEventListener("click",()=>{location.reload()});
-
 $("deliverBtn").addEventListener("click",()=>{
   setStep(4);
   $("doneFile").classList.add("show");
   $("deliverBtn").disabled=true;$("deliverBtn").textContent="納品済み ✓";
   toast("指定フォルダに納品しました。面接官と採用責任者に通知（デモ）");
 });
+function toast(m){const t=$("toastEl");t.textContent=m;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),2600)}
 </script>
 </body>
 </html>
