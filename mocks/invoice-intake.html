@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>メール請求書 自動取込｜読取 → 異常検知 → 格納 → 台帳化 デモ</title>
+<style>
+:root{
+  --bg:#EEF2F7; --paper:#fff; --ink:#14202F; --ink-soft:#5A6B80; --line:#D5DEE9;
+  --accent:#1565C0; --accent-soft:#E3EFFB; --ok:#0E7A56; --ok-bg:#E1F4EC;
+  --warn:#9A6200; --warn-bg:#FDF2DC; --red:#C62828; --red-bg:#FDEAE8;
+  --mail:#0B4E8F; --sheet:#0B8043; --sheet-bg:#E4F3EA;
+  --mono:"Consolas","SFMono-Regular",monospace;
+  --mincho:"Hiragino Mincho ProN","Yu Mincho",serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.75}
+button{font-family:inherit;cursor:pointer}
+header{background:var(--paper);border-bottom:2px solid var(--line);padding:12px 22px;display:flex;align-items:center;gap:13px;flex-wrap:wrap}
+.logo{width:34px;height:34px;border-radius:9px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px}
+header h1{font-size:17px;font-weight:800}
+header .sub{font-size:12px;color:var(--ink-soft)}
+.chip{margin-left:auto;font-size:11.5px;border:1.5px solid var(--accent);color:var(--accent);border-radius:5px;padding:3px 11px;font-weight:700}
+.chip.lock{margin-left:8px;border-color:var(--ok);color:var(--ok);background:var(--ok-bg)}
+
+.steps{max-width:1460px;margin:14px auto 0;padding:0 22px;display:flex;gap:9px;font-size:12.5px;color:var(--ink-soft);flex-wrap:wrap}
+.step{display:flex;align-items:center;gap:7px;border:1.5px solid var(--line);background:var(--paper);border-radius:22px;padding:6px 16px;font-weight:600}
+.step .n{width:20px;height:20px;border-radius:50%;background:#E7EDF4;display:inline-flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px}
+.step.active{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.step.active .n{background:var(--accent);color:#fff}
+.step.done{border-color:var(--ok);color:var(--ok);background:var(--ok-bg)}
+.step.done .n{background:var(--ok);color:#fff}
+.ar{align-self:center;color:#B8C4D2;font-size:16px}
+
+main{max-width:1460px;margin:14px auto;padding:0 22px 54px}
+/* KPI */
+.kpi{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px}
+@media(max-width:1000px){.kpi{grid-template-columns:repeat(2,1fr)}}
+.kpi div{background:var(--paper);border:1.5px solid var(--line);border-radius:12px;padding:12px 15px;position:relative;overflow:hidden}
+.kpi div::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--accent)}
+.kpi div.g::before{background:var(--ok)}.kpi div.w::before{background:var(--warn)}.kpi div.r::before{background:var(--red)}
+.kpi b{display:block;font-family:var(--mono);font-size:26px;font-weight:800;line-height:1.25}
+.kpi span{font-size:11.5px;color:var(--ink-soft);font-weight:600}
+.kpi .g b{color:var(--ok)}.kpi .w b{color:var(--warn)}.kpi .r b{color:var(--red)}
+
+.cols{display:grid;grid-template-columns:340px 1fr 360px;gap:15px;align-items:start}
+@media(max-width:1240px){.cols{grid-template-columns:1fr}}
+.card{background:var(--paper);border:1.5px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:15px;box-shadow:0 2px 6px rgba(20,32,47,.06)}
+.ch{padding:11px 15px;border-bottom:1.5px solid var(--line);font-size:13.5px;font-weight:800;display:flex;align-items:center;gap:9px;flex-wrap:wrap;background:#F7F9FC}
+.ch .cnt{margin-left:auto;font-family:var(--mono);font-size:11.5px;color:var(--ink-soft);font-weight:400}
+.cb{padding:13px 15px}
+
+/* メール一覧 */
+.mailhd{background:var(--mail);color:#fff;padding:10px 15px;display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:800}
+.mailhd .ic{width:22px;height:22px;border-radius:6px;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:12px}
+.ml{border-bottom:1.5px solid var(--line);padding:11px 14px;cursor:pointer;transition:.15s;position:relative}
+.ml:hover{background:#F5F9FE}
+.ml.on{background:var(--accent-soft);box-shadow:inset 4px 0 0 var(--accent)}
+.ml.done{opacity:.7}
+.ml .fr{font-size:13.5px;font-weight:800;padding-right:74px;line-height:1.45}
+.ml .sj{font-size:12.5px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ml .at{display:flex;align-items:center;gap:7px;margin-top:5px;font-size:11px;color:var(--ink-soft)}
+.ml .pdf{background:var(--red-bg);color:var(--red);border-radius:5px;padding:1px 7px;font-weight:800;font-family:var(--mono);font-size:10px}
+.ml .tag{position:absolute;right:11px;top:10px;font-size:10.5px;border-radius:10px;padding:2px 9px;font-weight:800}
+.tg-inv{background:var(--ok-bg);color:var(--ok)}
+.tg-no{background:#EDF1F6;color:var(--ink-soft)}
+.tg-dup{background:var(--red-bg);color:var(--red)}
+.tg-alert{background:var(--red);color:#fff}
+.ml .st{font-size:11px;margin-top:4px;font-weight:800}
+.ml .st.ok{color:var(--ok)}
+
+/* PDF＋抽出 */
+.docwrap{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:860px){.docwrap{grid-template-columns:1fr}}
+.pdfview{border:1.5px solid var(--line);border-radius:10px;background:#F4F7FA;padding:12px;position:relative;overflow:hidden}
+.pdfbar{font-size:11px;color:var(--ink-soft);font-family:var(--mono);margin-bottom:9px;display:flex;align-items:center;gap:7px;font-weight:700}
+.pdfbar .d{width:9px;height:9px;border-radius:2px;background:var(--red)}
+.inv{background:#fff;border:1.5px solid #CFD9E5;padding:14px 16px;font-size:12px;line-height:1.7;box-shadow:0 2px 5px rgba(0,0,0,.08)}
+.inv h4{font-family:var(--mincho);text-align:center;font-size:16px;letter-spacing:.4em;border-bottom:2px solid var(--ink);padding-bottom:6px;margin-bottom:10px}
+.inv .to{font-size:13px;font-weight:800;border-bottom:1.5px solid var(--ink);display:inline-block;padding-bottom:2px;margin-bottom:8px}
+.inv .fr{text-align:right;font-size:11px;color:var(--ink-soft);line-height:1.7;margin-bottom:8px}
+.inv .amt{display:flex;justify-content:space-between;border:2px solid var(--ink);padding:7px 11px;font-weight:800;margin-bottom:9px}
+.inv .amt .v{font-family:var(--mono);font-size:16px}
+.inv table{width:100%;border-collapse:collapse;font-size:11px}
+.inv th{background:#EBF1F8;border:1px solid #CFD9E5;padding:4px 7px;text-align:left}
+.inv td{border:1px solid #CFD9E5;padding:4px 7px}
+.inv td.n{text-align:right;font-family:var(--mono)}
+.inv .reg{font-family:var(--mono);font-size:10.5px;margin-top:8px;color:var(--ink-soft);line-height:1.8}
+.inv .bank{margin-top:7px;border-top:1px dashed #CFD9E5;padding-top:6px;font-size:10.5px}
+.scan{position:absolute;left:12px;right:12px;top:0;height:4px;background:linear-gradient(90deg,transparent,var(--accent),transparent);box-shadow:0 0 14px rgba(21,101,192,.8);opacity:0}
+.pdfview.scanning .scan{opacity:1;animation:sw 1.05s ease-in-out 2}
+@keyframes sw{0%{top:14px}100%{top:96%}}
+
+.ex{border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;background:#FCFDFE}
+.ex h5{font-size:12px;color:var(--ink-soft);letter-spacing:.06em;margin-bottom:9px;font-weight:800}
+.fi{display:flex;align-items:center;gap:9px;border-bottom:1px solid #E8EDF4;padding:7px 0;font-size:13px}
+.fi:last-child{border-bottom:none}
+.fi .k{width:88px;flex:none;color:var(--ink-soft);font-size:11.5px;font-weight:600}
+.fi .v{font-weight:800;font-family:var(--mono);font-size:14px}
+.fi .v.txt{font-family:inherit;font-size:13px}
+.fi .cf{margin-left:auto;font-size:10.5px;color:var(--ok);background:var(--ok-bg);border-radius:9px;padding:1px 8px;white-space:nowrap;font-weight:700}
+.fi.warn .cf{color:var(--warn);background:var(--warn-bg)}
+.fi.bad .v{color:var(--red)}
+.fi.bad .cf{color:#fff;background:var(--red)}
+.fi.big .v{font-size:17px}
+
+/* ══ 異常アラート ══ */
+.alertsum{display:none;align-items:center;gap:10px;background:var(--red);color:#fff;border-radius:10px;padding:10px 14px;font-size:14px;font-weight:800;margin-bottom:11px}
+.alertsum.show{display:flex}
+.alertsum .n{background:#fff;color:var(--red);border-radius:9px;padding:1px 10px;font-family:var(--mono)}
+.alert{border-radius:10px;padding:11px 14px;font-size:12.5px;margin-top:10px;line-height:1.8;border-left:6px solid}
+.alert.r{background:var(--red-bg);border:1.5px solid #F2C2BE;border-left-color:var(--red);color:#8E1F1A}
+.alert.w{background:var(--warn-bg);border:1.5px solid #EFD8A4;border-left-color:var(--warn);color:#7A4E00}
+.alert.g{background:var(--ok-bg);border:1.5px solid #B4DEC9;border-left-color:var(--ok);color:#0B5E42}
+.alert b{display:block;font-size:13.5px;margin-bottom:2px}
+.alert .cmp{display:flex;gap:10px;align-items:center;background:rgba(255,255,255,.75);border-radius:8px;padding:7px 11px;margin-top:7px;font-family:var(--mono);font-size:12px;flex-wrap:wrap}
+.alert .cmp .old{color:var(--ink-soft)}
+.alert .cmp .arw{font-size:14px}
+.alert .cmp .new{font-weight:800;font-size:14px}
+.alert .cmp .rate{margin-left:auto;background:var(--red);color:#fff;border-radius:9px;padding:1px 9px;font-weight:800}
+.alert .todo{margin-top:6px;font-weight:700}
+/* 過去実績 */
+.hist{margin-top:11px;border:1.5px solid var(--line);border-radius:10px;overflow:hidden}
+.hist .hh{background:#F3F6FA;padding:7px 12px;font-size:11.5px;font-weight:800;color:var(--ink-soft)}
+.hist table{width:100%;border-collapse:collapse;font-size:12px}
+.hist td{border-top:1px solid #E8EDF4;padding:6px 12px}
+.hist td.n{text-align:right;font-family:var(--mono);font-weight:700}
+.hist tr.now td{background:var(--red-bg);color:#8E1F1A;font-weight:800}
+
+/* パイプライン */
+.pipe{font-size:13px}
+.pstep{display:flex;gap:11px;align-items:flex-start;padding:9px 0;border-bottom:1px solid #E8EDF4}
+.pstep:last-child{border-bottom:none}
+.pstep .ic{width:28px;height:28px;border-radius:8px;flex:none;display:flex;align-items:center;justify-content:center;font-size:13px;background:#EDF1F6;color:var(--ink-soft);font-weight:800}
+.pstep.on .ic{background:var(--accent);color:#fff}
+.pstep.done .ic{background:var(--ok);color:#fff}
+.pstep b{display:block;font-size:13px}
+.pstep .d{font-size:11.5px;color:var(--ink-soft);line-height:1.7}
+.pstep .d code{font-family:var(--mono);background:#F1F5F9;border-radius:5px;padding:1px 6px;font-size:11px}
+.rule{background:#F7F9FC;border:1.5px solid var(--line);border-radius:10px;padding:10px 13px;font-size:12px;line-height:1.85;margin-top:11px}
+.rule .t{font-weight:800;color:var(--accent);margin-bottom:4px;font-size:12.5px}
+.rule code{font-family:var(--mono);background:#fff;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:11px}
+.runbtn{width:100%;border:none;background:var(--accent);color:#fff;font-weight:800;border-radius:10px;padding:13px;font-size:14.5px;margin-top:12px}
+.runbtn:disabled{opacity:.45;cursor:not-allowed}
+.priv{margin-top:11px;background:var(--ok-bg);border:1.5px solid #B4DEC9;border-radius:10px;padding:10px 13px;font-size:11.5px;color:#0B5E42;line-height:1.8}
+.priv b{color:var(--ok)}
+
+/* 台帳 */
+.lh{background:var(--sheet);color:#fff;padding:11px 16px;font-size:13.5px;font-weight:800;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.lh .st{margin-left:auto;font-size:12px;font-weight:400}
+.lb{overflow-x:auto}
+table.lg{width:100%;border-collapse:collapse;font-size:13px;min-width:1140px}
+table.lg th{background:#EEF3F8;border:1px solid #D5DEE9;padding:9px 11px;text-align:left;font-size:11.5px;color:#41546B;white-space:nowrap;font-weight:800}
+table.lg td{border:1px solid #D5DEE9;padding:9px 11px;white-space:nowrap}
+table.lg td.n{text-align:right;font-family:var(--mono);font-weight:700}
+table.lg tr:hover td{background:#F6FAFE}
+table.lg tr.new td{animation:cellIn .9s ease}
+@keyframes cellIn{0%{background:#C4EBD6}100%{background:transparent}}
+table.lg tr.bad td{background:#FEF5F4}
+.pill{font-size:11px;border-radius:10px;padding:2px 10px;white-space:nowrap;font-weight:800}
+.p-ok{background:var(--ok-bg);color:var(--ok)}
+.p-soon{background:var(--warn-bg);color:var(--warn)}
+.p-dup{background:var(--red-bg);color:var(--red)}
+.p-alert{background:var(--red);color:#fff}
+.lfoot{padding:11px 16px;border-top:1.5px solid var(--line);display:flex;gap:9px;align-items:center;flex-wrap:wrap;background:#F7F9FC}
+.lfoot button{border:1.5px solid var(--line);background:#fff;border-radius:9px;padding:9px 15px;font-size:12.5px;font-weight:700}
+.lfoot button:hover{border-color:var(--accent);color:var(--accent)}
+.lfoot .note{font-size:11.5px;color:var(--ink-soft);margin-left:auto}
+.cap{font-size:12.5px;color:var(--ink-soft);text-align:center;margin-top:13px}
+.cap b{color:var(--accent)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:11px 24px;border-radius:10px;font-size:13.5px;font-weight:700;opacity:0;pointer-events:none;transition:.25s;z-index:80;box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.toast.show{opacity:1;transform:translateX(-50%)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">請</div>
+  <div><h1>メール請求書 自動取込</h1>
+    <div class="sub">請求書を自動判別 → 読み取り → <b style="color:var(--red)">異常を検知</b> → 格納 → 台帳へ自動追記</div></div>
+  <span class="chip">UI デモ版</span>
+  <span class="chip lock">🔒 原本は社内保管・AIへは必要項目のみ</span>
+</header>
+
+<div class="steps">
+  <span class="step active" id="s1"><span class="n">1</span>メール監視・請求書を判別</span><span class="ar">→</span>
+  <span class="step" id="s2"><span class="n">2</span>項目を読み取り</span><span class="ar">→</span>
+  <span class="step" id="s3"><span class="n">3</span>過去実績と照合して異常検知</span><span class="ar">→</span>
+  <span class="step" id="s4"><span class="n">4</span>格納・台帳追記</span>
+</div>
+
+<main>
+  <div class="kpi">
+    <div><b id="kProc">39</b><span>今月の自動処理件数</span></div>
+    <div class="g"><b>▲92%</b><span>入力・仕分け工数の削減</span></div>
+    <div><b id="kSum">¥0</b><span>今回取込んだ請求額</span></div>
+    <div class="w"><b id="kSoon">1</b><span>支払期日 7日以内</span></div>
+    <div class="r"><b id="kAlert">0</b><span>異常検知・要確認</span></div>
+  </div>
+
+  <div class="cols">
+    <!-- 左：メール -->
+    <div>
+      <div class="card">
+        <div class="mailhd"><span class="ic">✉</span>受信トレイ（経理共有アドレス）</div>
+        <div id="mailList"></div>
+      </div>
+      <div class="card">
+        <div class="ch">🔍 自動判別ルール</div>
+        <div class="cb" style="font-size:12.5px;line-height:1.9;color:var(--ink-soft)">
+          件名・本文・添付名に「請求書 / ご請求 / Invoice」を含む、または<b style="color:var(--ink)">PDF内に「請求書」「登録番号」を検出</b>したメールが対象。<br>
+          広告・見積書は<b style="color:var(--ink)">自動スキップ</b>します。
+        </div>
+      </div>
+    </div>
+
+    <!-- 中央 -->
+    <div>
+      <div class="card">
+        <div class="ch" id="docTitle">📄 添付PDF と AI読み取り結果 <span class="cnt" id="docCnt">メールを選択してください</span></div>
+        <div class="cb">
+          <div class="alertsum" id="alertSum">⚠️ このメールには要確認の異常があります<span class="n" id="alertN">0</span>件</div>
+          <div class="docwrap">
+            <div class="pdfview" id="pdfView">
+              <div class="scan"></div>
+              <div class="pdfbar"><span class="d"></span><span id="pdfName">—</span></div>
+              <div id="invBody"><div style="font-size:13px;color:var(--ink-soft);text-align:center;padding:46px 10px">左のメールを選ぶと、添付請求書がここに表示されます</div></div>
+            </div>
+            <div>
+              <div class="ex">
+                <h5>AI抽出結果（信頼度つき）</h5>
+                <div id="exList"><div style="font-size:13px;color:var(--ink-soft);padding:24px 4px;text-align:center">未読み取り</div></div>
+              </div>
+              <div id="alerts"></div>
+              <div id="histBox"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="lh">📊 請求書台帳（自動追記）<span class="st" id="lgSt">スプレッドシート連携中</span></div>
+        <div class="lb"><table class="lg" id="lgTable"></table></div>
+        <div class="lfoot">
+          <button onclick="toast('会計ソフト（freee／マネーフォワード）へ仕訳連携しました（デモ）')">🔗 会計ソフト連携</button>
+          <button onclick="toast('CSVを書き出しました（デモ）')">📥 CSV出力</button>
+          <button onclick="toast('支払期日3営業日前にSlackとメールで通知します（デモ）')">🔔 期日アラート設定</button>
+          <span class="note">異常検知された行は赤、期日が近い行は黄で表示</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右 -->
+    <div>
+      <div class="card">
+        <div class="ch">⚙️ 自動処理パイプライン</div>
+        <div class="cb">
+          <div class="pipe" id="pipe"></div>
+          <div class="rule">
+            <div class="t">🛡 異常検知ルール（設定済み）</div>
+            ・<b>金額の乖離</b>：過去平均から <code>±30%</code> 超で警告<br>
+            ・<b>支払期日</b>：<code>過去日付</code>／発行日より前ならエラー<br>
+            ・<b>振込先の変更</b>：前回と口座が違えば<b>詐欺の可能性</b>として停止<br>
+            ・<b>重複</b>：取引先＋請求書番号の一致<br>
+            ・<b>桁数</b>：想定桁より大きい金額を検出
+          </div>
+          <div class="rule">
+            <div class="t">📁 格納ルール</div>
+            保存先：<code>\\NAS01\経理\請求書\2026\08\</code><br>
+            ファイル名：<code>YYYYMMDD_取引先_番号_金額.pdf</code><br>
+            異常検知分：<code>_要確認\</code> へ隔離
+          </div>
+          <button class="runbtn" id="runBtn">▶ 未処理4件をまとめて自動処理</button>
+          <div class="priv">🔒 <b>PDF原本は社内サーバーにのみ保存</b>。AIへ渡すのは金額・日付・請求書番号など読み取りに必要な項目のみで、<b>口座番号や担当者名はマスキング</b>して送信します。</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch">🗂 格納結果</div>
+        <div class="cb" id="storeList" style="font-size:12.5px;color:var(--ink-soft)">まだ処理していません</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cap">▲ 読み取りだけでなく<b>過去実績との照合で「おかしい請求書」を止める</b>のがポイント。経理担当は<b>異常が出た1〜2件だけ</b>を確認します。</div>
+</main>
+
+<div class="toast" id="toastEl"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const TODAY="2026/08/18";
+/* ══ メール ══ */
+const MAILS=[
+ {id:0,from:"株式会社アオバ商事 経理部",subj:"【ご請求】2026年8月分 Webサイト保守費用",
+  file:"請求書_アオバ商事_202608.pdf",kind:"inv",short:"アオバ商事",
+  inv:{to:"株式会社サンプル 御中",fr:"株式会社アオバ商事<br>東京都港区芝浦1-2-3<br>登録番号 T1234567890123",
+   no:"INV-2026-0814",date:"2026/08/10",due:"2026/09/30",sub:100000,tax:10000,total:110000,
+   items:[["Webサイト保守業務（8月分）",1,100000]],reg:"T1234567890123",bank:"みずほ銀行 芝支店 普通 1234567"},
+  ex:[["請求元","株式会社アオバ商事","99.2%","txt"],["請求書番号","INV-2026-0814","98.7%"],
+      ["発行日","2026/08/10","99.5%"],["支払期日","2026/09/30","98.1%"],
+      ["合計金額","¥110,000","99.8%","big"],["登録番号","T1234567890123","97.9%"],
+      ["振込先","みずほ銀行 芝支店 …4567","98.4%","txt"]],
+  hist:[["2026/07/10","¥110,000"],["2026/06/10","¥110,000"],["2026/05/10","¥110,000"]],
+  alerts:[["g","✓ 異常なし・適格請求書の要件を満たしています","金額は過去3回と同額（¥110,000）。支払期日・登録番号・振込先も前回と一致しています。"]],
+  due:"2026/09/30",st:"ok",bad:false},
+
+ {id:1,from:"ミドリ製作所 総務",subj:"8月請求書の送付につきまして",
+  file:"seikyu_midori_2608.pdf",kind:"inv",short:"ミドリ製作所",
+  inv:{to:"株式会社サンプル 御中",fr:"有限会社ミドリ製作所<br>埼玉県さいたま市北区…<br>（登録番号の記載なし）",
+   no:"2608-114",date:"2026/08/12",due:"2026/08/25",sub:550000,tax:55000,total:605000,
+   items:[["業務システム開発 第2回検収分",1,550000]],reg:"",bank:"埼玉りそな銀行 大宮支店 普通 7654321"},
+  ex:[["請求元","有限会社ミドリ製作所","98.8%","txt"],["請求書番号","2608-114","97.2%"],
+      ["発行日","2026/08/12","99.1%"],["支払期日","2026/08/25","96.4%"],
+      ["合計金額","¥605,000","99.5%","big"],["登録番号","未記載","—","bad"],
+      ["振込先","埼玉りそな 大宮支店 …4321","97.1%","txt"]],
+  hist:[["2026/06/12","¥550,000"],["2026/03/12","¥660,000"]],
+  alerts:[["w","⚠ 登録番号（インボイス）の記載がありません","適格請求書ではないため、<b>仕入税額控除の対象外</b>となる可能性があります。取引先へ再発行を依頼してください。"],
+          ["w","⚠ 支払期日まで残り7日です","2026/08/25 が期日です。承認フローを優先処理に設定しました。"]],
+  due:"2026/08/25",st:"soon",bad:false},
+
+ {id:2,from:"ソラノ物流 経理",subj:"【再送】ご請求書の送付（8月分）",
+  file:"請求書_ソラノ物流_0811.pdf",kind:"dup",short:"ソラノ物流",
+  inv:{to:"株式会社サンプル 御中",fr:"株式会社ソラノ物流<br>東京都江東区…<br>登録番号 T5555666677778",
+   no:"INV-2026-0811",date:"2026/08/08",due:"2026/09/30",sub:200000,tax:20000,total:220000,
+   items:[["業務改善コンサルティング（8月分）",1,200000]],reg:"T5555666677778",bank:"三井住友銀行 豊洲支店 普通 2233445"},
+  ex:[["請求元","株式会社ソラノ物流","99.0%","txt"],["請求書番号","INV-2026-0811","98.9%"],
+      ["発行日","2026/08/08","99.2%"],["支払期日","2026/09/30","98.6%"],
+      ["合計金額","¥220,000","99.7%","big"],["登録番号","T5555666677778","98.2%"]],
+  hist:[["2026/08/11 取込済","¥220,000"],["2026/07/08","¥220,000"]],
+  alerts:[["r","🚫 重複の可能性を検知しました","同じ取引先・同じ請求書番号（INV-2026-0811）が <b>8/11 に取込済み</b>です。",
+    {old:"8/11 取込済 ¥220,000",now:"今回 ¥220,000",rate:"完全一致",
+     todo:"二重支払を防ぐため <b>_要確認フォルダへ隔離</b>し、台帳には「要確認」で登録しました。"}]],
+  due:"2026/09/30",st:"dup",bad:true},
+
+ {id:3,from:"カワサキ電機 営業部",subj:"請求書のご送付（お振込先変更のお知らせ）",
+  file:"invoice_kawasaki_0818.pdf",kind:"alert",short:"カワサキ電機",
+  inv:{to:"株式会社サンプル 御中",fr:"株式会社カワサキ電機<br>神奈川県川崎市…<br>登録番号 T9988776655443",
+   no:"KW-2608-77",date:"2026/08/18",due:"2026/08/10",sub:2800000,tax:280000,total:3080000,
+   items:[["設備一式（8月分）",1,2800000]],reg:"T9988776655443",
+   bank:"楽天銀行 第一営業支店 普通 9988776 ★変更"},
+  ex:[["請求元","株式会社カワサキ電機","98.6%","txt"],["請求書番号","KW-2608-77","97.8%"],
+      ["発行日","2026/08/18","99.0%"],["支払期日","2026/08/10","97.4%","bad"],
+      ["合計金額","¥3,080,000","99.4%","bad big"],["登録番号","T9988776655443","98.0%"],
+      ["振込先","楽天銀行 第一営業支店 …8776","96.2%","bad"]],
+  hist:[["2026/07/18","¥308,000"],["2026/06/18","¥308,000"],["2026/05/18","¥297,000"]],
+  alerts:[
+    ["r","🚨 金額が過去実績から大きく乖離しています","過去3回の平均は <b>¥304,333</b> です。桁の入力ミス、または不正請求の可能性があります。",
+     {old:"前回 ¥308,000",now:"今回 ¥3,080,000",rate:"+900%",
+      todo:"金額の桁（0が1つ多い可能性）を発行元へ確認してください。<b>承認フローを停止</b>しています。"}],
+    ["r","🚨 支払期日が過去の日付です","支払期日 <b>2026/08/10</b> は、発行日（2026/08/18）より前かつ本日（2026/08/18）より過去です。",
+     {old:"発行日 2026/08/18",now:"支払期日 2026/08/10",rate:"日付矛盾",
+      todo:"期日の記載誤りの可能性が高いため、<b>正しい期日を確認</b>してください。"}],
+    ["r","🚨 振込先口座が前回と異なります","前回まで：みずほ銀行 川崎支店 …3344 → 今回：<b>楽天銀行 第一営業支店 …8776</b>",
+     {old:"みずほ銀行 川崎支店 …3344",now:"楽天銀行 第一営業支店 …8776",rate:"口座変更",
+      todo:"<b>取引先の詐称（ビジネスメール詐欺）の可能性</b>があります。メールの返信ではなく、<b>登録済みの電話番号</b>で先方に直接確認してください。"}]],
+  due:"2026/08/10",st:"alert",bad:true},
+
+ {id:4,from:"オフィス用品ネット",subj:"【広告】新生活応援セール開催中！",
+  file:"",kind:"none",inv:null,ex:[],alerts:[],hist:[],due:"",st:"",bad:false}
+];
+let LEDGER=[
+ ["2026/08/11","株式会社ソラノ物流","INV-2026-0811","2026/09/30",220000,"取込済","p-ok","…\\2026\\08\\20260808_ソラノ物流_INV-2026-0811_220000.pdf"],
+ ["2026/08/05","タカダ建設株式会社","INV-2026-0798","2026/08/31",180000,"支払済","p-ok",""],
+ ["2026/08/03","株式会社ミライ通信","MT-08-221","2026/08/20",46200,"期日間近","p-soon",""]
+];
+
+/* ══ 一覧 ══ */
+function renderMails(){
+  $("mailList").innerHTML=MAILS.map(m=>`
+    <div class="ml ${m.done?"done":""}" data-i="${m.id}">
+      <span class="tag ${m.kind==="none"?"tg-no":m.kind==="dup"?"tg-dup":m.kind==="alert"?"tg-alert":"tg-inv"}">
+        ${m.kind==="none"?"対象外":m.kind==="dup"?"重複疑い":m.kind==="alert"?"⚠ 異常3件":"請求書 98%"}</span>
+      <div class="fr">${m.from}</div>
+      <div class="sj">${m.subj}</div>
+      ${m.file?`<div class="at"><span class="pdf">PDF</span>${m.file}</div>`:`<div class="at">添付なし</div>`}
+      ${m.done?`<div class="st ok">✓ 処理完了</div>`:""}
+    </div>`).join("");
+  document.querySelectorAll(".ml").forEach(e=>e.addEventListener("click",()=>show(+e.dataset.i)));
+}
+renderMails();
+
+/* ══ 明細 ══ */
+function show(i){
+  const m=MAILS[i];
+  document.querySelectorAll(".ml").forEach(e=>e.classList.toggle("on",+e.dataset.i===i));
+  $("alertSum").classList.remove("show");
+  if(m.kind==="none"){
+    $("pdfName").textContent="—";$("docCnt").textContent="対象外メール";
+    $("invBody").innerHTML=`<div style="font-size:13px;color:var(--ink-soft);text-align:center;padding:46px 10px">
+      請求書ではないと判定したため、<b>処理をスキップ</b>しました（広告メール）。</div>`;
+    $("exList").innerHTML=`<div style="font-size:13px;color:var(--ink-soft);padding:24px 4px;text-align:center">対象外のため読み取りません</div>`;
+    $("alerts").innerHTML="";$("histBox").innerHTML="";return;
+  }
+  $("docCnt").textContent=m.file;$("pdfName").textContent=m.file;
+  const v=m.inv;
+  $("invBody").innerHTML=`
+    <div class="inv">
+      <h4>請求書</h4>
+      <div class="fr">${v.fr}</div>
+      <div class="to">${v.to}</div>
+      <div class="amt"><span>ご請求金額（税込）</span><span class="v">¥${v.total.toLocaleString()}</span></div>
+      <table><tr><th>品目</th><th style="width:36px">数</th><th style="width:78px">金額</th></tr>
+      ${v.items.map(it=>`<tr><td>${it[0]}</td><td class="n">${it[1]}</td><td class="n">${it[2].toLocaleString()}</td></tr>`).join("")}
+      </table>
+      <div style="display:flex;justify-content:flex-end;gap:16px;font-size:11px;margin-top:6px">
+        <span>小計 ¥${v.sub.toLocaleString()}</span><span>消費税 ¥${v.tax.toLocaleString()}</span></div>
+      <div class="reg">請求書番号 ${v.no}／発行日 ${v.date}／支払期日 ${v.due}
+        ${v.reg?`<br>登録番号 ${v.reg}`:`<br><span style="color:var(--red)">登録番号の記載なし</span>`}</div>
+      <div class="bank">振込先：${v.bank.replace("★変更",'<b style="color:var(--red)">（前回から変更）</b>')}</div>
+    </div>`;
+  $("pdfView").classList.add("scanning");
+  $("exList").innerHTML=`<div style="font-size:13px;color:var(--ink-soft);padding:24px 4px;text-align:center">読み取り中…</div>`;
+  $("alerts").innerHTML="";$("histBox").innerHTML="";
+  setTimeout(()=>{
+    $("pdfView").classList.remove("scanning");
+    $("exList").innerHTML=m.ex.map(f=>{
+      const cls=(f[3]||"").includes("bad")?"bad":((f[2]!=="—"&&parseFloat(f[2])<98)?"warn":"");
+      const big=(f[3]||"").includes("big")?"big":"";
+      const txt=(f[3]||"").includes("txt")?"txt":"";
+      return `<div class="fi ${cls} ${big}"><span class="k">${f[0]}</span>
+        <span class="v ${txt}">${f[1]}</span>
+        <span class="cf">${f[2]==="—"?"未検出":f[2]}</span></div>`}).join("");
+    $("alerts").innerHTML=m.alerts.map(a=>{
+      const c=a[3];
+      return `<div class="alert ${a[0]}"><b>${a[1]}</b>${a[2]}
+        ${c?`<div class="cmp"><span class="old">${c.old}</span><span class="arw">→</span>
+             <span class="new">${c.now}</span><span class="rate">${c.rate}</span></div>
+             <div class="todo">👉 ${c.todo}</div>`:""}</div>`}).join("");
+    if(m.hist.length){
+      $("histBox").innerHTML=`<div class="hist"><div class="hh">📈 この取引先の過去実績（照合対象）</div>
+        <table>${m.hist.map(h=>`<tr><td>${h[0]}</td><td class="n">${h[1]}</td></tr>`).join("")}
+        <tr class="now"><td>今回（${v.date}）</td><td class="n">¥${v.total.toLocaleString()}</td></tr></table></div>`;
+    }
+    const bad=m.alerts.filter(a=>a[0]==="r").length;
+    if(bad){$("alertSum").classList.add("show");$("alertN").textContent=bad}
+    setStep(3);
+  },1150);
+}
+function setStep(n){[1,2,3,4].forEach(i=>{const e=$("s"+i);e.classList.toggle("active",i===n);e.classList.toggle("done",i<n)})}
+
+/* ══ パイプライン ══ */
+const PIPE=[
+ ["📥","メール監視","経理共有アドレスを常時監視し、請求書メールのみ抽出"],
+ ["🔍","AI読み取り","請求元・番号・金額・期日・登録番号・振込先を抽出"],
+ ["🛡","過去実績と照合","金額の乖離／期日の矛盾／口座変更／重複を検知"],
+ ["📁","リネーム＆格納","<code>YYYYMMDD_取引先_番号_金額.pdf</code>／異常分は隔離"],
+ ["📊","台帳へ追記","支払期日・状態を付けてスプレッドシートへ"],
+ ["🔔","通知","異常は即時に経理責任者へSlackとメールでNG通知"]
+];
+function renderPipe(a){
+  $("pipe").innerHTML=PIPE.map((p,i)=>`<div class="pstep ${i<a?"done":""} ${i===a?"on":""}">
+    <span class="ic">${i<a?"✓":p[0]}</span>
+    <span><b>${p[1]}</b><span class="d">${p[2]}</span></span></div>`).join("");
+}
+renderPipe(-1);
+
+/* ══ 一括処理 ══ */
+$("runBtn").addEventListener("click",()=>{
+  $("runBtn").disabled=true;$("runBtn").textContent="処理中…";
+  let i=0;
+  const tick=()=>{
+    if(i>=PIPE.length){finish();return}
+    renderPipe(i);
+    if(i===1)setStep(2);if(i===2)setStep(3);if(i===4)setStep(4);
+    i++;setTimeout(tick,760);
+  };tick();
+});
+function finish(){
+  renderPipe(PIPE.length);
+  const T=MAILS.filter(m=>m.kind!=="none");
+  let sum=0,store=[];
+  T.forEach(m=>{
+    m.done=true;const v=m.inv,bad=m.bad;sum+=v.total;
+    const fn=`${v.date.replace(/\//g,"")}_${m.short}_${v.no}_${v.total}.pdf`;
+    store.push({fn,bad,path:bad?"\\\\NAS01\\経理\\請求書\\_要確認\\":"\\\\NAS01\\経理\\請求書\\2026\\08\\",
+      why:m.kind==="alert"?"異常3件を検知":m.kind==="dup"?"重複の疑い":""});
+    LEDGER.unshift([v.date,m.short,v.no,v.due,v.total,
+      m.kind==="alert"?"⚠ 異常・支払保留":m.kind==="dup"?"要確認（重複）":(m.st==="soon"?"期日間近":"取込済"),
+      m.kind==="alert"?"p-alert":m.kind==="dup"?"p-dup":(m.st==="soon"?"p-soon":"p-ok"),
+      (bad?"…\\_要確認\\":"…\\2026\\08\\")+fn,true,bad]);
+  });
+  renderMails();renderLedger();
+  $("storeList").innerHTML=store.map(s=>`<div style="padding:7px 0;border-bottom:1px solid #E8EDF4">
+    <div style="font-family:var(--mono);font-size:11.5px;font-weight:800;color:${s.bad?"var(--red)":"var(--ok)"}">
+      ${s.bad?"⚠ 隔離":"✓ 格納"} ${s.path}</div>
+    <div style="font-family:var(--mono);font-size:11px">${s.fn}</div>
+    ${s.why?`<div style="font-size:11px;color:var(--red);font-weight:700">理由：${s.why}</div>`:""}</div>`).join("");
+  $("kProc").textContent=39+T.length;
+  $("kSum").textContent="¥"+sum.toLocaleString();
+  $("runBtn").textContent="✓ 4件の自動処理が完了";
+  setStep(4);
+  toast("4件を処理：2件を格納、2件は異常検知のため隔離して支払を保留しました");
+}
+/* ══ 台帳 ══ */
+function renderLedger(){
+  $("lgTable").innerHTML=
+    `<tr><th>発行日</th><th>取引先</th><th>請求書番号</th><th>支払期日</th><th style="text-align:right">金額(税込)</th><th>状態</th><th>格納先</th></tr>`+
+    LEDGER.map(r=>`<tr class="${r[8]?"new":""} ${r[9]?"bad":""}">
+      <td>${r[0]}</td><td><b>${r[1]}</b></td><td style="font-family:var(--mono)">${r[2]}</td>
+      <td${r[3]<TODAY?' style="color:var(--red);font-weight:800"':""}>${r[3]}${r[3]<TODAY?" ⚠":""}</td>
+      <td class="n">¥${r[4].toLocaleString()}</td>
+      <td><span class="pill ${r[6]}">${r[5]}</span></td>
+      <td style="font-family:var(--mono);font-size:11px;color:var(--ink-soft)">${r[7]||"—"}</td></tr>`).join("");
+  $("lgSt").textContent=`${LEDGER.length}件を管理中`;
+  $("kSoon").textContent=LEDGER.filter(r=>r[6]==="p-soon").length;
+  $("kAlert").textContent=LEDGER.filter(r=>r[6]==="p-alert"||r[6]==="p-dup").length;
+}
+renderLedger();show(0);
+function toast(m){const t=$("toastEl");t.textContent=m;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),3000)}
+</script>
+</body>
+</html>
