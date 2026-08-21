@@ -170,6 +170,97 @@ table.lg tr.bad td{background:#FEF5F4}
 .cap b{color:var(--accent)}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:11px 24px;border-radius:10px;font-size:13.5px;font-weight:700;opacity:0;pointer-events:none;transition:.25s;z-index:80;box-shadow:0 8px 24px rgba(0,0,0,.3)}
 .toast.show{opacity:1;transform:translateX(-50%)}
+
+/* ══════ ノートPC（1366×768〜）で収まるようにコンパクト化 ══════ */
+body{font-size:13.5px;line-height:1.65}
+header{padding:9px 16px;gap:10px}
+.logo{width:29px;height:29px;font-size:12px}
+header h1{font-size:15px}
+header .sub{font-size:11px}
+.chip{font-size:10.5px;padding:2px 9px}
+.steps{margin:10px auto 0;padding:0 16px;gap:6px;font-size:11.5px}
+.step{padding:4px 12px;gap:6px}
+.step .n{width:17px;height:17px;font-size:10px}
+main{max-width:1340px;margin:10px auto;padding:0 16px 34px}
+
+.kpi{grid-template-columns:repeat(5,1fr);gap:9px;margin-bottom:11px}
+.kpi div{padding:8px 11px}
+.kpi div::before{width:4px}
+.kpi b{font-size:20px}
+.kpi span{font-size:10px}
+
+.cols{grid-template-columns:246px minmax(0,1fr) 286px;gap:11px}
+@media(max-width:1180px){.cols{grid-template-columns:1fr}}
+.card{border-radius:10px;margin-bottom:11px}
+.ch{padding:8px 11px;font-size:12.5px;gap:7px}
+.ch .cnt{font-size:10.5px}
+.cb{padding:10px 11px}
+
+/* メール一覧をコンパクトに */
+.mailhd{padding:8px 11px;font-size:12.5px}
+.mailhd .ic{width:19px;height:19px;font-size:11px}
+.ml{padding:8px 10px}
+.ml .fr{font-size:12px;padding-right:64px;line-height:1.4}
+.ml .sj{font-size:11px}
+.ml .at{font-size:10px;margin-top:3px}
+.ml .pdf{font-size:9px;padding:0 5px}
+.ml .tag{font-size:9.5px;padding:1px 7px;right:8px;top:8px}
+.ml .st{font-size:10px}
+
+/* PDF＋抽出：狭い幅では縦積み */
+.docwrap{gap:11px}
+@media(max-width:1120px){.docwrap{grid-template-columns:1fr}}
+.pdfview{padding:9px}
+.inv{padding:11px 12px;font-size:10.5px;line-height:1.6}
+.inv h4{font-size:13px;padding-bottom:5px;margin-bottom:8px;letter-spacing:.34em}
+.inv .to{font-size:11.5px}
+.inv .fr{font-size:9.5px;margin-bottom:6px}
+.inv .amt{padding:5px 9px;margin-bottom:7px}
+.inv .amt .v{font-size:14px}
+.inv table{font-size:9.5px}
+.inv th,.inv td{padding:3px 6px}
+.inv .reg,.inv .bank{font-size:9.5px}
+.ex{padding:10px 11px}
+.ex h5{font-size:11px;margin-bottom:7px}
+.fi{padding:5px 0;font-size:12px}
+.fi .k{width:76px;font-size:10.5px}
+.fi .v{font-size:12.5px}
+.fi.big .v{font-size:15px}
+.fi .cf{font-size:9.5px;padding:1px 7px}
+
+.alertsum{font-size:12.5px;padding:8px 12px;margin-bottom:9px}
+.alert{padding:9px 12px;font-size:11.5px;margin-top:8px;border-left-width:5px;line-height:1.7}
+.alert b{font-size:12.5px}
+.alert .cmp{padding:6px 9px;font-size:11px;margin-top:6px}
+.alert .cmp .new{font-size:12.5px}
+.hist .hh{padding:6px 10px;font-size:11px}
+.hist table{font-size:11px}
+.hist td{padding:5px 10px}
+
+/* 右カラム */
+.pipe{font-size:12px}
+.pstep{padding:7px 0;gap:9px}
+.pstep .ic{width:24px;height:24px;font-size:12px}
+.pstep b{font-size:12px}
+.pstep .d{font-size:10.5px;line-height:1.6}
+.rule{padding:8px 11px;font-size:11px;margin-top:9px;line-height:1.75}
+.rule .t{font-size:11.5px}
+.rule code{font-size:10px;padding:0 5px}
+.runbtn{padding:11px;font-size:13px;margin-top:10px;border-radius:9px}
+.priv{padding:8px 11px;font-size:10.5px;margin-top:9px;line-height:1.7}
+
+/* 台帳 */
+.lh{padding:9px 13px;font-size:12.5px}
+.lh .st{font-size:11px}
+table.lg{font-size:12px;min-width:920px}
+table.lg th{padding:7px 9px;font-size:10.5px}
+table.lg td{padding:7px 9px}
+.pill{font-size:10px;padding:1px 8px}
+.lfoot{padding:9px 13px;gap:7px}
+.lfoot button{padding:7px 12px;font-size:11.5px;border-radius:8px}
+.lfoot .note{font-size:10.5px}
+.cap{font-size:11.5px;margin-top:10px}
+.toast{padding:9px 20px;font-size:12.5px}
 </style>
 </head>
 <body>
@@ -207,9 +298,8 @@ table.lg tr.bad td{background:#FEF5F4}
       </div>
       <div class="card">
         <div class="ch">🔍 自動判別ルール</div>
-        <div class="cb" style="font-size:12.5px;line-height:1.9;color:var(--ink-soft)">
-          件名・本文・添付名に「請求書 / ご請求 / Invoice」を含む、または<b style="color:var(--ink)">PDF内に「請求書」「登録番号」を検出</b>したメールが対象。<br>
-          広告・見積書は<b style="color:var(--ink)">自動スキップ</b>します。
+        <div class="cb" style="font-size:11px;line-height:1.75;color:var(--ink-soft)">
+          件名・本文・添付名の「請求書／ご請求／Invoice」、またはPDF内の「請求書」「登録番号」を検出したメールが対象。<b style="color:var(--ink)">広告・見積書は自動スキップ</b>。
         </div>
       </div>
     </div>
@@ -441,12 +531,12 @@ function setStep(n){[1,2,3,4].forEach(i=>{const e=$("s"+i);e.classList.toggle("a
 
 /* ══ パイプライン ══ */
 const PIPE=[
- ["📥","メール監視","経理共有アドレスを常時監視し、請求書メールのみ抽出"],
- ["🔍","AI読み取り","請求元・番号・金額・期日・登録番号・振込先を抽出"],
- ["🛡","過去実績と照合","金額の乖離／期日の矛盾／口座変更／重複を検知"],
- ["📁","リネーム＆格納","<code>YYYYMMDD_取引先_番号_金額.pdf</code>／異常分は隔離"],
- ["📊","台帳へ追記","支払期日・状態を付けてスプレッドシートへ"],
- ["🔔","通知","異常は即時に経理責任者へSlackとメールでNG通知"]
+ ["📥","メール監視","請求書メールのみ自動抽出"],
+ ["🔍","AI読み取り","番号・金額・期日・登録番号・振込先"],
+ ["🛡","過去実績と照合","金額乖離／期日矛盾／口座変更／重複"],
+ ["📁","リネーム＆格納","<code>日付_取引先_番号_金額.pdf</code>"],
+ ["📊","台帳へ追記","期日・状態つきでシートへ"],
+ ["🔔","通知","異常は経理責任者へ即時通知"]
 ];
 function renderPipe(a){
   $("pipe").innerHTML=PIPE.map((p,i)=>`<div class="pstep ${i<a?"done":""} ${i===a?"on":""}">
