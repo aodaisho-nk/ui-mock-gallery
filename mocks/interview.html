@@ -114,6 +114,19 @@ textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 1
 .priv-note{margin-top:10px;background:var(--ok-soft);border:1px solid rgba(46,125,91,.35);color:var(--ink);border-radius:8px;padding:9px 13px;font-size:11.5px}
 .priv-note b{color:var(--ok)}
 
+/* ── 生成後の編集 ── */
+.editbar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;background:#F3EEFB;border:1px solid #D6CDF5;
+  border-radius:9px;padding:7px 11px;font-size:11.5px;color:#4A3FB0;margin-bottom:12px}
+.editbar b{color:#5B4FC7}
+.editbar .hintx{color:var(--ink-soft);font-size:10.5px}
+.editbar .chg{margin-left:auto;font-family:var(--mono);font-size:10.5px;background:#fff;border:1px solid #D6CDF5;border-radius:9px;padding:1px 9px}
+.editbar button{border:1px solid #5B4FC7;background:#5B4FC7;color:#fff;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700}
+.sheet [contenteditable]{outline:none;border-radius:4px;transition:.15s}
+.sheet [contenteditable]:hover{background:#FAF8FF;box-shadow:0 0 0 2px #EFEAFB}
+.sheet [contenteditable]:focus{background:#fff;box-shadow:0 0 0 2px #5B4FC7}
+.sheet td.edited,.sheet .ai-sec.edited{background:#F6F3FF}
+.sheet .pen{opacity:.35;font-size:10px;margin-left:4px}
+
 /* ── 格納完了メール（自動作成）── */
 .mail{display:none;margin-top:14px;border:1px solid #C6D2E0;border-radius:12px;overflow:hidden;background:#fff}
 .mail.show{display:block;animation:up .4s ease}
@@ -184,9 +197,9 @@ textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 1
 <div class="steps">
   <span class="step active" id="s1"><span class="n">1</span>Zoomで面接しながら評価入力</span><span class="arrow">→</span>
   <span class="step" id="s2"><span class="n">2</span>文字起こしを取得</span><span class="arrow">→</span>
-  <span class="step" id="s3"><span class="n">3</span>ワンクリックでシート生成</span><span class="arrow">→</span>
+  <span class="step" id="s3"><span class="n">3</span>シート生成（生成後も編集可）</span><span class="arrow">→</span>
   <span class="step" id="s4"><span class="n">4</span>指定フォルダへ納品</span><span class="arrow">→</span>
-  <span class="step" id="s5"><span class="n">5</span>関係者へ自動メール</span>
+  <span class="step" id="s5"><span class="n">5</span>テンプレで自動メール（確認不要）</span>
 </div>
 
 <main>
@@ -226,6 +239,10 @@ textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 1
     <!-- 生成された評価シート -->
     <div class="sheet-wrap" id="sheetWrap">
       <div class="sheet">
+        <div class="editbar">✏️ <b>この評価シートは、生成後もそのまま修正できます</b>
+          <span class="hintx">評点・根拠・要約・総評のどこでもクリックして書き換え可能</span>
+          <span class="chg" id="chgCount">未編集</span>
+          <button id="saveSheet">変更を保存</button></div>
         <h3>面接評価シート</h3>
         <div class="meta">
           <div>候補者</div><div>山田 一郎（応募職種：法人営業）</div>
@@ -263,14 +280,12 @@ textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 1
         <div class="mb">
           <div class="mrow"><span class="mk">宛先</span><span>採用責任者 小林部長 &lt;kobayashi@example.co.jp&gt;</span></div>
           <div class="mrow"><span class="mk">CC</span><span>人事部 共有 &lt;jinji@example.co.jp&gt;／面接官 中野</span></div>
-          <div class="mrow"><span class="mk">件名</span><span contenteditable id="mSubj">【面接評価シート格納のご連絡】山田 一郎 様（法人営業・一次面接／8月17日実施）</span></div>
-          <div class="mbody" contenteditable id="mBody"></div>
-          <div class="mnote">🔒 <b>本文に載せるのは社内共有に必要な範囲のみ</b>（氏名・職種・判定・格納先）。評価の詳細はシート本体を参照する運用のため転記しません。社外宛の場合は氏名を自動で伏せ字にします。</div>
+          <div class="mrow"><span class="mk">件名</span><span id="mSubj">【面接評価シート格納のご連絡】山田 一郎 様（法人営業・一次面接／8月17日実施）</span></div>
+          <div class="mbody" id="mBody"></div>
+          <div class="mnote">📨 <b>定型テンプレートのため、確認・編集なしでそのまま自動送信</b>されます（人が触る工程はありません）。<br>
+            🔒 本文に載せるのは社内共有に必要な範囲のみ（氏名・職種・判定・格納先）。評価の詳細はシート本体を参照する運用のため転記しません。</div>
           <div class="mfoot">
-            <span class="msent" id="mSent">✓ 送信しました（08/17 15:12）</span>
-            <span class="sp"></span>
-            <button class="edit" id="mEdit">内容を編集</button>
-            <button class="send" id="mSend">✉️ この内容で送信</button>
+            <span class="msent show" id="mSent">✓ 自動送信しました（08/17 15:12）／確認・編集は不要です</span>
           </div>
         </div>
       </div>
@@ -383,14 +398,40 @@ $("startBtn").addEventListener("click",()=>{
 $("genBtn").addEventListener("click",()=>{
   setStep(3);
   $("sheetRows").innerHTML=items.map((it,i)=>
-    `<tr><td>${it[0]}</td><td class="sc">${"★".repeat(scores[i])}${"☆".repeat(5-scores[i])}</td><td style="font-size:11.5px;color:var(--ink-soft)">${quotes[i]}</td></tr>`).join("")
-    +`<tr><td>面接官メモ</td><td class="sc">—</td><td style="font-size:11.5px">${$("memo").value}</td></tr>`;
+    `<tr><td>${it[0]}</td><td class="sc" contenteditable>${"★".repeat(scores[i])}${"☆".repeat(5-scores[i])}</td><td contenteditable style="font-size:11.5px;color:var(--ink-soft)">${quotes[i]}<span class="pen">✏️</span></td></tr>`).join("")
+    +`<tr><td>面接官メモ</td><td class="sc">—</td><td contenteditable style="font-size:11.5px">${$("memo").value}<span class="pen">✏️</span></td></tr>`;
+  document.querySelectorAll(".ai-sec").forEach(s=>{
+    if(!s.querySelector(".t"))return;
+    const body=[...s.childNodes].filter(n=>n.nodeType===3||(n.nodeType===1&&!n.classList.contains("t")));
+    if(!s.dataset.ed){s.dataset.ed="1";
+      const wrap=document.createElement("div");wrap.setAttribute("contenteditable","true");
+      body.forEach(n=>wrap.appendChild(n));s.appendChild(wrap);}
+  });
   const avg=scores.reduce((a,b)=>a+b,0)/scores.length;
   $("judgeV").textContent=avg>=4?"A：二次面接へ進む":avg>=3?"B：要検討（他候補と比較）":"C：見送り";
   $("judgeV").style.color=avg>=4?"var(--ok)":avg>=3?"var(--warn)":"var(--red)";
   $("sheetWrap").classList.add("show");
   $("sheetWrap").scrollIntoView({behavior:"smooth",block:"start"});
-  toast("評価シートを生成しました（星評価＋文字起こし根拠＋AI要約）");
+  bindEdit();
+  toast("評価シートを生成しました。内容はこのまま修正できます");
+});
+
+/* 生成後の編集を検知 */
+let edits=0;
+function bindEdit(){
+  document.querySelectorAll(".sheet [contenteditable]").forEach(el=>{
+    if(el.dataset.b)return;el.dataset.b="1";
+    el.addEventListener("input",()=>{
+      const box=el.closest("td")||el.closest(".ai-sec")||el.closest(".overall");
+      if(box&&!box.classList.contains("edited")){box.classList.add("edited");edits++;
+        $("chgCount").textContent=`${edits}箇所を編集`;$("chgCount").style.color="#5B4FC7"}
+    });
+  });
+}
+document.addEventListener("click",e=>{
+  if(e.target&&e.target.id==="saveSheet"){
+    toast(edits?`${edits}箇所の修正を保存しました。この内容で納品されます`:"変更はありません");
+  }
 });
 
 /* ── 評価文の学習 ── */
@@ -481,16 +522,9 @@ function openMail(){
 ------------------------------`;
   $("mail").classList.add("show");
   $("mail").scrollIntoView({behavior:"smooth",block:"nearest"});
-  toast("格納完了メールを自動作成しました。内容を確認して送信してください");
-}
-$("mEdit").addEventListener("click",()=>{$("mBody").focus();toast("本文をその場で編集できます")});
-$("mSend").addEventListener("click",()=>{
   setStep(5);
-  $("mSent").classList.add("show");
-  $("mSend").disabled=true;$("mSend").textContent="✓ 送信済み";
-  $("mSend").style.opacity=".55";
-  toast("小林部長・人事部共有あてに送信しました（デモ）");
-});
+  toast("テンプレートで自動送信しました（小林部長・人事部共有あて）");
+}
 function toast(m){const t=$("toastEl");t.textContent=m;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),2600)}
 </script>
 </body>
