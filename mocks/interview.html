@@ -114,6 +114,27 @@ textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 1
 .priv-note{margin-top:10px;background:var(--ok-soft);border:1px solid rgba(46,125,91,.35);color:var(--ink);border-radius:8px;padding:9px 13px;font-size:11.5px}
 .priv-note b{color:var(--ok)}
 
+/* ── 格納完了メール（自動作成）── */
+.mail{display:none;margin-top:14px;border:1px solid #C6D2E0;border-radius:12px;overflow:hidden;background:#fff}
+.mail.show{display:block;animation:up .4s ease}
+.mail .mh{background:linear-gradient(#2B5FA8,#24518F);color:#fff;padding:9px 14px;font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.mail .mh .auto{margin-left:auto;font-size:10px;font-weight:400;background:rgba(255,255,255,.2);border-radius:9px;padding:1px 9px}
+.mail .mb{padding:13px 16px}
+.mrow{display:flex;gap:10px;font-size:12px;border-bottom:1px solid var(--line);padding:6px 0}
+.mrow .mk{width:44px;flex:none;color:var(--ink-soft);font-size:11px}
+.mbody{border:1px solid var(--line);border-radius:8px;background:#FBFCFD;padding:12px 14px;margin-top:11px;
+  font-size:12.5px;line-height:2;white-space:pre-wrap;min-height:190px;outline:none}
+.mbody:focus{border-color:var(--accent);background:#fff}
+.mnote{margin-top:10px;background:var(--ok-soft);border:1px solid rgba(46,125,91,.35);border-radius:8px;padding:8px 12px;font-size:11px;line-height:1.75}
+.mnote b{color:var(--ok)}
+.mfoot{display:flex;gap:9px;align-items:center;margin-top:11px;flex-wrap:wrap}
+.mfoot .sp{flex:1}
+.mfoot button{border:none;border-radius:9px;padding:10px 18px;font-size:12.5px;font-weight:700}
+.mfoot .send{background:var(--ok);color:#fff}
+.mfoot .edit{background:#fff;color:var(--accent);border:1px solid var(--accent)}
+.msent{display:none;font-size:12px;color:var(--ok);font-weight:700}
+.msent.show{display:block}
+
 /* ── 学習機能 ── */
 .learn-badge{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;background:#EFEAFB;color:#5B4FC7;border:1px solid #D6CDF5;border-radius:10px;padding:1px 9px;margin-left:6px;white-space:nowrap}
 .overall{border:1px dashed var(--line);border-radius:8px;padding:10px 13px;margin-bottom:10px;font-size:12.5px;line-height:1.9}
@@ -164,7 +185,8 @@ textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 1
   <span class="step active" id="s1"><span class="n">1</span>Zoomで面接しながら評価入力</span><span class="arrow">→</span>
   <span class="step" id="s2"><span class="n">2</span>文字起こしを取得</span><span class="arrow">→</span>
   <span class="step" id="s3"><span class="n">3</span>ワンクリックでシート生成</span><span class="arrow">→</span>
-  <span class="step" id="s4"><span class="n">4</span>指定フォルダへ納品</span>
+  <span class="step" id="s4"><span class="n">4</span>指定フォルダへ納品</span><span class="arrow">→</span>
+  <span class="step" id="s5"><span class="n">5</span>関係者へ自動メール</span>
 </div>
 
 <main>
@@ -233,6 +255,24 @@ textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 1
         </div>
         <div class="done-file" id="doneFile">✓ 納品完了：面接評価_山田一郎_20260817.xlsx（テンプレート書式で保存・採用管理表にも自動追記）</div>
         <div class="priv-note">🔒 <b>AI要約時、候補者名は【候補者A】に置換してから送信</b>し、シート出力時に端末内で復元。録画・文字起こしの原本は社内サーバーにのみ保存されます。</div>
+      </div>
+
+      <!-- 格納完了メール（自動作成） -->
+      <div class="mail" id="mail">
+        <div class="mh">✉️ 格納完了メール（自動作成）<span class="auto">フォルダ格納の完了を検知して自動作成</span></div>
+        <div class="mb">
+          <div class="mrow"><span class="mk">宛先</span><span>採用責任者 小林部長 &lt;kobayashi@example.co.jp&gt;</span></div>
+          <div class="mrow"><span class="mk">CC</span><span>人事部 共有 &lt;jinji@example.co.jp&gt;／面接官 中野</span></div>
+          <div class="mrow"><span class="mk">件名</span><span contenteditable id="mSubj">【面接評価シート格納のご連絡】山田 一郎 様（法人営業・一次面接／8月17日実施）</span></div>
+          <div class="mbody" contenteditable id="mBody"></div>
+          <div class="mnote">🔒 <b>本文に載せるのは社内共有に必要な範囲のみ</b>（氏名・職種・判定・格納先）。評価の詳細はシート本体を参照する運用のため転記しません。社外宛の場合は氏名を自動で伏せ字にします。</div>
+          <div class="mfoot">
+            <span class="msent" id="mSent">✓ 送信しました（08/17 15:12）</span>
+            <span class="sp"></span>
+            <button class="edit" id="mEdit">内容を編集</button>
+            <button class="send" id="mSend">✉️ この内容で送信</button>
+          </div>
+        </div>
       </div>
 
       <!-- 学習パネル -->
@@ -313,7 +353,7 @@ document.querySelectorAll(".stars button").forEach(b=>b.addEventListener("click"
   document.querySelectorAll(`#st${i} button`).forEach(x=>x.classList.toggle("on",+x.dataset.n<=n));
 }));
 
-function setStep(n){[1,2,3,4].forEach(i=>{const el=$("s"+i);el.classList.toggle("active",i===n);el.classList.toggle("done",i<n)})}
+function setStep(n){[1,2,3,4,5].forEach(i=>{const el=$("s"+i);if(el){el.classList.toggle("active",i===n);el.classList.toggle("done",i<n)}})}
 
 $("startBtn").addEventListener("click",()=>{
   if(started)return;started=true;
@@ -399,7 +439,57 @@ $("deliverBtn").addEventListener("click",()=>{
   setStep(4);
   $("doneFile").classList.add("show");
   $("deliverBtn").disabled=true;$("deliverBtn").textContent="納品済み ✓";
-  toast("指定フォルダに納品しました。面接官と採用責任者に通知（デモ）");
+  toast("指定フォルダに納品しました。続けて連絡メールを自動作成します");
+  setTimeout(openMail,900);
+});
+
+/* ── 格納完了メールの自動作成 ── */
+function openMail(){
+  const judge=$("judgeV").textContent;
+  $("mBody").textContent=
+`小林部長
+
+お疲れ様です。人事部の中野です。
+
+本日実施した面接の評価シートを、所定フォルダへ格納しましたのでご連絡いたします。
+
+■ 実施内容
+・候補者：山田 一郎 様（法人営業／一次面接）
+・実施日時：2026年8月17日（月）14:00〜14:45
+・実施形式：Zoom（オンライン）
+・面接官：中野（人事部）
+
+■ 評価結果
+・総合判定：${judge}
+・評価シート：全5項目を記入済み（文字起こしからの根拠つき）
+・総評コメント：自動生成後、面接官が確認・修正済み
+
+■ 格納先
+\\\\NAS01\\人事部\\採用\\面接評価\\2026-08\\
+ファイル名：面接評価_山田一郎_20260817.xlsx
+※ 採用管理表（2026年度）にも自動で追記済みです。
+
+■ ご確認のお願い
+二次面接の要否について、8月20日（水）までにご判断いただけますと幸いです。
+録画データおよび文字起こし全文は社内サーバーに保管しています（閲覧権限：人事部・採用責任者）。
+
+よろしくお願いいたします。
+
+------------------------------
+株式会社サンプル 人事部
+中野
+------------------------------`;
+  $("mail").classList.add("show");
+  $("mail").scrollIntoView({behavior:"smooth",block:"nearest"});
+  toast("格納完了メールを自動作成しました。内容を確認して送信してください");
+}
+$("mEdit").addEventListener("click",()=>{$("mBody").focus();toast("本文をその場で編集できます")});
+$("mSend").addEventListener("click",()=>{
+  setStep(5);
+  $("mSent").classList.add("show");
+  $("mSend").disabled=true;$("mSend").textContent="✓ 送信済み";
+  $("mSend").style.opacity=".55";
+  toast("小林部長・人事部共有あてに送信しました（デモ）");
 });
 function toast(m){const t=$("toastEl");t.textContent=m;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),2600)}
 </script>

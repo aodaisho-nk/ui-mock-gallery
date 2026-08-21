@@ -178,6 +178,17 @@ table.rs td.sc{font-family:var(--mono);text-align:center;width:74px;white-space:
 .outwin .of{border-top:1px solid var(--line);padding:8px 14px;display:flex;gap:9px;align-items:center;background:#FAF8F4;flex-wrap:wrap}
 .done-file{display:none;font-size:11px;color:var(--ok);font-weight:700}
 .done-file.show{display:block}
+/* メールウィンドウ */
+.mailwin{inset:44px 60px 70px}
+.mailbd{flex:1;overflow-y:auto;padding:14px 18px;background:#fff}
+.mrow{display:flex;gap:10px;font-size:12px;border-bottom:1px solid var(--line);padding:6px 0}
+.mrow .mk{width:44px;flex:none;color:var(--ink-soft);font-size:11px}
+.mrow .mv{flex:1}
+.mbody{border:1px solid var(--line);border-radius:8px;background:#FBFAF7;padding:12px 14px;margin-top:11px;
+  font-size:12.5px;line-height:2;white-space:pre-wrap;min-height:210px;outline:none}
+.mbody:focus{border-color:var(--accent);background:#fff}
+.mnote{margin-top:10px;background:var(--ok-bg);border:1px solid #BBDFCB;border-radius:8px;padding:8px 11px;font-size:10.5px;color:#1F5C43;line-height:1.75}
+.mnote b{color:var(--ok)}
 .priv{font-size:10px;color:#1F5C43;background:var(--ok-bg);border:1px solid #BBDFCB;border-radius:7px;padding:5px 9px}
 
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:9px 20px;border-radius:8px;font-size:12.5px;opacity:0;pointer-events:none;transition:.25s;z-index:99}
@@ -277,6 +288,26 @@ table.rs td.sc{font-family:var(--mono);text-align:center;width:74px;white-space:
         <span class="sp" style="flex:1"></span>
         <span class="done-file" id="doneFile">✓ 納品完了：面接評価_田中美咲_20260818.xlsx</span>
         <button class="act deliver" id="btnDeliver2">📁 指定フォルダへ納品</button>
+      </div>
+    </div>
+
+    <!-- 自動メール送信ウィンドウ -->
+    <div class="outwin mailwin" id="mailWin">
+      <div class="ob"><span>✉️ 格納完了メール（自動作成）— Outlook</span>
+        <button class="x" id="mailX">✕</button></div>
+      <div class="mailbd">
+        <div class="mrow"><span class="mk">宛先</span><span class="mv">採用責任者 小林部長 &lt;kobayashi@example.co.jp&gt;</span></div>
+        <div class="mrow"><span class="mk">CC</span><span class="mv">人事部 共有 &lt;jinji@example.co.jp&gt;／面接官 伏見</span></div>
+        <div class="mrow"><span class="mk">件名</span><span class="mv" contenteditable id="mSubj">【面接評価シート格納のご連絡】田中 美咲 様（フロント職・一次面接／8月18日実施）</span></div>
+        <div class="mbody" contenteditable id="mBody"></div>
+        <div class="mnote">🔒 <b>本文に記載するのは社内共有に必要な範囲のみ</b>（氏名・職種・判定・格納先）。評価の詳細はシート本体を参照する運用のため、メールには転記しません。社外宛に送る場合は氏名を自動で伏せ字にします。</div>
+      </div>
+      <div class="of">
+        <span class="priv">送信トリガー：フォルダ格納の完了を検知して自動作成</span>
+        <span style="flex:1"></span>
+        <span class="done-file" id="mailSent">✓ 送信しました（08/18 15:12）</span>
+        <button class="act" id="mailEdit" style="background:#fff;color:var(--accent);border:1px solid var(--accent)">内容を編集</button>
+        <button class="act deliver" id="mailSend">✉️ この内容で送信</button>
       </div>
     </div>
 
@@ -479,8 +510,59 @@ function deliver(){
   $("doneFile").classList.add("show");
   $("btnDeliver").disabled=true;$("btnDeliver").textContent="✓ 納品済み";
   $("btnDeliver2").disabled=true;$("btnDeliver2").textContent="✓ 納品済み";
-  toast("\\\\NAS01\\人事部\\採用\\面接評価\\2026-08\\ へ納品しました（デモ）");
+  toast("\\\\NAS01\\人事部\\採用\\面接評価\\2026-08\\ へ納品しました。続けて連絡メールを自動作成します");
+  setTimeout(openMail,900);
 }
+/* ── 格納完了メールの自動作成 ── */
+function openMail(){
+  const judge=$("tv").textContent;
+  $("mBody").textContent=
+`小林部長
+
+お疲れ様です。人事部の伏見です。
+
+本日実施した面接の評価シートを、所定フォルダへ格納しましたのでご連絡いたします。
+
+■ 実施内容
+・候補者：田中 美咲 様（フロント職／一次面接）
+・実施日時：2026年8月18日（火）14:00〜14:45
+・実施形式：対面（会議室A）
+・面接官：伏見（人事部）
+
+■ 評価結果
+・総合判定：${judge}
+・質問マニュアル：${asked}/${TOTALQ}問を実施（未実施項目なし）
+・評価シート：全${EVAL.length}項目を記入済み
+
+■ 格納先
+\\\\NAS01\\人事部\\採用\\面接評価\\2026-08\\
+ファイル名：面接評価_田中美咲_20260818.xlsx
+※ 採用管理表（2026年度）にも自動で追記済みです。
+
+■ ご確認のお願い
+二次面接の要否について、8月20日（木）までにご判断いただけますと幸いです。
+ご不明点や追加で確認したい事項がございましたら、お気軽にお申し付けください。
+
+よろしくお願いいたします。
+
+------------------------------
+株式会社サンプル 人事部
+伏見
+------------------------------`;
+  $("outWin").classList.remove("show");
+  $("mailWin").classList.add("show");
+  $("mailSent").classList.remove("show");
+  $("mailSend").disabled=false;$("mailSend").textContent="✉️ この内容で送信";
+  toast("格納完了メールを自動作成しました。内容を確認して送信してください");
+}
+$("mailX").addEventListener("click",()=>$("mailWin").classList.remove("show"));
+$("mailEdit").addEventListener("click",()=>{$("mBody").focus();toast("本文をその場で編集できます")});
+$("mailSend").addEventListener("click",()=>{
+  $("mailSent").classList.add("show");
+  $("mailSend").disabled=true;$("mailSend").textContent="✓ 送信済み";
+  $("fnote").textContent="評価シートの格納と、関係者への連絡メール送信まで完了しました";
+  toast("小林部長・人事部共有あてに送信しました（デモ）");
+});
 $("btnDeliver").addEventListener("click",()=>{if($("btnDeliver").disabled)return;
   if(!$("outWin").classList.contains("show"))apply();deliver()});
 $("btnDeliver2").addEventListener("click",deliver);
