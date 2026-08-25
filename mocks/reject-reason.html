@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>不採用理由 言語化システム｜面接官入力 × 人事分析 デモ</title>
+<style>
+:root{
+  --bg:#F7F7F5; --paper:#FFFFFF; --ink:#16181D; --ink2:#4A4E57; --ink3:#8A8E97;
+  --line:#E3E2DD; --line2:#D2D1CB;
+  --accent:#2E3A52; --accent-l:#EEF0F5;
+  --ok:#2C6B52; --warn:#8A6A2B; --alert:#9B3B36;
+  --mono:"SFMono-Regular","Consolas",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",sans-serif;background:var(--bg);
+  color:var(--ink);font-size:14px;line-height:1.8;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer;color:inherit}
+.lbl{font-family:var(--mono);font-size:10px;letter-spacing:.22em;color:var(--ink3)}
+
+header{background:var(--paper);border-bottom:1px solid var(--line);padding:15px 28px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+header h1{font-size:16px;font-weight:600;letter-spacing:.04em}
+header .sub{font-size:11.5px;color:var(--ink3)}
+.mark{width:30px;height:30px;border:1px solid var(--ink);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px}
+.switch{margin-left:auto;display:flex;border:1px solid var(--line2)}
+.switch button{border:none;background:none;padding:8px 20px;font-size:12.5px;color:var(--ink3);letter-spacing:.04em}
+.switch button.on{background:var(--ink);color:#fff}
+.demo-note{width:100%;font-size:11px;color:var(--ink3);border-top:1px dashed var(--line);padding-top:9px}
+
+main{max-width:1180px;margin:0 auto;padding:28px 28px 70px}
+.view{display:none}
+.view.on{display:block;animation:fade .3s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+
+/* ══════ 面接官画面 ══════ */
+.sheet{background:var(--paper);border:1px solid var(--line);max-width:760px;margin:0 auto}
+.shd{padding:19px 30px;border-bottom:1px solid var(--line);display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.shd .who{font-size:17px;font-weight:600}
+.shd .meta{font-size:11.5px;color:var(--ink3)}
+.shd .time{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--ink3);border:1px solid var(--line2);padding:3px 11px}
+.prog{display:flex;height:2px;background:var(--line)}
+.prog i{background:var(--ink);transition:width .35s ease}
+.qwrap{padding:30px 30px 26px;min-height:470px;display:flex;flex-direction:column}
+.qhead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.qno{font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;color:var(--ink3)}
+.mode{font-size:10.5px;border:1px solid var(--line2);padding:1px 9px;color:var(--ink3);letter-spacing:.06em}
+.mode.multi{border-color:var(--accent);color:var(--accent)}
+.qt{font-size:21px;font-weight:600;line-height:1.55;margin:9px 0 5px}
+.qs{font-size:12.5px;color:var(--ink3);margin-bottom:20px}
+
+/* タイル（単一選択） */
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:700px){.tiles{grid-template-columns:repeat(2,1fr)}}
+.tile{background:var(--paper);border:1px solid var(--line2);padding:20px 16px;text-align:left;
+  min-height:104px;display:flex;flex-direction:column;justify-content:flex-end;gap:3px;
+  transition:transform .12s,border-color .15s,background .15s,box-shadow .15s;position:relative}
+.tile .t{font-size:15.5px;font-weight:600;line-height:1.45}
+.tile .d{font-size:11px;color:var(--ink3);line-height:1.55}
+.tile:hover{border-color:var(--ink);box-shadow:0 4px 14px rgba(22,24,29,.08);transform:translateY(-2px)}
+.tile:active{transform:scale(.975)}
+.tile.sel{background:var(--ink);border-color:var(--ink);color:#fff}
+.tile.sel .d{color:rgba(255,255,255,.7)}
+.tile .mk{position:absolute;top:12px;right:13px;font-family:var(--mono);font-size:10px;color:var(--ink3)}
+.tile.sel .mk{color:#fff}
+
+/* チップ（複数選択） */
+.chips{display:flex;flex-wrap:wrap;gap:9px}
+.chip{border:1px solid var(--line2);background:var(--paper);padding:13px 20px;font-size:14.5px;font-weight:600;
+  display:flex;align-items:center;gap:10px;transition:transform .12s,background .15s,border-color .15s;line-height:1.4}
+.chip .d{font-size:11px;color:var(--ink3);font-weight:400;margin-left:2px}
+.chip:hover{border-color:var(--ink)}
+.chip:active{transform:scale(.96)}
+.chip .box{width:16px;height:16px;border:1px solid var(--line2);flex:none;display:flex;align-items:center;justify-content:center;font-size:11px;line-height:1}
+.chip.sel{background:var(--ink);border-color:var(--ink);color:#fff}
+.chip.sel .d{color:rgba(255,255,255,.72)}
+.chip.sel .box{background:#fff;border-color:#fff;color:var(--ink)}
+
+/* 3段階（強度） */
+.scale{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--line2)}
+.seg{background:var(--paper);border:none;border-right:1px solid var(--line2);padding:22px 14px;text-align:center;transition:.15s}
+.seg:last-child{border-right:none}
+.seg .t{font-size:15.5px;font-weight:600;display:block}
+.seg .d{font-size:11px;color:var(--ink3);display:block;margin-top:2px}
+.seg:hover{background:#FAFAF8}
+.seg:active{transform:scale(.98)}
+.seg.sel{background:var(--ink);color:#fff}
+.seg.sel .d{color:rgba(255,255,255,.7)}
+.grp{margin-bottom:22px}
+.grp .gl{font-size:12px;color:var(--ink3);margin-bottom:9px;letter-spacing:.04em}
+
+.nav{display:flex;align-items:center;gap:12px;margin-top:auto;padding-top:22px}
+.nav .back{border:none;background:none;font-size:12.5px;color:var(--ink3);padding:6px 0}
+.nav .back:hover{color:var(--ink)}
+.nav .cnt{font-size:11.5px;color:var(--ink3);margin-left:auto}
+.nav .next{border:1px solid var(--ink);background:var(--ink);color:#fff;padding:11px 30px;font-size:13.5px;font-weight:600;letter-spacing:.06em;transition:.15s}
+.nav .next:disabled{background:none;color:var(--line2);border-color:var(--line);cursor:not-allowed}
+.nav .next:not(:disabled):active{transform:scale(.97)}
+
+/* 送信完了 */
+.done{display:none;padding:76px 30px 78px;text-align:center}
+.done.on{display:block;animation:fade .4s ease}
+.done .ck{width:54px;height:54px;border:1px solid var(--ink);border-radius:50%;margin:0 auto 22px;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:300}
+.done h2{font-size:19px;font-weight:600;margin-bottom:10px}
+.done p{font-size:13px;color:var(--ink2);line-height:2}
+.done .stat{display:inline-flex;gap:30px;margin-top:26px;padding-top:22px;border-top:1px solid var(--line)}
+.done .stat div{text-align:center}
+.done .stat b{display:block;font-family:var(--mono);font-size:19px;font-weight:500}
+.done .stat span{font-size:10.5px;color:var(--ink3)}
+.done .again{margin-top:28px;border:1px solid var(--line2);padding:9px 22px;font-size:12.5px;background:none}
+.hidden-note{max-width:760px;margin:15px auto 0;font-size:11.5px;color:var(--ink3);text-align:center}
+
+/* ══════ 人事画面 ══════ */
+.adm{display:grid;grid-template-columns:296px minmax(0,1fr);gap:24px;align-items:start}
+@media(max-width:900px){.adm{grid-template-columns:1fr}}
+.panel{background:var(--paper);border:1px solid var(--line)}
+.phd{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+.phd .t{font-size:12.5px;font-weight:600;letter-spacing:.06em}
+.phd .c{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--ink3)}
+.rec{padding:14px 18px;border-bottom:1px solid var(--line);cursor:pointer;transition:.15s;position:relative}
+.rec:last-child{border-bottom:none}
+.rec:hover{background:#FBFBF9}
+.rec.on{background:var(--accent-l)}
+.rec.on::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
+.rec .nm{font-size:14px;font-weight:600}
+.rec .mt{font-size:11px;color:var(--ink3);display:flex;gap:9px;flex-wrap:wrap;margin-top:2px}
+.rec .cause{display:inline-block;font-size:10.5px;border:1px solid var(--line2);padding:0 8px;margin-top:6px;color:var(--ink2)}
+.rec.new .nm::after{content:"NEW";font-family:var(--mono);font-size:9px;letter-spacing:.1em;border:1px solid var(--accent);color:var(--accent);padding:0 5px;margin-left:8px;vertical-align:2px}
+.dhd{padding:22px 26px 18px;border-bottom:1px solid var(--line)}
+.dhd .nm{font-size:20px;font-weight:600}
+.dhd .mt{font-size:12px;color:var(--ink3);margin-top:3px}
+.dbd{padding:24px 26px 26px}
+.gen{border:1px solid var(--line2);padding:22px 24px;font-size:14.5px;line-height:2.1;background:#FCFCFB}
+.gen .cap{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--ink3);margin-bottom:11px}
+.tone{display:flex;margin-top:14px;border:1px solid var(--line2);width:fit-content}
+.tone button{border:none;background:none;padding:7px 17px;font-size:12px;color:var(--ink3);border-right:1px solid var(--line2)}
+.tone button:last-child{border-right:none}
+.tone button.on{background:var(--ink);color:#fff}
+.tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:16px}
+.tag{font-size:11px;border:1px solid var(--line2);padding:2px 11px;color:var(--ink2)}
+.sec{margin-top:30px}
+.sec h3{font-size:12px;font-weight:600;letter-spacing:.12em;color:var(--ink3);padding-bottom:9px;border-bottom:1px solid var(--line);margin-bottom:16px}
+.qa{display:grid;grid-template-columns:158px 1fr;gap:1px;background:var(--line);border:1px solid var(--line)}
+.qa div{background:var(--paper);padding:10px 15px;font-size:12.5px}
+.qa div:nth-child(odd){color:var(--ink3);font-size:11.5px;background:#FCFCFB}
+.qa .multi span{display:inline-block;border:1px solid var(--line2);padding:0 9px;margin:2px 4px 2px 0;font-size:11.5px}
+.note{border-left:2px solid var(--ink);padding:2px 0 2px 16px;font-size:13px;line-height:1.95;color:var(--ink2)}
+.bars{display:flex;flex-direction:column;gap:11px}
+.bar{display:flex;align-items:center;gap:13px;font-size:12.5px}
+.bar .nm{width:110px;flex:none;color:var(--ink2)}
+.bar .tr{flex:1;height:6px;background:#EDECE8}
+.bar .tr i{display:block;height:100%;background:var(--accent);transition:width .7s}
+.bar.hi .tr i{background:var(--ink)}
+.bar .v{width:38px;text-align:right;font-family:var(--mono);font-size:11.5px;color:var(--ink3)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+@media(max-width:820px){.grid2{grid-template-columns:1fr}}
+.insight{border:1px solid var(--line2);padding:16px 18px;font-size:12.5px;line-height:2;color:var(--ink2);background:#FCFCFB}
+.insight b{color:var(--ink);font-weight:600}
+.acts{display:flex;gap:9px;margin-top:22px;flex-wrap:wrap}
+.acts button{border:1px solid var(--line2);background:none;padding:11px 20px;font-size:12.5px}
+.acts button:hover{border-color:var(--ink)}
+.acts button.p{background:var(--ink);color:#fff;border-color:var(--ink)}
+.cap-foot{max-width:1180px;margin:26px auto 0;font-size:11.5px;color:var(--ink3);text-align:center}
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(18px);background:var(--ink);color:#fff;
+  padding:11px 24px;font-size:12.5px;opacity:0;pointer-events:none;transition:.25s;z-index:60}
+.toast.show{opacity:1;transform:translateX(-50%)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="mark">RJ</div>
+  <div><h1>不採用理由 言語化システム</h1>
+    <div class="sub">最終面接の判断を、タッチ操作だけで記録可能な言葉に</div></div>
+  <div class="switch">
+    <button class="on" data-v="iv">面接官 入力画面</button>
+    <button data-v="rs">生成結果 確認</button>
+    <button data-v="hr">人事 分析画面</button>
+  </div>
+  <div class="demo-note">※ デモ用に2画面を切り替えています。実際は面接官には入力画面のみ、分析は人事側でのみ閲覧します。</div>
+</header>
+
+<main>
+  <!-- 面接官 -->
+  <div class="view on" id="v-iv">
+    <div class="sheet">
+      <div class="shd">
+        <div><div class="who">田中 美咲</div>
+          <div class="meta">フロント職／最終面接　2026.08.18　面接官：小林</div></div>
+        <span class="time">所要 30 秒 — タッチのみ</span>
+      </div>
+      <div class="prog"><i id="prog" style="width:0%"></i></div>
+      <div class="qwrap" id="qwrap"></div>
+      <div class="done" id="done">
+        <div class="ck">✓</div>
+        <h2>回答を送信しました</h2>
+        <p>ご協力ありがとうございました。<br>内容は人事部で自動的に文章化され、採用基準の見直しに活用されます。</p>
+        <div class="stat">
+          <div><b id="tSec">29</b><span>所要秒数</span></div>
+          <div><b id="tTap">7</b><span>タッチ回数</span></div>
+          <div><b>0</b><span>入力文字数</span></div>
+        </div>
+        <div><button class="again" id="again">別の候補者を入力する</button>
+          <button class="again" id="toResult" style="margin-left:8px;border-color:var(--ink)">生成結果を確認する（デモ）</button></div>
+      </div>
+    </div>
+    <div class="hidden-note">通常、生成された文章は面接官の画面には表示されません（人事部のみ閲覧）。本デモでは確認用に閲覧できます。</div>
+  </div>
+
+  <!-- ══════ 生成結果 確認画面 ══════ -->
+  <div class="view" id="v-rs">
+    <div class="sheet" style="max-width:820px">
+      <div class="shd">
+        <div><div class="who" id="rsNm">—</div><div class="meta" id="rsMt"></div></div>
+        <span class="time" id="rsTime">送信済み</span>
+      </div>
+      <div class="dbd" style="padding:26px 30px 30px">
+        <div class="lbl" style="margin-bottom:12px">送信された回答</div>
+        <div class="qa" id="rsQa"></div>
+
+        <div class="sec">
+          <h3>この回答から生成された文章</h3>
+          <div class="gen"><span class="cap">generated comment</span><span id="rsTxt"></span></div>
+          <div class="tone" id="rsTone">
+            <button class="on" data-t="std">標準</button>
+            <button data-t="soft">やわらかく</button>
+            <button data-t="short">端的に</button>
+          </div>
+          <div class="tags" id="rsTags"></div>
+        </div>
+
+        <div class="sec">
+          <h3>次回への申し送り</h3>
+          <div class="note" id="rsNext"></div>
+        </div>
+
+        <div class="insight" style="margin-top:24px">
+          <b>記録先</b>　この文章は評価シートの「不採用理由」欄と採用管理システムに自動保存され、
+          人事側の分析画面で集計されます。面接官が文章を書く工程はありません。
+        </div>
+
+        <div class="acts">
+          <button class="p" onclick="toast('評価シートの不採用理由欄に記録しました')">評価シートへ記録</button>
+          <button onclick="toast('クリップボードにコピーしました')">コピー</button>
+          <button id="rsToHr">人事の分析画面で見る</button>
+        </div>
+      </div>
+    </div>
+    <div class="hidden-note" id="rsEmptyNote" style="display:none">まだ送信がありません。「面接官 入力画面」から回答してください。</div>
+  </div>
+
+  <!-- 人事 -->
+  <div class="view" id="v-hr">
+    <div class="adm">
+      <div class="panel">
+        <div class="phd"><span class="t">回答一覧</span><span class="c" id="recCnt"></span></div>
+        <div id="recList"></div>
+      </div>
+      <div class="panel">
+        <div class="dhd"><div class="nm" id="dNm">—</div><div class="mt" id="dMt"></div></div>
+        <div class="dbd">
+          <div class="gen"><span class="cap">generated comment</span><span id="genTxt"></span></div>
+          <div class="tone">
+            <button class="on" data-t="std">標準</button>
+            <button data-t="soft">やわらかく</button>
+            <button data-t="short">端的に</button>
+          </div>
+          <div class="tags" id="tags"></div>
+
+          <div class="sec"><h3>回答内容</h3><div class="qa" id="qa"></div></div>
+          <div class="sec"><h3>次回への申し送り</h3><div class="note" id="nextNote"></div></div>
+
+          <div class="sec"><h3>判断傾向の分析</h3>
+            <div class="grid2">
+              <div><div class="lbl" style="margin-bottom:12px">面接官別 — 小林 常務（過去 21 件）</div>
+                <div class="bars" id="trend"></div></div>
+              <div><div class="lbl" style="margin-bottom:12px">全社 — 不採用理由の分布（過去 96 件）</div>
+                <div class="bars" id="trendAll"></div></div>
+            </div>
+            <div class="insight" style="margin-top:20px">
+              <b>示唆</b>　小林常務の不採用理由は「伝わり方」が最多で、全社平均より 14 ポイント高い水準です。
+              一次面接の評価項目に <b>「意図を汲んだ受け答え」</b> を追加することで、最終での取りこぼしを減らせる可能性があります。
+              また「条件面」による見送りが 10% を占めるため、<b>エージェントへの条件共有</b>を先行させる運用も有効です。
+            </div>
+          </div>
+
+          <div class="acts">
+            <button class="p" onclick="toast('評価シートの不採用理由欄に反映しました')">評価シートへ反映</button>
+            <button onclick="toast('募集要件の見直し資料に追加しました')">募集要件へ反映</button>
+            <button onclick="toast('エージェント向けの要件共有文を作成しました')">エージェントへ共有</button>
+            <button onclick="toast('CSVを書き出しました')">CSV出力</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="cap-foot">面接官の操作はタッチのみ。文章生成・傾向集計はすべて人事側で自動処理されます。</div>
+  </div>
+</main>
+
+<div class="toast" id="toastEl"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+/* ══ 選択肢定義 ══ */
+const CAUSE=[
+ ["comm","話し方・伝わり方","受け答えや説明"],["exp","経験・実績","中身と深さ"],
+ ["culture","価値観・相性","進め方やスタンス"],["motiv","志望度・熱量","本気度"],
+ ["cond","条件・働き方","年収・勤務地・時期"],["total","総合的に","決め手に欠ける"]];
+const DETAIL={
+ comm:[["gap","質問と回答がずれる"],["long","話が長い"],["weak","自信がなさそう"],["oneway","一方的"],["hard","表情が硬い"]],
+ exp:[["shallow","経験が浅い"],["nonum","数字で語れない"],["mismatch","業務とずれる"],["passive","指示待ち"],["old","知識が古い"]],
+ culture:[["team","個人プレー寄り"],["speed","スピード感が合わない"],["style","接客観が違う"],["honest","本音が見えない"],["rule","ルール軽視"]],
+ motiv:[["nostudy","当社を調べていない"],["vague","入社後が語れない"],["escape","転職理由が後ろ向き"],["other","他社が本命"],["passive2","受け身"]],
+ cond:[["salary","年収が合わない"],["place","勤務地が合わない"],["time","入社時期が合わない"],["work","働き方が合わない"],["role","職務内容が合わない"]],
+ total:[["nopunch","強みがない"],["compare","他候補に見劣り"],["risk","定着が不安"],["feel","違和感がある"],["balance","バランスが悪い"]]};
+const SCENE=[["client","顧客対応"],["internal","社内連携"],["team","チーム運営"],["selfrun","一人で回す場面"],
+ ["trouble","トラブル対応"],["growth","将来の育成"]];
+const LEVEL=[["light","減点程度","他が良ければ通した"],["mid","大きな懸念","判断に強く影響"],["hard","決定的","これだけで見送り"]];
+const PASS=[["exp","経験があれば"],["comm","受け答えが噛み合えば"],["motiv","熱量があれば"],
+ ["cond","条件が合えば"],["nothing","何があっても難しい"],["other","他候補がいなければ"]];
+const NEXT=[["case","深掘り質問を追加"],["num","数字で確認"],["role","ロールプレイ実施"],
+ ["pre","条件を事前すり合わせ"],["agent","エージェントへ再共有"],["jd","募集要件を見直す"]];
+
+/* ══ 設問構成（単一 / 複数を使い分け）══ */
+const STEPS=[
+ {k:"cause",mode:"single",t:"最も引っかかった点は。",s:"直感で1つ選んでください。",render:"tiles"},
+ {k:"detail",mode:"multi", t:"具体的には、どれが近いですか。",s:"当てはまるものをすべてタッチしてください。",render:"chips"},
+ {k:"scene", mode:"multi", t:"どの場面で影響しそうですか。",s:"複数選択できます。",render:"chips"},
+ {k:"level", mode:"single",t:"判断への影響度は。",s:"感覚で構いません。",render:"scale2"},
+ {k:"next",  mode:"multi", t:"次回、面接前に見抜くとしたら。",s:"実施したいものをすべて選んでください。",render:"chips"}
+];
+let step=0,ans={detail:[],scene:[],next:[]},taps=0;
+
+function q(){
+  $("prog").style.width=(step/STEPS.length*100)+"%";
+  const S=STEPS[step];
+  let body="";
+  if(S.render==="tiles"){
+    body=`<div class="tiles">${CAUSE.map((o,i)=>`
+      <button class="tile ${ans.cause===o[0]?"sel":""}" data-v="${o[0]}">
+        <span class="mk">${String(i+1).padStart(2,"0")}</span>
+        <span class="t">${o[1]}</span><span class="d">${o[2]}</span></button>`).join("")}</div>`;
+  }
+  if(S.render==="chips"){
+    const list=S.k==="detail"?DETAIL[ans.cause]:S.k==="scene"?SCENE:NEXT;
+    body=`<div class="chips">${list.map(o=>`
+      <button class="chip ${ans[S.k].includes(o[0])?"sel":""}" data-v="${o[0]}">
+        <span class="box">${ans[S.k].includes(o[0])?"✓":""}</span>${o[1]}</button>`).join("")}</div>`;
+  }
+  if(S.render==="scale2"){
+    body=`
+    <div class="grp"><div class="gl">影響度</div>
+      <div class="scale">${LEVEL.map(o=>`
+        <button class="seg ${ans.level===o[0]?"sel":""}" data-g="level" data-v="${o[0]}">
+          <span class="t">${o[1]}</span><span class="d">${o[2]}</span></button>`).join("")}</div></div>
+    <div class="grp"><div class="gl">逆に、何があれば通していましたか</div>
+      <div class="tiles">${PASS.map(o=>`
+        <button class="tile ${ans.pass===o[0]?"sel":""}" data-g="pass" data-v="${o[0]}" style="min-height:74px">
+          <span class="t" style="font-size:14px">${o[1]}</span></button>`).join("")}</div></div>`;
+  }
+  const need=S.mode==="multi"?ans[S.k].length>0:(S.k==="level"?(ans.level&&ans.pass):ans[S.k]);
+  $("qwrap").innerHTML=`
+    <div class="qhead"><span class="qno">QUESTION ${String(step+1).padStart(2,"0")} / 0${STEPS.length}</span>
+      <span class="mode ${S.mode==="multi"?"multi":""}">${S.mode==="multi"?"複数選択":"1つ選択"}</span></div>
+    <div class="qt">${S.t}</div><div class="qs">${S.s}</div>
+    ${body}
+    <div class="nav">
+      ${step>0?`<button class="back" id="back">戻る</button>`:""}
+      <span class="cnt" id="cnt"></span>
+      <button class="next" id="next" ${need?"":"disabled"}>${step===STEPS.length-1?"送信する":"次へ"}</button>
+    </div>`;
+  updCnt();
+
+  /* 単一：タイル */
+  $("qwrap").querySelectorAll(".tile[data-v]:not([data-g])").forEach(b=>b.addEventListener("click",()=>{
+    ans.cause=b.dataset.v;ans.detail=[];taps++;step++;q();     // 主因はタップで即次へ
+  }));
+  /* 複数：チップ */
+  $("qwrap").querySelectorAll(".chip").forEach(b=>b.addEventListener("click",()=>{
+    const k=STEPS[step].k,v=b.dataset.v,i=ans[k].indexOf(v);
+    if(i<0)ans[k].push(v);else ans[k].splice(i,1);
+    taps++;b.classList.toggle("sel");b.querySelector(".box").textContent=ans[k].includes(v)?"✓":"";
+    $("next").disabled=ans[k].length===0;updCnt();
+  }));
+  /* 影響度＋通過条件 */
+  $("qwrap").querySelectorAll("[data-g]").forEach(b=>b.addEventListener("click",()=>{
+    const g=b.dataset.g;ans[g]=b.dataset.v;taps++;
+    $("qwrap").querySelectorAll(`[data-g="${g}"]`).forEach(x=>x.classList.toggle("sel",x===b));
+    $("next").disabled=!(ans.level&&ans.pass);updCnt();
+  }));
+  if($("back"))$("back").addEventListener("click",()=>{step--;q()});
+  $("next").addEventListener("click",()=>{
+    if(step===STEPS.length-1){submit();return}
+    step++;q();
+  });
+}
+function updCnt(){
+  const S=STEPS[step],e=$("cnt");if(!e)return;
+  if(S.mode==="multi")e.textContent=ans[S.k].length?`${ans[S.k].length} 件を選択中`:"1つ以上選んでください";
+  else if(S.k==="level")e.textContent=(ans.level&&ans.pass)?"選択済み":"2項目を選んでください";
+  else e.textContent="";
+}
+function submit(){
+  $("prog").style.width="100%";$("qwrap").style.display="none";$("done").classList.add("on");
+  $("tTap").textContent=taps;$("tSec").textContent=26+Math.floor(Math.random()*8);
+  const rec={nm:"田中 美咲",job:"フロント職",iv:"小林 常務",date:"2026.08.18",
+    a:JSON.parse(JSON.stringify(ans)),taps,isNew:true};
+  RECORDS.unshift(rec);submitted=rec;
+  cur=0;renderRecs();detail();renderResult();
+  toast("送信しました。生成された文章を確認できます");
+}
+$("again").addEventListener("click",()=>{
+  step=0;ans={detail:[],scene:[],next:[]};taps=0;
+  $("done").classList.remove("on");$("qwrap").style.display="flex";q();
+});
+
+/* ══ 文章生成 ══ */
+const L1={comm:"コミュニケーション",exp:"経験・実績",culture:"価値観・相性",motiv:"志望度",cond:"条件面",total:"総合評価"};
+const PH={
+ gap:["質問の意図と回答がかみ合わない場面があり","意図を汲んだ受け答え"],
+ long:["説明が長く要点が伝わりづらく","簡潔に伝える力"],
+ weak:["受け答えに自信が感じられず","安心感のある応対"],
+ oneway:["対話が一方向になりがちで","相手に合わせた対話"],
+ hard:["表情が硬く緊張が解けない様子で","柔らかな対人姿勢"],
+ shallow:["業務の深掘りに具体的な回答が得られず","経験の深さ"],
+ nonum:["成果を数字で説明できず","成果を数値で語る力"],
+ mismatch:["経験と当社業務の重なりが限られ","業務との親和性"],
+ passive:["主体的に動いた経験が確認できず","自ら動く姿勢"],
+ old:["知識や手法が現在の実務と乖離しており","最新実務への適応"],
+ team:["チームで成果を出す動き方が見えづらく","チームでの動き方"],
+ speed:["判断や行動のスピード感に差を感じ","スピード感"],
+ style:["顧客対応のスタンスが当社の方針と異なり","当社の接客観との一致"],
+ honest:["本音が見えづらく相互理解が深まらず","率直なやり取り"],
+ rule:["ルールや手順への意識に不安があり","規律の順守"],
+ nostudy:["当社への理解が浅く志望理由が一般論にとどまり","企業研究の深さ"],
+ vague:["入社後の具体像が語られず","入社後の解像度"],
+ escape:["転職理由が前職への不満に終始し","前向きな転職動機"],
+ other:["他社を本命としている様子がうかがえ","志望順位"],
+ passive2:["質問が受け身で関心の高さが伝わらず","主体的な関心"],
+ salary:["希望年収が想定レンジを上回り","年収レンジの一致"],
+ place:["希望勤務地と配属可能拠点が合わず","勤務地の一致"],
+ time:["入社可能時期が募集背景と合わず","入社時期の一致"],
+ work:["希望する働き方が当社の勤務体系と合わず","働き方の一致"],
+ role:["希望職務と募集内容にずれがあり","職務内容の一致"],
+ nopunch:["強みとして推せる点を見出せず","明確な強み"],
+ compare:["他の候補者と比較して見劣りする印象があり","他候補との比較優位"],
+ risk:["長く続けていただけるか不安が残り","定着への見通し"],
+ feel:["当社で活躍する姿を具体的に描きにくく","活躍イメージ"],
+ balance:["各要素のバランスに欠け","総合的な水準"]};
+const SC={client:"顧客・入居者対応",internal:"社内の連携や報連相",team:"後輩指導やチーム運営",
+ selfrun:"一人で現場を回す場面",trouble:"トラブル対応",growth:"将来的な育成"};
+const LV={light:"減点要素として評価に影響しました",mid:"採用可否の判断に大きく影響しました",hard:"決定的な要因と判断しました"};
+const PS={exp:"同業種での実務経験があれば評価は変わっていました",comm:"受け答えが噛み合っていれば通過の判断もあり得ました",
+ motiv:"志望度の高さが伝わっていれば評価は変わっていました",cond:"条件面が合致していれば前向きに検討していました",
+ nothing:"条件や経験にかかわらず、当社での活躍は難しいと判断しました",other:"他に有力な候補がいなければ通過の可能性もありました"};
+const NX={case:"具体例を深掘りする質問を一次面接に追加",num:"成果を数字で語れるかを一次面接で確認",
+ role:"ロールプレイ形式で実際の対応を確認",pre:"年収・勤務地・入社時期を事前にすり合わせ",
+ agent:"エージェントへ求める要件を再共有",jd:"募集要件そのものを見直し"};
+
+function gen(a){
+  const ds=(a.detail||[]).map(d=>PH[d]).filter(Boolean);
+  const ph=ds.map(d=>d[0]);
+  const keys=[...new Set(ds.map(d=>d[1]))].slice(0,2);
+  const scenes=(a.scene||[]).map(s=>SC[s]).filter(Boolean);
+  const cat=L1[a.cause];
+  const phTxt=ph.length>1?ph[0]+"、"+ph.slice(1).map(x=>x.replace(/^.{0,0}/,"")).join("、"):ph[0]||"";
+  const scTxt=scenes.length?scenes.join("・")+"の場面での懸念があります。":"";
+  return {
+   std:`${cat}の面で懸念が残りました。${phTxt}、${scTxt}当社が重視する「${keys.join("」「")}」の観点で基準に届かないと判断し、${LV[a.level]}。${PS[a.pass]}。`,
+   soft:`${cat}の面で、当社が求める水準との差を感じました。${phTxt}、${scTxt}ご経験自体は評価できるものの、「${keys.join("」「")}」の観点で今回はご縁がないものと判断いたしました。${PS[a.pass]}。`,
+   short:`${cat}の懸念により見送り。${phTxt}。${scenes.length?scenes.join("・")+"に影響。":""}重視する「${keys.join("」「")}」が基準未達。${PS[a.pass]}。`};
+}
+
+/* ══ 人事画面 ══ */
+let RECORDS=[
+ {nm:"佐藤 健",job:"ドールマン営業",iv:"小林 常務",date:"2026.08.14",
+  a:{cause:"exp",detail:["nonum","passive"],scene:["selfrun","growth"],level:"mid",pass:"exp",next:["num","case"]}},
+ {nm:"渡辺 由美",job:"フロント職",iv:"井上 取締役",date:"2026.08.12",
+  a:{cause:"motiv",detail:["vague","nostudy"],scene:["internal"],level:"light",pass:"motiv",next:["case"]}},
+ {nm:"中村 拓也",job:"フロント職",iv:"小林 常務",date:"2026.08.08",
+  a:{cause:"comm",detail:["long","weak"],scene:["client","trouble"],level:"hard",pass:"comm",next:["role","case"]}},
+ {nm:"小川 真一",job:"ドールマン営業",iv:"小林 常務",date:"2026.08.05",
+  a:{cause:"cond",detail:["salary","time"],scene:["internal"],level:"hard",pass:"cond",next:["pre","agent"]}},
+ {nm:"林 彩",job:"フロント職",iv:"井上 取締役",date:"2026.08.01",
+  a:{cause:"culture",detail:["team","honest"],scene:["team","internal"],level:"mid",pass:"nothing",next:["agent","jd"]}}
+];
+let cur=0,tone="std";
+function renderRecs(){
+  $("recCnt").textContent=RECORDS.length+"件";
+  $("recList").innerHTML=RECORDS.map((r,i)=>`
+    <div class="rec ${i===cur?"on":""} ${r.isNew?"new":""}" data-i="${i}">
+      <div class="nm">${r.nm}</div>
+      <div class="mt"><span>${r.job}</span><span>${r.date}</span><span>${r.iv}</span></div>
+      <span class="cause">${L1[r.a.cause]}</span></div>`).join("");
+  document.querySelectorAll(".rec").forEach(e=>e.addEventListener("click",()=>{cur=+e.dataset.i;renderRecs();detail()}));
+}
+function detail(){
+  const r=RECORDS[cur],a=r.a,t=gen(a);window.__t=t;
+  $("dNm").textContent=r.nm;
+  $("dMt").textContent=`${r.job}／最終面接　${r.date}　面接官：${r.iv}`;
+  $("genTxt").textContent=t[tone];
+  const ds=(a.detail||[]).map(d=>PH[d]).filter(Boolean);
+  const keys=[...new Set(ds.map(d=>d[1]))].slice(0,3);
+  $("tags").innerHTML=[L1[a.cause],...keys,
+    {light:"減点程度",mid:"大きな懸念",hard:"決定的"}[a.level]]
+    .map(x=>`<span class="tag">${x}</span>`).join("");
+  const nm=(list,src)=>(list||[]).map(v=>{const f=src.find(o=>o[0]===v);return f?f[1]:v});
+  $("qa").innerHTML=[
+    ["最も引っかかった点",CAUSE.find(o=>o[0]===a.cause)[1],false],
+    ["具体的な内容",nm(a.detail,DETAIL[a.cause]),true],
+    ["影響しそうな場面",nm(a.scene,SCENE),true],
+    ["影響度",LEVEL.find(o=>o[0]===a.level)[1],false],
+    ["通過し得た条件",PASS.find(o=>o[0]===a.pass)[1],false],
+    ["次回の見極め",nm(a.next,NEXT),true]
+  ].map(x=>`<div>${x[0]}</div><div class="${x[2]?"multi":""}">${
+    x[2]?x[1].map(v=>`<span>${v}</span>`).join(""):x[1]}</div>`).join("");
+  $("nextNote").textContent=(a.next||[]).map(n=>NX[n]).filter(Boolean).join("／")||"今回限りの判断として記録します";
+  renderTrend(a.cause);
+}
+document.querySelectorAll(".tone button").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll(".tone button").forEach(x=>x.classList.remove("on"));
+  b.classList.add("on");tone=b.dataset.t;$("genTxt").textContent=window.__t[tone];
+}));
+function renderTrend(hot){
+  const mine=[["伝わり方",38,"comm"],["経験・実績",24,"exp"],["価値観・相性",16,"culture"],["志望度",12,"motiv"],["条件面",10,"cond"]];
+  const all =[["伝わり方",24,"comm"],["経験・実績",28,"exp"],["価値観・相性",18,"culture"],["志望度",16,"motiv"],["条件面",14,"cond"]];
+  const draw=(el,rows)=>$(el).innerHTML=rows.map(r=>`<div class="bar ${r[2]===hot?"hi":""}">
+    <span class="nm">${r[0]}</span><span class="tr"><i style="width:${r[1]*2.4}%"></i></span>
+    <span class="v">${r[1]}%</span></div>`).join("");
+  draw("trend",mine);draw("trendAll",all);
+}
+/* ══ 生成結果 確認画面 ══ */
+let submitted=null,rsTone="std";
+function qaRows(a){
+  const nm=(list,src)=>(list||[]).map(v=>{const f=src.find(o=>o[0]===v);return f?f[1]:v});
+  return [
+    ["最も引っかかった点",CAUSE.find(o=>o[0]===a.cause)[1],false],
+    ["具体的な内容",nm(a.detail,DETAIL[a.cause]),true],
+    ["影響しそうな場面",nm(a.scene,SCENE),true],
+    ["影響度",LEVEL.find(o=>o[0]===a.level)[1],false],
+    ["通過し得た条件",PASS.find(o=>o[0]===a.pass)[1],false],
+    ["次回の見極め",nm(a.next,NEXT),true]
+  ].map(x=>`<div>${x[0]}</div><div class="${x[2]?"multi":""}">${
+    x[2]?(x[1].length?x[1].map(v=>`<span>${v}</span>`).join(""):"—"):x[1]}</div>`).join("");
+}
+function renderResult(){
+  if(!submitted){
+    $("v-rs").querySelector(".sheet").style.display="none";
+    $("rsEmptyNote").style.display="block";return;
+  }
+  $("v-rs").querySelector(".sheet").style.display="";
+  $("rsEmptyNote").style.display="none";
+  const r=submitted,a=r.a,t=gen(a);window.__rs=t;
+  $("rsNm").textContent=r.nm;
+  $("rsMt").textContent=`${r.job}／最終面接　${r.date}　面接官：${r.iv}`;
+  $("rsTime").textContent=`タッチ ${r.taps} 回・入力文字数 0`;
+  $("rsQa").innerHTML=qaRows(a);
+  $("rsTxt").textContent=t[rsTone];
+  const ds=(a.detail||[]).map(d=>PH[d]).filter(Boolean);
+  const keys=[...new Set(ds.map(d=>d[1]))].slice(0,3);
+  $("rsTags").innerHTML=[L1[a.cause],...keys,{light:"減点程度",mid:"大きな懸念",hard:"決定的"}[a.level]]
+    .map(x=>`<span class="tag">${x}</span>`).join("");
+  $("rsNext").textContent=(a.next||[]).map(n=>NX[n]).filter(Boolean).join("／")||"今回限りの判断として記録します";
+}
+$("rsTone").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{
+  $("rsTone").querySelectorAll("button").forEach(x=>x.classList.remove("on"));
+  b.classList.add("on");rsTone=b.dataset.t;$("rsTxt").textContent=window.__rs[rsTone];
+}));
+function go(v){
+  document.querySelectorAll(".switch button").forEach(x=>x.classList.toggle("on",x.dataset.v===v));
+  $("v-iv").classList.toggle("on",v==="iv");
+  $("v-rs").classList.toggle("on",v==="rs");
+  $("v-hr").classList.toggle("on",v==="hr");
+  if(v==="rs")renderResult();
+}
+$("toResult").addEventListener("click",()=>go("rs"));
+$("rsToHr").addEventListener("click",()=>{cur=0;renderRecs();detail();go("hr")});
+document.querySelectorAll(".switch button").forEach(b=>b.addEventListener("click",()=>go(b.dataset.v)));
+renderRecs();detail();renderResult();q();
+function toast(m){const t=$("toastEl");t.textContent=m;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),2600)}
+</script>
+</body>
+</html>
