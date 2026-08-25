@@ -85,6 +85,66 @@ main{max-width:1180px;margin:0 auto;padding:28px 28px 70px}
 .seg:active{transform:scale(.98)}
 .seg.sel{background:var(--ink);color:#fff}
 .seg.sel .d{color:rgba(255,255,255,.7)}
+/* ══ 人事：依頼送信フォーム ══ */
+.form{display:grid;grid-template-columns:1fr 1fr;gap:14px 18px}
+@media(max-width:660px){.form{grid-template-columns:1fr}}
+.fr{display:flex;flex-direction:column;gap:5px}
+.fr label{font-size:11.5px;color:var(--ink3);letter-spacing:.04em}
+.fr input,.fr select{border:1px solid var(--line2);background:#FCFCFB;padding:10px 13px;font-size:14px;font-family:inherit}
+.fr input:focus,.fr select:focus{outline:none;border-color:var(--ink);background:#fff}
+.prev{margin-top:24px}
+.popPrev{border:1px solid var(--line2);background:#FCFCFB;padding:14px 16px;font-size:13px;line-height:1.9}
+.popPrev b{font-weight:600}
+.hist .hrow{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:12.5px}
+.hist .hrow:last-child{border-bottom:none}
+.hist .nm{font-weight:600;width:110px;flex:none}
+.hist .mt{color:var(--ink3);flex:1}
+.hist .stt{font-size:11px;border:1px solid var(--line2);padding:1px 10px;white-space:nowrap}
+.hist .stt.done{border-color:var(--ok);color:var(--ok)}
+.hist .stt.wait{border-color:var(--warn);color:var(--warn)}
+
+/* ══ 面接官PC＋通知 ══ */
+.deskwrap{max-width:760px;margin:0 auto}
+.desk{position:relative;height:390px;background:linear-gradient(150deg,#3C4657,#5A6577 60%,#79808E);
+  border:1px solid var(--line2);overflow:hidden}
+.deskLabel{position:absolute;left:18px;top:16px;font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:rgba(255,255,255,.55)}
+.pop{position:absolute;right:16px;bottom:52px;width:326px;background:var(--paper);border:1px solid #B9BCC2;
+  box-shadow:0 14px 40px rgba(0,0,0,.35);animation:slideIn .45s cubic-bezier(.16,1,.3,1)}
+@keyframes slideIn{from{opacity:0;transform:translateX(28px)}to{opacity:1}}
+.pop.hide{display:none}
+.popHd{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--line)}
+.popHd .ic{width:24px;height:24px;background:var(--ink);color:#fff;font-family:var(--mono);font-size:9.5px;
+  display:flex;align-items:center;justify-content:center;flex:none}
+.popHd .t{font-size:13px;font-weight:600}
+.popHd .x{margin-left:auto;border:none;background:none;font-size:16px;color:var(--ink3);line-height:1;padding:0 2px}
+.popBd{padding:13px 14px;font-size:12.5px;line-height:1.85}
+.popBd .nm{font-size:15px;font-weight:600;display:block}
+.popBd .sub{color:var(--ink3);font-size:11.5px}
+.popBd .msg{margin-top:7px;border-left:2px solid var(--line2);padding-left:10px;color:var(--ink2);font-size:12px}
+.popFt{display:flex;gap:8px;padding:0 14px 14px}
+.popFt button{flex:1;padding:10px;font-size:12.5px;font-weight:600;border:1px solid var(--line2);background:none}
+.popFt .go{background:var(--ink);color:#fff;border-color:var(--ink)}
+.popFt button:active{transform:scale(.97)}
+.dtask{position:absolute;left:0;right:0;bottom:0;height:40px;background:rgba(20,22,26,.93);display:flex;
+  align-items:center;gap:9px;padding:0 14px;color:#D3D6DB;font-size:11.5px}
+.dtask .st{width:18px;height:18px;background:linear-gradient(135deg,#7B8496,#AEB5C0)}
+.dtask .tk{background:rgba(255,255,255,.09);padding:4px 12px}
+.dtask .tk.on{background:rgba(255,255,255,.2);cursor:pointer}
+.dtask .tk b{font-family:var(--mono);background:#fff;color:var(--ink);padding:0 6px;margin-left:6px;font-size:10px}
+.dtask .clock{margin-left:auto;font-family:var(--mono)}
+
+/* 自由記述 */
+.freewrap{display:flex;flex-direction:column;gap:11px}
+.freetx{width:100%;min-height:132px;border:1px solid var(--line2);background:#FCFCFB;padding:16px 18px;
+  font-family:inherit;font-size:15px;line-height:1.95;resize:vertical;transition:.15s}
+.freetx:focus{outline:none;border-color:var(--ink);background:#fff}
+.freetx::placeholder{color:#B9BCC2}
+.freehint{font-size:11.5px;color:var(--ink3)}
+.quick{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.quick .ql{font-size:11.5px;color:var(--ink3);margin-right:2px}
+.quick button{border:1px solid var(--line2);background:var(--paper);padding:7px 14px;font-size:12.5px;transition:.15s}
+.quick button:hover{border-color:var(--ink)}
+.quick button:active{transform:scale(.96)}
 .grp{margin-bottom:22px}
 .grp .gl{font-size:12px;color:var(--ink3);margin-bottom:9px;letter-spacing:.04em}
 
@@ -172,7 +232,8 @@ main{max-width:1180px;margin:0 auto;padding:28px 28px 70px}
   <div><h1>不採用理由 言語化システム</h1>
     <div class="sub">最終面接の判断を、タッチ操作だけで記録可能な言葉に</div></div>
   <div class="switch">
-    <button class="on" data-v="iv">面接官 入力画面</button>
+    <button class="on" data-v="sd">人事 依頼送信</button>
+    <button data-v="iv">面接官 画面</button>
     <button data-v="rs">生成結果 確認</button>
     <button data-v="hr">人事 分析画面</button>
   </div>
@@ -180,12 +241,72 @@ main{max-width:1180px;margin:0 auto;padding:28px 28px 70px}
 </header>
 
 <main>
-  <!-- 面接官 -->
-  <div class="view on" id="v-iv">
-    <div class="sheet">
+  <!-- ══════ 人事：依頼送信 ══════ -->
+  <div class="view on" id="v-sd">
+    <div class="sheet" style="max-width:760px">
       <div class="shd">
-        <div><div class="who">田中 美咲</div>
-          <div class="meta">フロント職／最終面接　2026.08.18　面接官：小林</div></div>
+        <div><div class="who">評価依頼の送信</div>
+          <div class="meta">面接官のPCにポップアップ通知を送ります</div></div>
+        <span class="time">人事担当：山本</span>
+      </div>
+      <div class="dbd" style="padding:26px 30px 30px">
+        <div class="form">
+          <div class="fr"><label>候補者名</label><input id="fNm" value="田中 美咲"></div>
+          <div class="fr"><label>応募職種</label>
+            <select id="fJob"><option>フロント職</option><option>ドールマン営業</option><option>管理スタッフ</option></select></div>
+          <div class="fr"><label>面接日</label><input id="fDate" value="2026.08.18"></div>
+          <div class="fr"><label>面接官</label>
+            <select id="fIv"><option>小林 常務</option><option>井上 取締役</option><option>高橋 部長</option></select></div>
+          <div class="fr"><label>回答期限</label>
+            <select id="fDue"><option>本日中</option><option selected>翌営業日まで</option><option>3日以内</option></select></div>
+          <div class="fr"><label>ひとこと（任意）</label><input id="fMsg" placeholder="例）来週の選考会議までにお願いします"></div>
+        </div>
+        <div class="prev">
+          <div class="lbl" style="margin-bottom:8px">送信されるポップアップの内容</div>
+          <div class="popPrev" id="popPrev"></div>
+        </div>
+        <div class="acts">
+          <button class="p" id="sendBtn">この内容で通知を送信</button>
+          <button onclick="toast('下書きとして保存しました')">下書き保存</button>
+        </div>
+
+        <div class="sec">
+          <h3>送信履歴</h3>
+          <div class="hist" id="sendHist"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ 面接官 ══════ -->
+  <div class="view" id="v-iv">
+    <!-- デスクトップ＋通知 -->
+    <div class="deskwrap" id="deskWrap">
+      <div class="desk">
+        <div class="deskLabel">面接官のPC画面</div>
+        <div class="pop" id="pop">
+          <div class="popHd"><span class="ic">RJ</span><span class="t">面接評価のご依頼</span>
+            <button class="x" id="popX">×</button></div>
+          <div class="popBd" id="popBd"></div>
+          <div class="popFt">
+            <button class="later" id="popLater">後で</button>
+            <button class="go" id="popGo">回答する</button>
+          </div>
+        </div>
+        <div class="dtask">
+          <span class="st"></span>
+          <span class="tk">メール</span><span class="tk">採用管理システム</span>
+          <span class="tk on" id="tkApp">評価依頼 <b id="tkBadge">1</b></span>
+          <span class="clock" id="dclock">17:40</span>
+        </div>
+      </div>
+      <div class="hidden-note">右下に通知が表示されます。クリックすると回答画面が開きます。</div>
+    </div>
+
+    <div class="sheet" id="sheetBox" style="display:none">
+      <div class="shd">
+        <div><div class="who" id="shdWho">田中 美咲</div>
+          <div class="meta" id="shdMeta">フロント職／最終面接　2026.08.18　面接官：小林 常務</div></div>
         <span class="time">所要 30 秒 — タッチのみ</span>
       </div>
       <div class="prog"><i id="prog" style="width:0%"></i></div>
@@ -229,7 +350,7 @@ main{max-width:1180px;margin:0 auto;padding:28px 28px 70px}
         </div>
 
         <div class="sec">
-          <h3>次回への申し送り</h3>
+          <h3>面接官の所感（自由記述）</h3>
           <div class="note" id="rsNext"></div>
         </div>
 
@@ -267,7 +388,7 @@ main{max-width:1180px;margin:0 auto;padding:28px 28px 70px}
           <div class="tags" id="tags"></div>
 
           <div class="sec"><h3>回答内容</h3><div class="qa" id="qa"></div></div>
-          <div class="sec"><h3>次回への申し送り</h3><div class="note" id="nextNote"></div></div>
+          <div class="sec"><h3>面接官の所感（自由記述）</h3><div class="note" id="nextNote"></div></div>
 
           <div class="sec"><h3>判断傾向の分析</h3>
             <div class="grid2">
@@ -317,8 +438,6 @@ const SCENE=[["client","顧客対応"],["internal","社内連携"],["team","チ�
 const LEVEL=[["light","減点程度","他が良ければ通した"],["mid","大きな懸念","判断に強く影響"],["hard","決定的","これだけで見送り"]];
 const PASS=[["exp","経験があれば"],["comm","受け答えが噛み合えば"],["motiv","熱量があれば"],
  ["cond","条件が合えば"],["nothing","何があっても難しい"],["other","他候補がいなければ"]];
-const NEXT=[["case","深掘り質問を追加"],["num","数字で確認"],["role","ロールプレイ実施"],
- ["pre","条件を事前すり合わせ"],["agent","エージェントへ再共有"],["jd","募集要件を見直す"]];
 
 /* ══ 設問構成（単一 / 複数を使い分け）══ */
 const STEPS=[
@@ -326,9 +445,9 @@ const STEPS=[
  {k:"detail",mode:"multi", t:"具体的には、どれが近いですか。",s:"当てはまるものをすべてタッチしてください。",render:"chips"},
  {k:"scene", mode:"multi", t:"どの場面で影響しそうですか。",s:"複数選択できます。",render:"chips"},
  {k:"level", mode:"single",t:"判断への影響度は。",s:"感覚で構いません。",render:"scale2"},
- {k:"next",  mode:"multi", t:"次回、面接前に見抜くとしたら。",s:"実施したいものをすべて選んでください。",render:"chips"}
+ {k:"free",  mode:"free",  t:"他に気になったことはありますか。",s:"任意です。ひと言だけでも構いません（未入力でも送信できます）。",render:"free"}
 ];
-let step=0,ans={detail:[],scene:[],next:[]},taps=0;
+let step=0,ans={detail:[],scene:[],free:""},taps=0;
 
 function q(){
   $("prog").style.width=(step/STEPS.length*100)+"%";
@@ -340,8 +459,21 @@ function q(){
         <span class="mk">${String(i+1).padStart(2,"0")}</span>
         <span class="t">${o[1]}</span><span class="d">${o[2]}</span></button>`).join("")}</div>`;
   }
+  if(S.render==="free"){
+    body=`<div class="freewrap">
+      <textarea id="freeTx" class="freetx" placeholder="例）受け答えは丁寧だが、こちらの質問の背景まで踏み込んで考えている様子がなかった。">${ans.free||""}</textarea>
+      <div class="freehint">入力は任意です。ここに書いた内容も、選択した項目とあわせて文章に反映されます。</div>
+      <div class="quick" id="quick">
+        <span class="ql">よく使う表現：</span>
+        <button data-q="全体的に受け身な印象だった">全体的に受け身な印象</button>
+        <button data-q="緊張していた可能性はある">緊張の可能性あり</button>
+        <button data-q="他の候補者と比べて決め手に欠けた">他候補と比べ決め手不足</button>
+        <button data-q="人柄は良かった">人柄は良かった</button>
+      </div>
+    </div>`;
+  }
   if(S.render==="chips"){
-    const list=S.k==="detail"?DETAIL[ans.cause]:S.k==="scene"?SCENE:NEXT;
+    const list=S.k==="detail"?DETAIL[ans.cause]:SCENE;
     body=`<div class="chips">${list.map(o=>`
       <button class="chip ${ans[S.k].includes(o[0])?"sel":""}" data-v="${o[0]}">
         <span class="box">${ans[S.k].includes(o[0])?"✓":""}</span>${o[1]}</button>`).join("")}</div>`;
@@ -357,10 +489,13 @@ function q(){
         <button class="tile ${ans.pass===o[0]?"sel":""}" data-g="pass" data-v="${o[0]}" style="min-height:74px">
           <span class="t" style="font-size:14px">${o[1]}</span></button>`).join("")}</div></div>`;
   }
-  const need=S.mode==="multi"?ans[S.k].length>0:(S.k==="level"?(ans.level&&ans.pass):ans[S.k]);
+  const need=S.mode==="free"?true
+    :S.mode==="multi"?ans[S.k].length>0
+    :(S.k==="level"?(ans.level&&ans.pass):ans[S.k]);
   $("qwrap").innerHTML=`
     <div class="qhead"><span class="qno">QUESTION ${String(step+1).padStart(2,"0")} / 0${STEPS.length}</span>
-      <span class="mode ${S.mode==="multi"?"multi":""}">${S.mode==="multi"?"複数選択":"1つ選択"}</span></div>
+      <span class="mode ${S.mode==="multi"?"multi":""}">${
+        S.mode==="multi"?"複数選択":S.mode==="free"?"自由記述・任意":"1つ選択"}</span></div>
     <div class="qt">${S.t}</div><div class="qs">${S.s}</div>
     ${body}
     <div class="nav">
@@ -387,6 +522,17 @@ function q(){
     $("qwrap").querySelectorAll(`[data-g="${g}"]`).forEach(x=>x.classList.toggle("sel",x===b));
     $("next").disabled=!(ans.level&&ans.pass);updCnt();
   }));
+  /* 自由記述 */
+  if($("freeTx")){
+    const tx=$("freeTx");
+    setTimeout(()=>tx.focus(),80);
+    tx.addEventListener("input",()=>{ans.free=tx.value;updCnt()});
+    $("quick").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{
+      const add=b.dataset.q;
+      tx.value=tx.value.trim()?tx.value.replace(/。?$/,"。")+add+"。":add+"。";
+      ans.free=tx.value;taps++;tx.focus();updCnt();
+    }));
+  }
   if($("back"))$("back").addEventListener("click",()=>{step--;q()});
   $("next").addEventListener("click",()=>{
     if(step===STEPS.length-1){submit();return}
@@ -395,23 +541,23 @@ function q(){
 }
 function updCnt(){
   const S=STEPS[step],e=$("cnt");if(!e)return;
-  if(S.mode==="multi")e.textContent=ans[S.k].length?`${ans[S.k].length} 件を選択中`:"1つ以上選んでください";
+  if(S.mode==="free")e.textContent=(ans.free||"").length?`${ans.free.length} 文字`:"未入力でも送信できます";
+  else if(S.mode==="multi")e.textContent=ans[S.k].length?`${ans[S.k].length} 件を選択中`:"1つ以上選んでください";
   else if(S.k==="level")e.textContent=(ans.level&&ans.pass)?"選択済み":"2項目を選んでください";
   else e.textContent="";
 }
 function submit(){
   $("prog").style.width="100%";$("qwrap").style.display="none";$("done").classList.add("on");
   $("tTap").textContent=taps;$("tSec").textContent=26+Math.floor(Math.random()*8);
-  const rec={nm:"田中 美咲",job:"フロント職",iv:"小林 常務",date:"2026.08.18",
+  const rec={nm:CAND.nm,job:CAND.job,iv:CAND.iv,date:CAND.date,
     a:JSON.parse(JSON.stringify(ans)),taps,isNew:true};
   RECORDS.unshift(rec);submitted=rec;
+  const s=SENT.find(x=>x.nm===CAND.nm&&x.st==="wait");if(s)s.st="done";
+  renderHist();
   cur=0;renderRecs();detail();renderResult();
   toast("送信しました。生成された文章を確認できます");
 }
-$("again").addEventListener("click",()=>{
-  step=0;ans={detail:[],scene:[],next:[]};taps=0;
-  $("done").classList.remove("on");$("qwrap").style.display="flex";q();
-});
+$("again").addEventListener("click",()=>{go("sd");toast("人事の依頼送信画面から、次の候補者へ通知できます")});
 
 /* ══ 文章生成 ══ */
 const L1={comm:"コミュニケーション",exp:"経験・実績",culture:"価値観・相性",motiv:"志望度",cond:"条件面",total:"総合評価"};
@@ -464,24 +610,31 @@ function gen(a){
   const cat=L1[a.cause];
   const phTxt=ph.length>1?ph[0]+"、"+ph.slice(1).map(x=>x.replace(/^.{0,0}/,"")).join("、"):ph[0]||"";
   const scTxt=scenes.length?scenes.join("・")+"の場面での懸念があります。":"";
+  const fr=(a.free||"").trim();
+  const frTxt=fr?`なお面接官所感として、${fr.replace(/。$/,"")}との指摘がありました。`:"";
+  const frShort=fr?`所感：${fr.replace(/。$/,"")}。`:"";
   return {
-   std:`${cat}の面で懸念が残りました。${phTxt}、${scTxt}当社が重視する「${keys.join("」「")}」の観点で基準に届かないと判断し、${LV[a.level]}。${PS[a.pass]}。`,
-   soft:`${cat}の面で、当社が求める水準との差を感じました。${phTxt}、${scTxt}ご経験自体は評価できるものの、「${keys.join("」「")}」の観点で今回はご縁がないものと判断いたしました。${PS[a.pass]}。`,
-   short:`${cat}の懸念により見送り。${phTxt}。${scenes.length?scenes.join("・")+"に影響。":""}重視する「${keys.join("」「")}」が基準未達。${PS[a.pass]}。`};
+   std:`${cat}の面で懸念が残りました。${phTxt}、${scTxt}当社が重視する「${keys.join("」「")}」の観点で基準に届かないと判断し、${LV[a.level]}。${PS[a.pass]}。${frTxt}`,
+   soft:`${cat}の面で、当社が求める水準との差を感じました。${phTxt}、${scTxt}ご経験自体は評価できるものの、「${keys.join("」「")}」の観点で今回はご縁がないものと判断いたしました。${PS[a.pass]}。${frTxt}`,
+   short:`${cat}の懸念により見送り。${phTxt}。${scenes.length?scenes.join("・")+"に影響。":""}重視する「${keys.join("」「")}」が基準未達。${PS[a.pass]}。${frShort}`};
 }
 
 /* ══ 人事画面 ══ */
 let RECORDS=[
- {nm:"佐藤 健",job:"ドールマン営業",iv:"小林 常務",date:"2026.08.14",
-  a:{cause:"exp",detail:["nonum","passive"],scene:["selfrun","growth"],level:"mid",pass:"exp",next:["num","case"]}},
- {nm:"渡辺 由美",job:"フロント職",iv:"井上 取締役",date:"2026.08.12",
-  a:{cause:"motiv",detail:["vague","nostudy"],scene:["internal"],level:"light",pass:"motiv",next:["case"]}},
- {nm:"中村 拓也",job:"フロント職",iv:"小林 常務",date:"2026.08.08",
-  a:{cause:"comm",detail:["long","weak"],scene:["client","trouble"],level:"hard",pass:"comm",next:["role","case"]}},
- {nm:"小川 真一",job:"ドールマン営業",iv:"小林 常務",date:"2026.08.05",
-  a:{cause:"cond",detail:["salary","time"],scene:["internal"],level:"hard",pass:"cond",next:["pre","agent"]}},
- {nm:"林 彩",job:"フロント職",iv:"井上 取締役",date:"2026.08.01",
-  a:{cause:"culture",detail:["team","honest"],scene:["team","internal"],level:"mid",pass:"nothing",next:["agent","jd"]}}
+ {nm:"佐藤 健",job:"ドールマン営業",iv:"小林 常務",date:"2026.08.14",taps:8,
+  a:{cause:"exp",detail:["nonum","passive"],scene:["selfrun","growth"],level:"mid",pass:"exp",
+     free:"人柄は良いが、任せた時に一人で判断できるイメージが持てなかった"}},
+ {nm:"渡辺 由美",job:"フロント職",iv:"井上 取締役",date:"2026.08.12",taps:6,
+  a:{cause:"motiv",detail:["vague","nostudy"],scene:["internal"],level:"light",pass:"motiv",
+     free:"緊張していた可能性はある"}},
+ {nm:"中村 拓也",job:"フロント職",iv:"小林 常務",date:"2026.08.08",taps:9,
+  a:{cause:"comm",detail:["long","weak"],scene:["client","trouble"],level:"hard",pass:"comm",
+     free:"クレーム対応の場面を想像すると不安が残った"}},
+ {nm:"小川 真一",job:"ドールマン営業",iv:"小林 常務",date:"2026.08.05",taps:7,
+  a:{cause:"cond",detail:["salary","time"],scene:["internal"],level:"hard",pass:"cond",free:""}},
+ {nm:"林 彩",job:"フロント職",iv:"井上 取締役",date:"2026.08.01",taps:8,
+  a:{cause:"culture",detail:["team","honest"],scene:["team","internal"],level:"mid",pass:"nothing",
+     free:"他の候補者と比べて決め手に欠けた"}}
 ];
 let cur=0,tone="std";
 function renderRecs(){
@@ -510,10 +663,13 @@ function detail(){
     ["影響しそうな場面",nm(a.scene,SCENE),true],
     ["影響度",LEVEL.find(o=>o[0]===a.level)[1],false],
     ["通過し得た条件",PASS.find(o=>o[0]===a.pass)[1],false],
-    ["次回の見極め",nm(a.next,NEXT),true]
+    ["その他 気になった点",(a.free||"").trim()||"（記載なし）",false]
   ].map(x=>`<div>${x[0]}</div><div class="${x[2]?"multi":""}">${
     x[2]?x[1].map(v=>`<span>${v}</span>`).join(""):x[1]}</div>`).join("");
-  $("nextNote").textContent=(a.next||[]).map(n=>NX[n]).filter(Boolean).join("／")||"今回限りの判断として記録します";
+  const fr=(a.free||"").trim();
+  $("nextNote").textContent=fr
+    ? `面接官の所感：「${fr}」　この記述は分類タグとあわせて蓄積され、傾向分析に利用されます。`
+    : "自由記述はありません。選択項目のみで記録されています。";
   renderTrend(a.cause);
 }
 document.querySelectorAll(".tone button").forEach(b=>b.addEventListener("click",()=>{
@@ -528,6 +684,66 @@ function renderTrend(hot){
     <span class="v">${r[1]}%</span></div>`).join("");
   draw("trend",mine);draw("trendAll",all);
 }
+/* ══════ 人事：依頼送信 → 面接官へポップアップ ══════ */
+let CAND={nm:"田中 美咲",job:"フロント職",date:"2026.08.18",iv:"小林 常務",due:"翌営業日まで",msg:""};
+let SENT=[
+ {nm:"中村 拓也",job:"フロント職",date:"2026.08.08",iv:"小林 常務",st:"done"},
+ {nm:"林 彩",job:"フロント職",date:"2026.08.01",iv:"井上 取締役",st:"done"},
+ {nm:"小川 真一",job:"ドールマン営業",date:"2026.08.05",iv:"小林 常務",st:"wait"}
+];
+function readForm(){
+  CAND={nm:$("fNm").value.trim()||"（氏名未入力）",job:$("fJob").value,date:$("fDate").value.trim(),
+    iv:$("fIv").value,due:$("fDue").value,msg:$("fMsg").value.trim()};
+}
+function renderPrev(){
+  readForm();
+  $("popPrev").innerHTML=`<b>面接評価のご依頼</b><br>
+    <b>${CAND.nm}</b> 様（${CAND.job}）／${CAND.date} 実施分<br>
+    回答期限：${CAND.due}　所要30秒・タッチのみ${CAND.msg?`<br>「${CAND.msg}」`:""}`;
+}
+["fNm","fJob","fDate","fIv","fDue","fMsg"].forEach(id=>{
+  const e=$(id);e.addEventListener("input",renderPrev);e.addEventListener("change",renderPrev);
+});
+function renderHist(){
+  $("sendHist").innerHTML=SENT.map(s=>`<div class="hrow">
+    <span class="nm">${s.nm}</span>
+    <span class="mt">${s.job}／${s.date}／${s.iv}</span>
+    <span class="stt ${s.st}">${s.st==="done"?"回答済み":"未回答"}</span></div>`).join("");
+}
+$("sendBtn").addEventListener("click",()=>{
+  readForm();
+  SENT.unshift({nm:CAND.nm,job:CAND.job,date:CAND.date,iv:CAND.iv,st:"wait"});
+  renderHist();resetSurvey();showPop();
+  go("iv");
+  toast(`${CAND.iv}のPCへ通知を送信しました`);
+});
+function showPop(){
+  $("pop").classList.remove("hide");
+  $("popBd").innerHTML=`<span class="nm">${CAND.nm} 様</span>
+    <span class="sub">${CAND.job}／最終面接　${CAND.date} 実施分</span>
+    <div class="sub" style="margin-top:5px">回答期限：${CAND.due}　所要30秒・タッチのみ</div>
+    ${CAND.msg?`<div class="msg">${CAND.msg}</div>`:""}`;
+  $("deskWrap").style.display="";
+  $("sheetBox").style.display="none";
+  $("tkBadge").textContent="1";
+}
+function openSurvey(){
+  $("deskWrap").style.display="none";
+  $("sheetBox").style.display="";
+  $("shdWho").textContent=CAND.nm;
+  $("shdMeta").textContent=`${CAND.job}／最終面接　${CAND.date}　面接官：${CAND.iv}`;
+}
+$("popGo").addEventListener("click",openSurvey);
+$("tkApp").addEventListener("click",openSurvey);
+$("popX").addEventListener("click",()=>{$("pop").classList.add("hide");toast("通知を閉じました。タスクバーからいつでも開けます")});
+$("popLater").addEventListener("click",()=>{$("pop").classList.add("hide");toast("30分後に再通知します（デモ）")});
+function resetSurvey(){
+  step=0;ans={detail:[],scene:[],free:""};taps=0;
+  $("done").classList.remove("on");$("qwrap").style.display="flex";q();
+}
+setInterval(()=>{const n=new Date();
+  $("dclock").textContent=String(n.getHours()).padStart(2,"0")+":"+String(n.getMinutes()).padStart(2,"0")},1000);
+
 /* ══ 生成結果 確認画面 ══ */
 let submitted=null,rsTone="std";
 function qaRows(a){
@@ -538,7 +754,7 @@ function qaRows(a){
     ["影響しそうな場面",nm(a.scene,SCENE),true],
     ["影響度",LEVEL.find(o=>o[0]===a.level)[1],false],
     ["通過し得た条件",PASS.find(o=>o[0]===a.pass)[1],false],
-    ["次回の見極め",nm(a.next,NEXT),true]
+    ["その他 気になった点",(a.free||"").trim()||"（記載なし）",false]
   ].map(x=>`<div>${x[0]}</div><div class="${x[2]?"multi":""}">${
     x[2]?(x[1].length?x[1].map(v=>`<span>${v}</span>`).join(""):"—"):x[1]}</div>`).join("");
 }
@@ -559,7 +775,8 @@ function renderResult(){
   const keys=[...new Set(ds.map(d=>d[1]))].slice(0,3);
   $("rsTags").innerHTML=[L1[a.cause],...keys,{light:"減点程度",mid:"大きな懸念",hard:"決定的"}[a.level]]
     .map(x=>`<span class="tag">${x}</span>`).join("");
-  $("rsNext").textContent=(a.next||[]).map(n=>NX[n]).filter(Boolean).join("／")||"今回限りの判断として記録します";
+  const frr=(a.free||"").trim();
+  $("rsNext").textContent=frr?`「${frr}」`:"入力はありませんでした（任意項目）";
 }
 $("rsTone").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{
   $("rsTone").querySelectorAll("button").forEach(x=>x.classList.remove("on"));
@@ -567,6 +784,7 @@ $("rsTone").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=
 }));
 function go(v){
   document.querySelectorAll(".switch button").forEach(x=>x.classList.toggle("on",x.dataset.v===v));
+  $("v-sd").classList.toggle("on",v==="sd");
   $("v-iv").classList.toggle("on",v==="iv");
   $("v-rs").classList.toggle("on",v==="rs");
   $("v-hr").classList.toggle("on",v==="hr");
@@ -575,7 +793,7 @@ function go(v){
 $("toResult").addEventListener("click",()=>go("rs"));
 $("rsToHr").addEventListener("click",()=>{cur=0;renderRecs();detail();go("hr")});
 document.querySelectorAll(".switch button").forEach(b=>b.addEventListener("click",()=>go(b.dataset.v)));
-renderRecs();detail();renderResult();q();
+renderRecs();detail();renderResult();renderPrev();renderHist();showPop();q();
 function toast(m){const t=$("toastEl");t.textContent=m;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),2600)}
 </script>
 </body>
