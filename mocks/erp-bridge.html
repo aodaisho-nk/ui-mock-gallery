@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>基幹システム連携アシスタント｜Excel一括登録 × 画面入力補助 デモ</title>
+<style>
+:root{
+  --bg:#EFF2F6; --paper:#fff; --ink:#141A22; --ink2:#48525F; --ink3:#7B8593; --line:#DCE2EA; --line2:#C9D1DB;
+  --erp:#0B3C6B; --erp2:#124E86; --erp-l:#E8F0F8;
+  --xl:#1E7145; --xl-l:#E6F2EB;
+  --accent:#1565C0; --accent-l:#E6F0FB;
+  --ok:#137A52; --ok-l:#E3F3EC; --warn:#96650B; --warn-l:#FBF2DC; --red:#BE3B36; --red-l:#FBEBEA;
+  --mono:"Consolas","SFMono-Regular",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",sans-serif;background:var(--bg);color:var(--ink);font-size:13.5px;line-height:1.7}
+button{font-family:inherit;cursor:pointer;color:inherit}
+.lbl{font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--ink3)}
+
+header{background:var(--paper);border-bottom:1px solid var(--line);padding:10px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.mk{width:30px;height:30px;background:var(--erp);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;letter-spacing:-.02em}
+header h1{font-size:15px;font-weight:700}
+header .sub{font-size:11px;color:var(--ink3)}
+.tabs{margin-left:auto;display:flex;border:1px solid var(--line2)}
+.tabs button{border:none;background:none;padding:8px 18px;font-size:12.5px;color:var(--ink3)}
+.tabs button.on{background:var(--ink);color:#fff}
+.note{width:100%;font-size:11px;color:var(--ink3);border-top:1px dashed var(--line);padding-top:8px}
+
+main{max-width:1400px;margin:12px auto;padding:0 20px 44px}
+.view{display:none}.view.on{display:block;animation:fd .28s ease}
+@keyframes fd{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:13px}
+@media(max-width:900px){.kpi{grid-template-columns:repeat(2,1fr)}}
+.kpi div{background:var(--paper);border:1px solid var(--line);padding:10px 14px;border-left:4px solid var(--accent)}
+.kpi div.g{border-left-color:var(--ok)}.kpi div.w{border-left-color:var(--warn)}.kpi div.r{border-left-color:var(--red)}
+.kpi b{display:block;font-family:var(--mono);font-size:21px}
+.kpi span{font-size:10.5px;color:var(--ink3)}
+
+.cols{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:14px;align-items:start}
+@media(max-width:1120px){.cols{grid-template-columns:1fr}}
+.card{background:var(--paper);border:1px solid var(--line);margin-bottom:13px}
+.ch{padding:9px 14px;border-bottom:1px solid var(--line);font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:9px;flex-wrap:wrap;background:#F8FAFC}
+.ch .c{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--ink3);font-weight:400}
+.cb{padding:13px 14px}
+
+/* ══ Excel風 ══ */
+.xlbar{background:var(--xl);color:#fff;padding:7px 13px;font-size:12px;display:flex;align-items:center;gap:9px}
+.xlbar .ic{width:19px;height:19px;background:rgba(255,255,255,.24);display:flex;align-items:center;justify-content:center;font-size:10px;font-family:var(--mono)}
+.xlwrap{overflow-x:auto;background:#fff}
+table.xl{border-collapse:collapse;font-size:12px;min-width:720px;width:100%}
+table.xl th{background:#F1F4F8;border:1px solid #D8DEE6;padding:4px 8px;font-family:var(--mono);font-size:10px;color:var(--ink3);font-weight:400;text-align:center}
+table.xl td{border:1px solid #D8DEE6;padding:5px 9px;white-space:nowrap}
+table.xl td.n{text-align:right;font-family:var(--mono)}
+table.xl tr.err td{background:var(--red-l)}
+table.xl tr.fix td{background:var(--warn-l)}
+table.xl tr.ok td{background:var(--ok-l)}
+table.xl td.cell-err{outline:2px solid var(--red);outline-offset:-2px;position:relative}
+table.xl td.cell-fix{outline:2px solid var(--warn);outline-offset:-2px}
+.paste{border:2px dashed var(--line2);padding:26px 18px;text-align:center;color:var(--ink3);font-size:12.5px;line-height:1.9}
+.paste b{color:var(--ink)}
+.paste button{margin-top:11px;border:1px solid var(--ink);background:var(--ink);color:#fff;padding:10px 22px;font-size:13px;font-weight:700}
+
+/* 検証結果 */
+.chk{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:11px}
+.chk div{border:1px solid var(--line);padding:7px 13px;font-size:12px;display:flex;align-items:center;gap:8px}
+.chk b{font-family:var(--mono);font-size:15px}
+.chk .g{color:var(--ok);border-color:#B7DFCC;background:var(--ok-l)}
+.chk .w{color:var(--warn);border-color:#EBD8A5;background:var(--warn-l)}
+.chk .r{color:var(--red);border-color:#EFC3C0;background:var(--red-l)}
+.errlist{border:1px solid var(--line);margin-top:11px}
+.errlist .e{display:flex;gap:11px;align-items:flex-start;padding:9px 13px;border-bottom:1px solid var(--line);font-size:12.5px}
+.errlist .e:last-child{border-bottom:none}
+.errlist .no{font-family:var(--mono);font-size:10.5px;color:var(--ink3);flex:none;width:44px;padding-top:2px}
+.errlist .bd b{display:block}
+.errlist .bd .d{font-size:11.5px;color:var(--ink3)}
+.errlist .fixb{margin-left:auto;border:1px solid var(--accent);color:var(--accent);background:none;padding:5px 12px;font-size:11.5px;font-weight:700;white-space:nowrap}
+.errlist .fixb:disabled{opacity:.4;cursor:default}
+.runbar{display:flex;gap:9px;align-items:center;margin-top:13px;flex-wrap:wrap}
+.runbar .sp{flex:1}
+.runbar button{border:1px solid var(--line2);background:#fff;padding:10px 18px;font-size:12.5px;font-weight:700}
+.runbar button.p{background:var(--erp);border-color:var(--erp);color:#fff}
+.runbar button:disabled{opacity:.4;cursor:not-allowed}
+.prog{height:3px;background:var(--line);margin-top:11px}
+.prog i{display:block;height:100%;background:var(--erp);width:0;transition:width .3s}
+.log{margin-top:11px;font-family:var(--mono);font-size:11px;line-height:1.9;color:var(--ink2);background:#F8FAFC;border:1px solid var(--line);padding:10px 13px;max-height:150px;overflow-y:auto}
+.log .ok{color:var(--ok)}.log .er{color:var(--red)}
+
+/* ══ 基幹システム画面（ERP風）══ */
+.erpwin{border:1px solid #9FB0C2;background:#F4F6F9;position:relative;overflow:hidden}
+.erpbar{background:linear-gradient(var(--erp2),var(--erp));color:#fff;padding:7px 13px;font-size:12px;display:flex;align-items:center;gap:9px}
+.erpbar .tc{font-family:var(--mono);background:rgba(255,255,255,.18);padding:1px 8px;font-size:10.5px}
+.erpmenu{background:#E4EAF1;border-bottom:1px solid #C6D0DC;padding:4px 12px;font-size:10.5px;color:#4A5A6C;display:flex;gap:14px}
+.erpbody{padding:14px 16px}
+.erpgrid{display:grid;grid-template-columns:106px 1fr 106px 1fr;gap:7px 10px;align-items:center;font-size:12px}
+.erpgrid label{color:var(--ink3);font-size:11px}
+.erpgrid input{border:1px solid #B9C4D0;background:#fff;padding:5px 8px;font-size:12px;font-family:var(--mono);width:100%}
+.erpgrid input.txt{font-family:inherit}
+.erpgrid input.fill{background:var(--accent-l);border-color:var(--accent);animation:fl 1s ease}
+@keyframes fl{0%{background:#BFDBF7}100%{background:var(--accent-l)}}
+.erpsec{grid-column:1/-1;font-size:10.5px;color:var(--ink3);border-bottom:1px solid #D8DEE6;padding-bottom:3px;margin-top:9px;letter-spacing:.1em}
+table.erpt{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:11px}
+table.erpt th{background:#DDE5EE;border:1px solid #C6D0DC;padding:4px 8px;font-size:10.5px;color:#3D4C5D}
+table.erpt td{border:1px solid #C6D0DC;padding:4px 8px;background:#fff}
+table.erpt td.n{text-align:right;font-family:var(--mono)}
+.erpbtns{display:flex;gap:7px;margin-top:12px}
+.erpbtns button{border:1px solid #8FA3B8;background:linear-gradient(#fff,#EDF1F6);padding:6px 16px;font-size:11.5px}
+.erpbtns button.p{background:linear-gradient(var(--erp2),var(--erp));color:#fff;border-color:var(--erp)}
+
+/* オーバーレイ・アシスタント */
+.asst{position:absolute;right:14px;top:52px;width:296px;background:#fff;border:1px solid var(--accent);
+  box-shadow:0 14px 36px rgba(20,26,34,.28);z-index:20}
+.asst .ah{background:var(--accent);color:#fff;padding:8px 12px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:8px;cursor:grab}
+.asst .ah .mini{margin-left:auto;border:none;background:rgba(255,255,255,.2);color:#fff;width:20px;height:18px;font-size:11px;line-height:1}
+.asst .ab{padding:11px 12px;max-height:330px;overflow-y:auto}
+.asst.min .ab{display:none}
+.srcbox{border:1px solid var(--line);background:#F8FAFC;padding:9px 11px;font-size:11.5px;line-height:1.75;margin-bottom:10px}
+.srcbox .t{font-size:10.5px;color:var(--ink3);margin-bottom:3px}
+.fitem{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);padding:6px 0;font-size:12px}
+.fitem:last-child{border-bottom:none}
+.fitem .k{width:74px;flex:none;color:var(--ink3);font-size:11px}
+.fitem .v{font-family:var(--mono);font-weight:700}
+.fitem .cf{margin-left:auto;font-size:9.5px;color:var(--ok);background:var(--ok-l);padding:0 6px}
+.fitem.warn .cf{color:var(--warn);background:var(--warn-l)}
+.asst .fill{width:100%;border:none;background:var(--accent);color:#fff;padding:10px;font-size:12.5px;font-weight:700;margin-top:10px}
+.asst .fill:disabled{opacity:.4}
+.askrow{display:flex;gap:6px;margin-top:10px}
+.askrow input{flex:1;border:1px solid var(--line2);padding:8px 10px;font-size:12px;font-family:inherit}
+.askrow button{border:1px solid var(--ink);background:var(--ink);color:#fff;padding:8px 13px;font-size:12px}
+.ansbox{border-left:2px solid var(--accent);padding:6px 0 6px 11px;margin-top:10px;font-size:12px;line-height:1.8;color:var(--ink2)}
+.ansbox b{color:var(--ink)}
+.qsug{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+.qsug button{border:1px solid var(--line2);background:#fff;padding:4px 9px;font-size:10.5px;color:var(--ink3)}
+.qsug button:hover{border-color:var(--accent);color:var(--accent)}
+
+.side h3{font-size:11.5px;font-weight:700;letter-spacing:.08em;color:var(--ink3);padding-bottom:8px;border-bottom:1px solid var(--line);margin-bottom:11px}
+.flow{font-size:12px}
+.frow{display:flex;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line)}
+.frow:last-child{border-bottom:none}
+.frow .n{font-family:var(--mono);font-size:10.5px;color:var(--ink3);flex:none;width:22px}
+.frow b{display:block;font-size:12px}
+.frow .d{font-size:11px;color:var(--ink3);line-height:1.65}
+.pt{border:1px solid var(--line);background:#F8FAFC;padding:11px 13px;font-size:11.5px;line-height:1.85;margin-top:11px}
+.pt b{color:var(--ink)}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:11px;font-size:12px}
+.cmp div{border:1px solid var(--line);padding:10px 12px}
+.cmp .a{background:#FBFBFC}
+.cmp .b{border-color:var(--ok);background:var(--ok-l)}
+.cmp .t{font-size:10.5px;color:var(--ink3);margin-bottom:3px}
+.cmp b{font-family:var(--mono);font-size:17px}
+.cap{max-width:1400px;margin:14px auto 0;font-size:11.5px;color:var(--ink3);text-align:center}
+.cap b{color:var(--accent)}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(18px);background:var(--ink);color:#fff;
+  padding:10px 22px;font-size:12.5px;opacity:0;pointer-events:none;transition:.25s;z-index:80}
+.toast.show{opacity:1;transform:translateX(-50%)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="mk">ERP</div>
+  <div><h1>基幹システム連携アシスタント</h1>
+    <div class="sub">基幹システムは置き換えず、入力と照会の手間だけを取り除く</div></div>
+  <div class="tabs">
+    <button class="on" data-v="xl">Excel 一括登録</button>
+    <button data-v="ov">画面入力の補助</button>
+  </div>
+  <div class="note">想定：商社・卸売の販売／受発注業務　基幹システム：SAP S/4HANA 相当（既存環境はそのまま・標準APIのみ利用）</div>
+</header>
+
+<main>
+  <!-- ══════ Excel 一括登録 ══════ -->
+  <div class="view on" id="v-xl">
+    <div class="kpi">
+      <div><b id="kRows">0</b><span>取込行数</span></div>
+      <div class="g"><b id="kOk">0</b><span>登録成功</span></div>
+      <div class="w"><b id="kFix">0</b><span>自動補正</span></div>
+      <div class="r"><b id="kErr">0</b><span>要確認</span></div>
+    </div>
+
+    <div class="cols">
+      <div>
+        <div class="card">
+          <div class="ch">受注データの取込 <span class="c" id="xlName">未取込</span></div>
+          <div class="cb">
+            <div id="pasteBox" class="paste">
+              Excelの表をそのまま<b>コピー＆貼り付け</b>、またはファイルをドロップ<br>
+              <span style="font-size:11.5px">列の並びが違っても、ヘッダー名から自動でマッピングします</span>
+              <div><button id="pasteBtn">サンプルの受注一覧を貼り付ける</button></div>
+            </div>
+            <div id="xlArea" style="display:none">
+              <div class="xlbar"><span class="ic">X</span><span id="xlFile">受注一覧_0818.xlsx — Sheet1</span>
+                <span style="margin-left:auto;font-family:var(--mono);font-size:10.5px" id="xlRange">A1:H9</span></div>
+              <div class="xlwrap"><table class="xl" id="xlTable"></table></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" id="chkCard" style="display:none">
+          <div class="ch">登録前チェック <span class="c">基幹のマスタと照合</span></div>
+          <div class="cb">
+            <div class="chk" id="chkSum"></div>
+            <div class="errlist" id="errList"></div>
+            <div class="runbar">
+              <button id="fixAll">補正できる項目をまとめて修正</button>
+              <span class="sp"></span>
+              <span class="lbl" id="runNote">要確認が残っていても、正常行だけ先に登録できます</span>
+              <button class="p" id="runBtn">基幹システムへ一括登録</button>
+            </div>
+            <div class="prog"><i id="prog"></i></div>
+            <div class="log" id="log" style="display:none"></div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card side"><div class="cb">
+          <h3>処理の流れ</h3>
+          <div class="flow">
+            <div class="frow"><span class="n">01</span><span><b>貼り付け</b><span class="d">列名から自動マッピング。並び順・列数が違っても対応</span></span></div>
+            <div class="frow"><span class="n">02</span><span><b>マスタ照合</b><span class="d">得意先・商品コード・単価・与信を基幹に問い合わせて検証</span></span></div>
+            <div class="frow"><span class="n">03</span><span><b>自動補正</b><span class="d">全角半角・日付形式・コードの桁揃えを自動で整形</span></span></div>
+            <div class="frow"><span class="n">04</span><span><b>一括登録</b><span class="d">標準APIで登録。失敗行のみ差し戻し、成功分は確定</span></span></div>
+            <div class="frow"><span class="n">05</span><span><b>結果を返す</b><span class="d">伝票番号を書き戻したExcelをダウンロード</span></span></div>
+          </div>
+          <div class="pt"><b>基幹側の改修は不要</b>です。標準APIとマスタ参照のみを使用し、権限は担当者のIDをそのまま利用します。監査ログには「誰が・いつ・どの行を登録したか」が残ります。</div>
+        </div></div>
+
+        <div class="card side"><div class="cb">
+          <h3>従来との比較（100行の受注登録）</h3>
+          <div class="cmp">
+            <div class="a"><div class="t">これまで（手入力）</div><b>約 3.5 時間</b><div class="d" style="font-size:11px;color:var(--ink3)">1件2分×100件＋確認</div></div>
+            <div class="b"><div class="t">導入後</div><b>約 4 分</b><div class="d" style="font-size:11px;color:var(--ink3)">貼り付け→確認→登録</div></div>
+          </div>
+          <div class="pt" style="margin-top:11px">誤入力による伝票訂正（月平均12件）も、事前チェックでほぼ発生しなくなります。</div>
+        </div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ 画面入力の補助 ══════ -->
+  <div class="view" id="v-ov">
+    <div class="cols">
+      <div>
+        <div class="erpwin">
+          <div class="erpbar"><span>受注伝票 登録</span><span class="tc">VA01</span>
+            <span style="margin-left:auto;font-size:10.5px;opacity:.8">SAP S/4HANA — 販売管理</span></div>
+          <div class="erpmenu"><span>伝票</span><span>編集</span><span>移動</span><span>環境</span><span>システム</span><span>ヘルプ</span></div>
+          <div class="erpbody">
+            <div class="erpgrid">
+              <div class="erpsec">ヘッダ</div>
+              <label>受注伝票タイプ</label><input id="e1" class="txt" value="OR 標準受注">
+              <label>販売組織</label><input id="e2" value="1000">
+              <label>得意先コード</label><input id="e3">
+              <label>得意先名</label><input id="e4" class="txt">
+              <label>受注日</label><input id="e5">
+              <label>希望納期</label><input id="e6">
+              <label>先方注文番号</label><input id="e7">
+              <label>支払条件</label><input id="e8" class="txt">
+              <div class="erpsec">明細</div>
+            </div>
+            <table class="erpt" id="eItems">
+              <tr><th style="width:34px">項</th><th>品目コード</th><th>品目テキスト</th><th style="width:66px">数量</th><th style="width:86px">単価</th><th style="width:96px">金額</th></tr>
+              <tr><td>10</td><td></td><td></td><td class="n"></td><td class="n"></td><td class="n"></td></tr>
+              <tr><td>20</td><td></td><td></td><td class="n"></td><td class="n"></td><td class="n"></td></tr>
+              <tr><td>30</td><td></td><td></td><td class="n"></td><td class="n"></td><td class="n"></td></tr>
+            </table>
+            <div class="erpbtns"><button class="p" id="erpSave">保存</button><button>入力チェック</button><button>中止</button></div>
+          </div>
+
+          <!-- 重ねるアシスタント -->
+          <div class="asst" id="asst">
+            <div class="ah" id="asstHd">入力アシスタント
+              <button class="mini" id="asstMin">−</button></div>
+            <div class="ab">
+              <div class="srcbox" id="srcBox">
+                <div class="t">受信メール（取引先からの注文）</div>
+                <b>件名：発注書送付の件（8月分）</b><br>
+                いつもお世話になっております。下記の通り発注いたします。<br>
+                ・鋼板SS400 3.2t×1219×2438　20枚　＠8,400<br>
+                ・アングル L50×50×6　15本　＠3,200<br>
+                納期：8/29　注文番号：PO-2026-0881
+              </div>
+              <div class="lbl" style="margin-bottom:6px">抽出した項目</div>
+              <div id="exList"></div>
+              <button class="fill" id="fillBtn">この内容を画面へ入力</button>
+
+              <div class="lbl" style="margin:14px 0 6px">コードを調べる</div>
+              <div class="askrow">
+                <input id="askIn" placeholder="例）鋼板SS400 3.2t の品目コードは？">
+                <button id="askBtn">照会</button>
+              </div>
+              <div class="qsug">
+                <button>この得意先の与信残は？</button>
+                <button>前回の単価は？</button>
+                <button>在庫は足りる？</button>
+              </div>
+              <div id="ansBox"></div>
+            </div>
+          </div>
+        </div>
+        <div class="cap" style="margin-top:11px">基幹システムの画面はそのまま。<b>アシスタントを重ねるだけ</b>なので、既存の権限・監査ログの仕組みを変えません。</div>
+      </div>
+
+      <div>
+        <div class="card side"><div class="cb">
+          <h3>解消できる手間</h3>
+          <div class="flow">
+            <div class="frow"><span class="n">01</span><span><b>コードを覚えなくてよい</b><span class="d">品目名・取引先名から自然文で検索し、コードを自動入力</span></span></div>
+            <div class="frow"><span class="n">02</span><span><b>メール・PDFから転記しない</b><span class="d">注文メールや発注書から項目を抽出して画面へ流し込み</span></span></div>
+            <div class="frow"><span class="n">03</span><span><b>登録前に矛盾を検知</b><span class="d">与信超過・在庫不足・単価乖離をその場で警告</span></span></div>
+            <div class="frow"><span class="n">04</span><span><b>操作の属人化を防ぐ</b><span class="d">熟練者しか使えない画面を、初任者でも扱える状態に</span></span></div>
+          </div>
+          <div class="pt"><b>導入形態</b>　ブラウザ拡張またはデスクトップ常駐アプリとして配布。基幹システム側への改修・アドオン追加は不要です。</div>
+        </div></div>
+
+        <div class="card side"><div class="cb">
+          <h3>想定効果</h3>
+          <div class="cmp">
+            <div class="a"><div class="t">1伝票あたり</div><b>約 7 分</b><div style="font-size:11px;color:var(--ink3)">検索・転記・確認</div></div>
+            <div class="b"><div class="t">導入後</div><b>約 90 秒</b><div style="font-size:11px;color:var(--ink3)">確認して登録</div></div>
+          </div>
+          <div class="pt" style="margin-top:11px">熟練者への問い合わせ（1日平均8件）が減り、繁忙期の残業時間の削減にもつながります。</div>
+        </div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cap">基幹システムの入替えは行わず、<b>標準APIと画面補助だけで現場の入力工数を削減</b>する構成です。</div>
+</main>
+
+<div class="toast" id="toastEl"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+/* ══ Excel 一括登録 ══ */
+const COLS=["受注日","得意先","得意先コード","品目","品目コード","数量","単価","希望納期"];
+let ROWS=[
+ {d:["2026/8/18","株式会社アオバ商事","10024","鋼板SS400 3.2t","MT-1001","20","8,400","2026/8/29"],st:"ok"},
+ {d:["２０２６/８/１８","ヨコハマ金属（株）","10087","アングル L50×50×6","MT-2044","15","3,200","2026/8/29"],st:"fix",
+  fix:["日付が全角のため半角へ補正","得意先名の表記ゆれをマスタ名称に統一"]},
+ {d:["2026/8/18","ソラノ物流","10133","丸鋼 φ25","MT-3301","40","2,150","2026/9/2"],st:"ok"},
+ {d:["2026/8/18","カワサキ電機","10250","銅バー 5×30","MT-4102","8","12,600","2026/8/25"],st:"err",
+  err:["得意先コード 10250 は与信限度額を超過（残 32万円／今回 100.8万円）"],col:2},
+ {d:["2026/8/18","ミドリ製作所","10198","ステンレス板 SUS304","MT-5220","12","15,800","2026/8/27"],st:"ok"},
+ {d:["2026/8/19","タカダ建設","10310","H形鋼 200×100","MT-6003","6","28,000","2026/9/5"],st:"fix",
+  fix:["品目コードの桁数不足を補正（MT-6003 → MT-06003）"],col:4},
+ {d:["2026/8/19","株式会社アオバ商事","10024","鋼板SS400 3.2t","MT-1001","20","9,900","2026/8/30"],st:"err",
+  err:["単価が前回実績（8,400円）から +17.9%。契約単価と乖離しています"],col:6},
+ {d:["2026/8/19","ミナト機械","10402","丸鋼 φ16","MT-3308","25","1,780","2026/9/1"],st:"ok"}
+];
+function renderXl(){
+  $("xlTable").innerHTML=
+    `<tr><th></th>${COLS.map((c,i)=>`<th>${String.fromCharCode(65+i)}</th>`).join("")}</tr>
+     <tr><th>1</th>${COLS.map(c=>`<th style="background:#E8EDF3;color:var(--ink);font-family:inherit;font-weight:700">${c}</th>`).join("")}</tr>`+
+    ROWS.map((r,i)=>`<tr class="${r.st}"><th>${i+2}</th>${r.d.map((v,j)=>
+      `<td class="${j>=5&&j<=6?"n":""} ${r.col===j?(r.st==="err"?"cell-err":"cell-fix"):""}">${v}</td>`).join("")}</tr>`).join("");
+  const ok=ROWS.filter(r=>r.st==="ok").length,fx=ROWS.filter(r=>r.st==="fix").length,er=ROWS.filter(r=>r.st==="err").length;
+  $("kRows").textContent=ROWS.length;$("kOk").textContent=0;$("kFix").textContent=fx;$("kErr").textContent=er;
+  $("chkSum").innerHTML=
+    `<div class="g"><b>${ok}</b>そのまま登録可</div>
+     <div class="w"><b>${fx}</b>自動補正で登録可</div>
+     <div class="r"><b>${er}</b>要確認（登録保留）</div>`;
+  $("errList").innerHTML=ROWS.map((r,i)=>{
+    if(r.st==="ok")return"";
+    const msgs=r.st==="fix"?r.fix:r.err;
+    return `<div class="e"><span class="no">${i+2}行目</span>
+      <span class="bd"><b style="color:${r.st==="err"?"var(--red)":"var(--warn)"}">${r.st==="err"?"要確認":"自動補正"}</b>
+        ${msgs.map(m=>`<span class="d">${m}</span>`).join("")}</span>
+      ${r.st==="fix"?`<button class="fixb" data-i="${i}">補正する</button>`
+        :`<button class="fixb" data-i="${i}" data-force="1">承認して登録</button>`}</div>`;
+  }).join("")||`<div class="e"><span class="bd">エラーはありません</span></div>`;
+  $("errList").querySelectorAll(".fixb").forEach(b=>b.addEventListener("click",()=>{
+    const i=+b.dataset.i,r=ROWS[i];
+    if(r.st==="fix"){
+      if(i===1){r.d[0]="2026/8/18";r.d[1]="株式会社ヨコハマ金属"}
+      if(i===5){r.d[4]="MT-06003"}
+    }else{toast("上長承認として記録し、登録対象に含めます")}
+    r.st="ok";r.col=undefined;renderXl();
+  }));
+}
+$("pasteBtn").addEventListener("click",()=>{
+  $("pasteBox").style.display="none";$("xlArea").style.display="";
+  $("chkCard").style.display="";$("xlName").textContent="受注一覧_0818.xlsx（8行）";
+  renderXl();
+  toast("列名からマッピングし、基幹のマスタと照合しました");
+});
+$("fixAll").addEventListener("click",()=>{
+  ROWS.forEach((r,i)=>{if(r.st==="fix"){
+    if(i===1){r.d[0]="2026/8/18";r.d[1]="株式会社ヨコハマ金属"}
+    if(i===5){r.d[4]="MT-06003"}
+    r.st="ok";r.col=undefined;}});
+  renderXl();toast("補正可能な項目をすべて修正しました");
+});
+$("runBtn").addEventListener("click",()=>{
+  const tgt=ROWS.filter(r=>r.st==="ok");
+  if(!tgt.length){toast("登録できる行がありません");return}
+  $("runBtn").disabled=true;$("log").style.display="";$("log").innerHTML="";
+  let i=0,okc=0;
+  const tick=()=>{
+    if(i>=ROWS.length){
+      $("prog").style.width="100%";
+      $("kOk").textContent=okc;
+      $("log").innerHTML+=`<div class="ok">— 完了：${okc}件を登録／${ROWS.length-okc}件は保留 —</div>`;
+      $("log").innerHTML+=`<div>伝票番号を書き戻したExcelを出力しました（受注一覧_0818_結果.xlsx）</div>`;
+      $("runBtn").disabled=false;$("runBtn").textContent="登録済み（再実行可）";
+      $("log").scrollTop=$("log").scrollHeight;
+      toast(`${okc}件を基幹システムへ登録しました`);return;
+    }
+    const r=ROWS[i];
+    $("prog").style.width=((i+1)/ROWS.length*100)+"%";
+    if(r.st==="ok"){okc++;
+      $("log").innerHTML+=`<div class="ok">[OK] ${i+2}行目 ${r.d[1]} / ${r.d[4]} → 受注伝票 00${45210+okc} を登録</div>`;
+    }else{
+      $("log").innerHTML+=`<div class="er">[保留] ${i+2}行目 ${r.d[1]} → ${r.err?r.err[0]:"要確認"}</div>`;
+    }
+    $("log").scrollTop=$("log").scrollHeight;i++;setTimeout(tick,260);
+  };tick();
+});
+
+/* ══ 画面補助 ══ */
+const EX=[["得意先","株式会社アオバ商事（10024）","99.1%"],["先方注文番号","PO-2026-0881","98.6%"],
+ ["希望納期","2026/08/29","99.4%"],["品目1","鋼板SS400 3.2t → MT-1001","97.8%"],
+ ["数量1 / 単価1","20 枚 / 8,400 円","99.2%"],["品目2","アングル L50×50×6 → MT-02044","96.4%"],
+ ["数量2 / 単価2","15 本 / 3,200 円","98.9%"]];
+$("exList").innerHTML=EX.map(f=>`<div class="fitem ${parseFloat(f[2])<98?"warn":""}">
+  <span class="k">${f[0]}</span><span class="v">${f[1]}</span><span class="cf">${f[2]}</span></div>`).join("");
+$("fillBtn").addEventListener("click",()=>{
+  const set=[["e3","10024"],["e4","株式会社アオバ商事"],["e5","2026/08/18"],["e6","2026/08/29"],
+    ["e7","PO-2026-0881"],["e8","月末締め翌月末払い"]];
+  set.forEach((s,i)=>setTimeout(()=>{const e=$(s[0]);e.value=s[1];
+    e.classList.remove("fill");void e.offsetWidth;e.classList.add("fill")},i*110));
+  setTimeout(()=>{
+    const rows=[["10","MT-1001","鋼板SS400 3.2t×1219×2438","20","8,400","168,000"],
+      ["20","MT-02044","アングル L50×50×6","15","3,200","48,000"],["30","","","","",""]];
+    $("eItems").innerHTML=`<tr><th style="width:34px">項</th><th>品目コード</th><th>品目テキスト</th><th style="width:66px">数量</th><th style="width:86px">単価</th><th style="width:96px">金額</th></tr>`+
+      rows.map(r=>`<tr>${r.map((c,i)=>`<td class="${i>=3?"n":""}">${c}</td>`).join("")}</tr>`).join("");
+    $("ansBox").innerHTML=`<div class="ansbox"><b>登録前チェック</b><br>
+      与信残 480万円に対し今回 21.6万円 — 問題ありません。<br>
+      在庫：MT-1001 は 62枚（引当可）、MT-02044 は 8本のみで<b>7本不足</b>。納期回答は 8/31 を推奨します。</div>`;
+    toast("メールの内容を画面へ入力しました（在庫不足を1件検知）");
+  },set.length*110+150);
+});
+const ANS={
+ "コード":`<b>MT-1001</b>（鋼板SS400 3.2t×1219×2438）<br>類似：MT-1002（4.5t）／MT-1003（6.0t）<br><span style="font-size:11px;color:var(--ink3)">品目マスタ 2件を参照</span>`,
+ "与信":`株式会社アオバ商事の<b>与信限度 500万円／使用 20万円／残 480万円</b><br>直近3か月の支払遅延なし`,
+ "単価":`前回（2026/07/12）の単価は<b>8,400円</b>、契約単価も 8,400円<br>今回入力と一致しています`,
+ "在庫":`MT-1001：<b>62枚</b>（引当可）／MT-02044：<b>8本</b>（7本不足・入荷予定 8/30）`
+};
+function ask(q){
+  const key=/コード/.test(q)?"コード":/与信/.test(q)?"与信":/単価/.test(q)?"単価":/在庫/.test(q)?"在庫":null;
+  $("ansBox").innerHTML=`<div class="ansbox">${key?ANS[key]:
+    "該当する情報が見つかりませんでした。品目名・得意先名・伝票番号などで再度お試しください。"}</div>`;
+  toast("基幹システムのマスタを照会しました（読み取りのみ）");
+}
+$("askBtn").addEventListener("click",()=>{const v=$("askIn").value.trim();if(v)ask(v)});
+$("askIn").addEventListener("keydown",e=>{if(e.key==="Enter")$("askBtn").click()});
+document.querySelectorAll(".qsug button").forEach(b=>b.addEventListener("click",()=>{$("askIn").value=b.textContent;ask(b.textContent)}));
+$("asstMin").addEventListener("click",()=>{
+  $("asst").classList.toggle("min");
+  $("asstMin").textContent=$("asst").classList.contains("min")?"□":"−";
+});
+$("erpSave").addEventListener("click",()=>toast("受注伝票 0045218 を登録しました（デモ）"));
+/* ドラッグ */
+(function(){const w=$("asst"),h=$("asstHd"),p=w.parentElement;let d=null;
+  h.addEventListener("pointerdown",e=>{if(e.target.id==="asstMin")return;
+    const r=w.getBoundingClientRect(),b=p.getBoundingClientRect();
+    d={x:e.clientX,y:e.clientY,l:r.left-b.left,t:r.top-b.top,bw:b.width,bh:b.height,w:r.width,h:r.height};
+    w.style.right="auto";w.style.left=d.l+"px";w.style.top=d.t+"px";e.preventDefault()});
+  addEventListener("pointermove",e=>{if(!d)return;
+    w.style.left=Math.max(4,Math.min(d.bw-d.w-4,d.l+e.clientX-d.x))+"px";
+    w.style.top=Math.max(4,Math.min(d.bh-d.h-4,d.t+e.clientY-d.y))+"px"});
+  addEventListener("pointerup",()=>d=null);
+})();
+/* タブ */
+document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("on"));b.classList.add("on");
+  $("v-xl").classList.toggle("on",b.dataset.v==="xl");
+  $("v-ov").classList.toggle("on",b.dataset.v==="ov");
+}));
+function toast(m){const t=$("toastEl");t.textContent=m;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),2600)}
+</script>
+</body>
+</html>
