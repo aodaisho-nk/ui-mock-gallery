@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>開発費用シミュレーター｜外注した場合の概算見積 デモ</title>
+<style>
+:root{
+  --bg:#F5F6F8; --paper:#fff; --ink:#15181D; --ink2:#4A5058; --ink3:#858B94;
+  --line:#E1E3E7; --line2:#CDD1D6;
+  --accent:#1F4E79; --accent-l:#EAF0F6;
+  --ok:#1A6B4A; --ok-l:#E5F2EC; --warn:#8A6416; --warn-l:#FBF3DF; --red:#A93A33;
+  --mono:"SFMono-Regular","Consolas",monospace;
+  --mincho:"Hiragino Mincho ProN","Yu Mincho",serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.8}
+button{font-family:inherit;cursor:pointer;color:inherit}
+.lbl{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--ink3)}
+header{background:var(--paper);border-bottom:1px solid var(--line);padding:14px 26px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.mk{width:32px;height:32px;border:1px solid var(--ink);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px}
+header h1{font-size:16px;font-weight:700}
+header .sub{font-size:11.5px;color:var(--ink3)}
+.note{margin-left:auto;font-size:11px;color:var(--ink3)}
+
+main{max-width:1220px;margin:22px auto;padding:0 26px 60px;display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:22px;align-items:start}
+@media(max-width:1020px){main{grid-template-columns:1fr}}
+.panel{background:var(--paper);border:1px solid var(--line)}
+.ph{padding:14px 20px;border-bottom:1px solid var(--line);font-size:13px;font-weight:700;display:flex;align-items:center;gap:10px}
+.ph .n{font-family:var(--mono);font-size:10.5px;color:var(--ink3);border:1px solid var(--line2);padding:1px 8px}
+.pb{padding:18px 20px 20px}
+
+/* 対象選択 */
+.mocks{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+@media(max-width:640px){.mocks{grid-template-columns:1fr}}
+.m{border:1px solid var(--line2);background:#fff;padding:13px 15px;text-align:left;transition:.15s;position:relative}
+.m:hover{border-color:var(--ink)}
+.m.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.m .t{font-size:14px;font-weight:700;line-height:1.45}
+.m .d{font-size:11px;color:var(--ink3);margin-top:2px;line-height:1.6}
+.m.on .d{color:rgba(255,255,255,.72)}
+.m .sc{position:absolute;right:12px;top:12px;font-family:var(--mono);font-size:10px;color:var(--ink3)}
+.m.on .sc{color:rgba(255,255,255,.8)}
+
+/* 条件 */
+.opt{border-top:1px solid var(--line);padding:14px 0}
+.opt:first-child{border-top:none;padding-top:4px}
+.opt .q{font-size:13px;font-weight:700;margin-bottom:3px}
+.opt .h{font-size:11px;color:var(--ink3);margin-bottom:9px}
+.segs{display:flex;border:1px solid var(--line2)}
+.segs button{flex:1;border:none;background:none;padding:11px 8px;font-size:12.5px;border-right:1px solid var(--line2);transition:.15s}
+.segs button:last-child{border-right:none}
+.segs button .s{display:block;font-size:10.5px;color:var(--ink3);margin-top:1px}
+.segs button.on{background:var(--ink);color:#fff}
+.segs button.on .s{color:rgba(255,255,255,.7)}
+.checks{display:flex;flex-wrap:wrap;gap:8px}
+.checks button{border:1px solid var(--line2);background:#fff;padding:9px 14px;font-size:12.5px;display:flex;align-items:center;gap:8px}
+.checks button .b{width:14px;height:14px;border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;font-size:10px;line-height:1}
+.checks button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.checks button.on .b{background:#fff;color:var(--ink);border-color:#fff}
+.checks button .p{font-family:var(--mono);font-size:10.5px;color:var(--ink3);margin-left:2px}
+.checks button.on .p{color:rgba(255,255,255,.75)}
+
+/* 見積書 */
+.quote{background:var(--paper);border:1px solid var(--line);position:sticky;top:16px}
+.qh{background:var(--accent);color:#fff;padding:14px 20px}
+.qh .t{font-family:var(--mincho);font-size:17px;letter-spacing:.3em}
+.qh .s{font-size:11px;opacity:.85;letter-spacing:.04em}
+.qb{padding:18px 20px}
+.qto{font-size:13px;border-bottom:1px solid var(--ink);padding-bottom:5px;margin-bottom:14px;display:inline-block;font-weight:600}
+.total{border:2px solid var(--ink);padding:12px 16px;display:flex;align-items:baseline;gap:12px;margin-bottom:16px}
+.total .l{font-size:12px}
+.total .v{margin-left:auto;font-family:var(--mono);font-size:26px;font-weight:700;letter-spacing:-.01em}
+.total .u{font-size:12px}
+table.q{width:100%;border-collapse:collapse;font-size:12px}
+table.q th{background:#F4F6F8;border:1px solid var(--line);padding:6px 9px;text-align:left;font-size:10.5px;color:var(--ink3);font-weight:600}
+table.q td{border:1px solid var(--line);padding:7px 9px}
+table.q td.n{text-align:right;font-family:var(--mono);white-space:nowrap}
+table.q tr.sum td{background:#FAFBFC;font-weight:700}
+.terms{margin-top:14px;border:1px solid var(--line);background:#FAFBFC;padding:11px 14px;font-size:11px;line-height:1.85;color:var(--ink2)}
+.terms b{color:var(--ink)}
+.cmp2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.cmp2 div{border:1px solid var(--line);padding:11px 13px}
+.cmp2 .b{border-color:var(--ok);background:var(--ok-l)}
+.cmp2 .t{font-size:10.5px;color:var(--ink3);margin-bottom:2px}
+.cmp2 b{font-family:var(--mono);font-size:18px;display:block}
+.cmp2 .d{font-size:10.5px;color:var(--ink3);line-height:1.6;margin-top:3px}
+.roi{margin-top:14px;border-left:3px solid var(--accent);padding:8px 0 8px 14px;font-size:12px;line-height:1.9}
+.roi b{font-family:var(--mono);font-size:15px}
+.qacts{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.qacts button{flex:1;border:1px solid var(--line2);background:none;padding:10px;font-size:12px;font-weight:600;min-width:120px}
+.qacts button.p{background:var(--ink);color:#fff;border-color:var(--ink)}
+.stepnote{font-size:11px;color:var(--ink3);text-align:center;margin-top:10px}
+.cap{grid-column:1/-1;font-size:11.5px;color:var(--ink3);text-align:center;margin-top:4px}
+.cap b{color:var(--accent)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(18px);background:var(--ink);color:#fff;
+  padding:11px 24px;font-size:12.5px;opacity:0;pointer-events:none;transition:.25s;z-index:60}
+.toast.show{opacity:1;transform:translateX(-50%)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="mk">EST</div>
+  <div><h1>開発費用シミュレーター</h1>
+    <div class="sub">このモックを専門業者に外注した場合の概算費用を、その場で算出します</div></div>
+  <span class="note">相場データ：人月単価 60〜200万円（2026年）</span>
+</header>
+
+<main>
+  <div>
+    <div class="panel">
+      <div class="ph"><span class="n">01</span>開発するシステムを選ぶ</div>
+      <div class="pb">
+        <div class="mocks" id="mocks"></div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:16px">
+      <div class="ph"><span class="n">02</span>条件を選ぶ</div>
+      <div class="pb">
+        <div class="opt">
+          <div class="q">利用規模</div><div class="h">同時に使う人数と処理件数の想定</div>
+          <div class="segs" id="segScale"></div>
+        </div>
+        <div class="opt">
+          <div class="q">発注先</div><div class="h">人月単価が大きく変わります</div>
+          <div class="segs" id="segVendor"></div>
+        </div>
+        <div class="opt">
+          <div class="q">追加要件</div><div class="h">該当するものを選んでください（複数可）</div>
+          <div class="checks" id="chkOpt"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:16px">
+      <div class="ph"><span class="n">03</span>工数の内訳</div>
+      <div class="pb">
+        <table class="q" id="wbs"></table>
+        <div class="terms">工数は一般的な受託開発の標準的な配分（要件定義15%・設計20%・実装40%・テスト15%・移行/教育10%）に基づく概算です。実際は要件の詰め方で上下します。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 見積書 -->
+  <div>
+    <div class="quote">
+      <div class="qh"><div class="t">御 見 積 書</div>
+        <div class="s">概算・システム開発一式</div></div>
+      <div class="qb">
+        <div class="qto" id="qTo">株式会社サンプル 御中</div>
+        <div class="total"><span class="l">お見積金額（税込）</span>
+          <span class="v" id="qTotal">—</span><span class="u">円</span></div>
+        <table class="q" id="qTable"></table>
+        <div class="terms" id="qTerms"></div>
+
+        <div class="lbl" style="margin-top:16px">参考：発注先による違い</div>
+        <div class="cmp2" id="cmp2"></div>
+
+        <div class="roi" id="roi"></div>
+
+        <div class="qacts">
+          <button class="p" onclick="toast('PDFで出力しました（デモ）')">PDFで出力</button>
+          <button onclick="toast('見積内訳をExcelで出力しました（デモ）')">内訳をExcel</button>
+        </div>
+        <div class="stepnote">金額は選択条件から自動計算した概算です。正式見積は要件確認後に提出します。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cap">モックを見せた直後に<b>「これを外注するといくらか」を数字で提示</b>できるため、そのまま費用対効果の話に進められます。</div>
+</main>
+
+<div class="toast" id="toastEl"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+/* ══ 対象システム（基準工数：人月）══ */
+const SYS=[
+ {k:"erp",  t:"基幹システム連携アシスタント",d:"Excel一括登録＋画面補助（SAP等と連携）",mm:8.0},
+ {k:"inv",  t:"メール請求書 自動取込",       d:"読取・異常検知・格納・台帳化",        mm:5.0},
+ {k:"doda", t:"求人媒体→システム自動転記",   d:"Chrome拡張・判定ロジック・シート連携", mm:3.5},
+ {k:"itv",  t:"面接評価シート自動生成",       d:"録音・文字起こし・シート生成・納品",   mm:4.5},
+ {k:"slide",t:"AIスライド自動作成",           d:"情報収集・生成・編集・テンプレ登録",   mm:6.0},
+ {k:"faq",  t:"社内FAQ AIチャットボット",     d:"RAG構築・権限制御・管理画面",         mm:5.5},
+ {k:"ocr",  t:"帳票OCR 取り込みツール",       d:"常駐アプリ・範囲OCR・自動入力",       mm:4.0},
+ {k:"rj",   t:"不採用理由 言語化システム",    d:"入力・生成・集計・通知",              mm:2.5}
+];
+const SCALE=[["s","小規模","〜30名"],["m","中規模","〜300名"],["l","大規模","300名〜"]];
+const SCALE_R={s:1.0,m:1.25,l:1.6};
+const VENDOR=[["big","大手SIer","160万/人月"],["mid","中堅開発会社","100万/人月"],["free","フリー・小規模","70万/人月"]];
+const VENDOR_R={big:1600000,mid:1000000,free:700000};
+const OPTS=[
+ {k:"sso",t:"SSO・権限連携",mm:0.8},{k:"api",t:"基幹API連携",mm:1.5},
+ {k:"sec",t:"セキュリティ監査対応",mm:1.0},{k:"sp",t:"スマホ対応",mm:0.8},
+ {k:"multi",t:"多拠点・多言語",mm:1.2},{k:"train",t:"導入研修・マニュアル",mm:0.6}
+];
+let sel="erp",scale="m",vendor="mid",opts=["api"];
+
+/* ══ 描画 ══ */
+function renderSys(){
+  $("mocks").innerHTML=SYS.map(s=>`<button class="m ${s.k===sel?"on":""}" data-k="${s.k}">
+    <span class="sc">${s.mm.toFixed(1)}人月〜</span>
+    <span class="t">${s.t}</span><span class="d">${s.d}</span></button>`).join("");
+  document.querySelectorAll(".m").forEach(b=>b.addEventListener("click",()=>{sel=b.dataset.k;renderSys();calc()}));
+}
+function renderSegs(){
+  $("segScale").innerHTML=SCALE.map(s=>`<button class="${s[0]===scale?"on":""}" data-v="${s[0]}">
+    ${s[1]}<span class="s">${s[2]}</span></button>`).join("");
+  $("segVendor").innerHTML=VENDOR.map(s=>`<button class="${s[0]===vendor?"on":""}" data-v="${s[0]}">
+    ${s[1]}<span class="s">${s[2]}</span></button>`).join("");
+  $("segScale").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{scale=b.dataset.v;renderSegs();calc()}));
+  $("segVendor").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{vendor=b.dataset.v;renderSegs();calc()}));
+  $("chkOpt").innerHTML=OPTS.map(o=>`<button class="${opts.includes(o.k)?"on":""}" data-k="${o.k}">
+    <span class="b">${opts.includes(o.k)?"✓":""}</span>${o.t}<span class="p">+${o.mm}人月</span></button>`).join("");
+  $("chkOpt").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{
+    const k=b.dataset.k,i=opts.indexOf(k);i<0?opts.push(k):opts.splice(i,1);renderSegs();calc();
+  }));
+}
+/* ══ 計算 ══ */
+function calc(){
+  const s=SYS.find(x=>x.k===sel);
+  const base=s.mm*SCALE_R[scale];
+  const optMM=OPTS.filter(o=>opts.includes(o.k)).reduce((a,b)=>a+b.mm,0);
+  const total=base+optMM;
+  const rate=VENDOR_R[vendor];
+  const WBS=[["要件定義",.15],["基本・詳細設計",.20],["実装・開発",.40],["テスト・品質保証",.15],["データ移行・教育",.10]];
+  $("wbs").innerHTML=`<tr><th>工程</th><th style="text-align:right">工数</th><th style="text-align:right">概算費用</th><th>主な作業</th></tr>`+
+    WBS.map(w=>{const mm=total*w[1];
+      return `<tr><td>${w[0]}</td><td class="n">${mm.toFixed(1)} 人月</td>
+        <td class="n">${yen(mm*rate)}</td>
+        <td style="font-size:11px;color:var(--ink3)">${{
+          "要件定義":"業務ヒアリング・画面定義・データ項目整理",
+          "基本・詳細設計":"画面設計・DB設計・連携方式の決定",
+          "実装・開発":"画面開発・ロジック実装・API連携",
+          "テスト・品質保証":"単体／結合／受入テスト・修正",
+          "データ移行・教育":"既存データ移行・操作研修・マニュアル"}[w[0]]}</td></tr>`}).join("")+
+    `<tr class="sum"><td>合計</td><td class="n">${total.toFixed(1)} 人月</td><td class="n">${yen(total*rate)}</td><td></td></tr>`;
+
+  const dev=total*rate;
+  const pm=dev*0.12, infra=(scale==="l"?600000:scale==="m"?300000:120000);
+  const sub=dev+pm+infra, tax=Math.round(sub*0.1), grand=sub+tax;
+  const runMonth=Math.round((scale==="l"?280000:scale==="m"?150000:80000)+ (opts.includes("api")?50000:0));
+
+  $("qTable").innerHTML=`<tr><th>項目</th><th style="text-align:right">数量</th><th style="text-align:right">金額</th></tr>
+    <tr><td>${s.t}　開発一式</td><td class="n">${total.toFixed(1)} 人月</td><td class="n">${yen(dev)}</td></tr>
+    <tr><td>プロジェクト管理費</td><td class="n">12%</td><td class="n">${yen(pm)}</td></tr>
+    <tr><td>環境構築・初期設定</td><td class="n">一式</td><td class="n">${yen(infra)}</td></tr>
+    <tr class="sum"><td>小計</td><td class="n"></td><td class="n">${yen(sub)}</td></tr>
+    <tr><td>消費税（10%）</td><td class="n"></td><td class="n">${yen(tax)}</td></tr>
+    <tr class="sum"><td>合計</td><td class="n"></td><td class="n">${yen(grand)}</td></tr>
+    <tr><td>月額保守・運用（参考）</td><td class="n">月額</td><td class="n">${yen(runMonth)}</td></tr>`;
+  $("qTotal").textContent=Math.round(grand).toLocaleString();
+
+  const months=Math.max(2,Math.ceil(total/1.6));
+  $("qTerms").innerHTML=`<b>前提条件</b><br>
+    ・想定期間：<b>約${months}か月</b>（要件確定後・${VENDOR.find(v=>v[0]===vendor)[1]}体制）<br>
+    ・単価：${VENDOR.find(v=>v[0]===vendor)[2]}（2026年の一般的な相場を参照）<br>
+    ・基幹システム側の改修費、ライセンス費、ハードウェア費は含みません<br>
+    ・お客様側で用意いただくもの：テスト環境、接続用アカウント、業務ヒアリングのお時間<br>
+    ・見積有効期限：発行日より30日間`;
+
+  $("cmp2").innerHTML=VENDOR.map(v=>{
+    const g=Math.round((total*VENDOR_R[v[0]]*1.12+infra)*1.1);
+    return `<div class="${v[0]===vendor?"b":""}" style="${v[0]===vendor?"":""}">
+      <div class="t">${v[1]}</div><b>${(g/10000).toFixed(0)}万円</b>
+      <div class="d">${v[2]}</div></div>`}).join("");
+
+  const savedHours=({erp:420,inv:180,doda:96,itv:120,slide:240,faq:150,ocr:160,rj:40})[sel]*(scale==="l"?1.8:scale==="m"?1:0.5);
+  const savedYen=savedHours*3000;
+  const payback=(grand/savedYen).toFixed(1);
+  $("roi").innerHTML=`<b>${Math.round(savedHours).toLocaleString()}</b> 時間／年の削減（人件費 時給3,000円換算で <b>${(savedYen/10000).toFixed(0)}</b> 万円／年）<br>
+    投資回収の目安：<b>${payback}</b> 年　※月額保守を含めない単純計算`;
+}
+function yen(n){return "¥"+Math.round(n).toLocaleString()}
+function toast(m){const t=$("toastEl");t.textContent=m;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),2400)}
+renderSys();renderSegs();calc();
+</script>
+</body>
+</html>
