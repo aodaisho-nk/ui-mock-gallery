@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIオファー文面アシスタント｜デモサイト</title>
+<style>
+:root{
+  --navy:#1a365d; --blue:#2b6cb0; --blue-l:#EBF2FA; --blue-ll:#F6F9FC;
+  --ink:#1A202C; --ink2:#4A5568; --ink3:#8A94A2;
+  --line:#DDE3EA; --line2:#C7D0DA; --paper:#fff; --bg:#F7F9FB;
+  --ok:#1F7A5A; --ok-l:#E6F4EE; --warn:#8A6416; --warn-l:#FDF6E3; --warn-b:#E8C97A;
+  --mono:"SFMono-Regular","Consolas",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:70px}
+body{font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",sans-serif;
+  background:var(--bg);color:var(--ink);font-size:14px;line-height:1.85;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer;color:inherit}
+.wrap{max-width:1200px;margin:0 auto;padding:0 24px}
+
+/* ══ ヘッダー ══ */
+.nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;align-items:center;gap:26px;height:58px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;white-space:nowrap}
+.brand .m{width:26px;height:26px;background:var(--navy);color:#fff;display:flex;align-items:center;
+  justify-content:center;font-family:var(--mono);font-size:9px;border-radius:5px}
+.nav a{color:var(--ink2);text-decoration:none;font-size:13px;padding:4px 0;border-bottom:2px solid transparent}
+.nav a:hover{color:var(--blue);border-color:var(--blue)}
+.nav .demo{margin-left:auto;background:var(--blue);color:#fff;border-radius:6px;padding:7px 18px;
+  font-size:13px;font-weight:700;border-bottom:none}
+.nav .demo:hover{background:var(--navy);border-color:transparent;color:#fff}
+
+/* ══ セクション共通 ══ */
+section{padding:56px 0}
+section.alt{background:var(--paper);border-block:1px solid var(--line)}
+.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.28em;color:var(--blue);margin-bottom:8px}
+h2.sec{font-size:25px;font-weight:700;letter-spacing:.02em;margin-bottom:6px}
+.lead{color:var(--ink2);font-size:14px;margin-bottom:28px}
+
+/* ══ イントロ ══ */
+.hero{background:linear-gradient(180deg,#fff, var(--blue-ll));padding:66px 0 54px;border-bottom:1px solid var(--line)}
+.hero h1{font-size:34px;line-height:1.5;font-weight:700;letter-spacing:.01em}
+.hero h1 em{font-style:normal;color:var(--blue);border-bottom:3px solid rgba(43,108,176,.28)}
+.hero p.sub{color:var(--ink2);margin-top:14px;font-size:14.5px;max-width:720px}
+.hero .cta{display:inline-block;margin-top:24px;background:var(--navy);color:#fff;text-decoration:none;
+  padding:12px 30px;border-radius:7px;font-weight:700;font-size:14px}
+.hero .cta:hover{background:var(--blue)}
+.pts{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:38px}
+.pt{background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px 22px}
+.pt .n{font-family:var(--mono);font-size:11px;color:var(--blue);letter-spacing:.15em}
+.pt h3{font-size:16px;margin:5px 0 6px}
+.pt p{font-size:12.5px;color:var(--ink2);line-height:1.8}
+.pt .big{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--navy)}
+
+/* ══ デモ ══ */
+.browser{border:1px solid var(--line2);border-radius:10px;overflow:hidden;background:#fff;
+  box-shadow:0 10px 34px rgba(26,54,93,.10)}
+.bbar{background:#EDF1F5;border-bottom:1px solid var(--line);padding:8px 14px;display:flex;align-items:center;gap:8px}
+.dots{display:flex;gap:5px}.dots i{width:9px;height:9px;border-radius:50%;background:#CBD3DC;display:block}
+.url{flex:1;background:#fff;border:1px solid var(--line);border-radius:5px;padding:3px 12px;
+  font-family:var(--mono);font-size:11px;color:var(--ink3)}
+.ext{background:var(--navy);color:#fff;font-size:10.5px;border-radius:4px;padding:3px 9px;white-space:nowrap}
+
+.site{background:#fff}
+.sitebar{background:var(--navy);color:#fff;padding:11px 20px;display:flex;align-items:center;gap:12px}
+.sitebar .logo{font-weight:700;font-size:14px;letter-spacing:.04em}
+.sitebar .badge{font-size:10.5px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);
+  border-radius:4px;padding:1px 9px}
+.sitebar .who{margin-left:auto;font-size:11.5px;opacity:.8}
+
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--line);background:#FAFCFE;padding:0 18px}
+.tabs button{border:none;background:none;padding:12px 18px;font-size:13px;color:var(--ink2);
+  border-bottom:2px solid transparent;display:flex;align-items:center;gap:8px}
+.tabs button.on{color:var(--blue);border-color:var(--blue);font-weight:700;background:#fff}
+.tabs .dot{width:6px;height:6px;border-radius:50%;background:var(--line2)}
+.tabs button.saved .dot{background:var(--ok)}
+
+.demo2{display:grid;grid-template-columns:432px minmax(0,1fr);min-height:660px;position:relative}
+.colL{border-right:1px solid var(--line);padding:20px 22px;background:#FCFDFE;overflow:auto;max-height:700px}
+.colR{padding:20px 24px 200px;overflow:auto;max-height:700px}
+
+.prof h3{font-size:18px;font-weight:700;line-height:1.5}
+.prof .uni{font-size:12.5px;color:var(--ink2);margin-top:2px}
+.pblock{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
+.pblock .lb{font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--ink3);margin-bottom:7px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:11.5px;background:var(--blue-l);color:var(--blue);border:1px solid #CFE0F1;
+  border-radius:12px;padding:2px 11px}
+.apt{display:grid;grid-template-columns:88px 1fr 26px;gap:7px 10px;align-items:center;font-size:12px}
+.apt .bar{height:7px;background:#E7ECF2;border-radius:4px;overflow:hidden}
+.apt .bar i{display:block;height:100%;background:var(--blue);border-radius:4px;transition:width .5s}
+.apt .v{font-family:var(--mono);font-size:11px;color:var(--ink2);text-align:right}
+.ptext{font-size:12.5px;color:var(--ink2);line-height:1.9;white-space:pre-wrap}
+
+.frm .fl{font-size:12.5px;font-weight:700;margin:0 0 6px;display:flex;align-items:center;gap:8px}
+.frm .fl span{font-size:10.5px;font-weight:400;color:var(--ink3)}
+.frm input[type=text]{width:100%;border:1px solid var(--line2);border-radius:6px;padding:11px 13px;
+  font-family:inherit;font-size:13.5px;outline:none}
+.frm input[type=text]:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(43,108,176,.12)}
+.msgbox{margin-top:4px;border:1px solid var(--line2);border-radius:6px;padding:15px 16px;min-height:400px;
+  font-size:13px;line-height:2.05;background:#fff;outline:none;overflow:auto}
+.msgbox:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(43,108,176,.12)}
+.msgbox .ph{background:#FFF6D8;border:1px dashed #DDBE6A;border-radius:4px;padding:1px 8px;
+  display:inline-block;color:#8A6416;font-weight:700;transition:.2s}
+.msgbox .ph.flash{background:#FFE79A;box-shadow:0 0 0 4px rgba(221,190,106,.35)}
+.msgbox .ins{background:#EDF7F2;border-left:3px solid var(--ok);padding:2px 0 2px 12px;margin:2px 0}
+.msgbox .empty{color:#C3CBD5}
+.sendbar{display:flex;gap:10px;margin-top:14px;align-items:center}
+.sendbar button{border:1px solid var(--line2);background:#fff;border-radius:6px;padding:10px 22px;font-size:13px}
+.sendbar .prim{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:700}
+.sendbar .cnt{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--ink3)}
+
+/* ══ アシスタントパネル ══ */
+.asst{position:absolute;right:22px;bottom:22px;width:400px;background:#fff;border:1px solid var(--line2);
+  border-radius:10px;box-shadow:0 16px 44px rgba(26,54,93,.24);overflow:hidden;z-index:20}
+.ah{background:var(--navy);color:#fff;padding:10px 14px;display:flex;align-items:center;gap:9px;cursor:move;user-select:none}
+.ah .ic{width:20px;height:20px;background:rgba(255,255,255,.18);border-radius:4px;display:flex;
+  align-items:center;justify-content:center;font-family:var(--mono);font-size:9px}
+.ah .t{font-size:12.5px;font-weight:700}
+.ah .tg{margin-left:auto;font-size:10px;background:rgba(255,255,255,.15);border-radius:3px;padding:1px 7px}
+.ab{padding:14px}
+.genbtn{width:100%;background:var(--blue);color:#fff;border:none;border-radius:6px;padding:12px;
+  font-size:13.5px;font-weight:700;letter-spacing:.04em}
+.genbtn:hover{background:#25588f}
+.genbtn:disabled{background:#B9C6D4;cursor:default}
+.status{display:none;align-items:center;gap:9px;font-size:12px;color:var(--blue);
+  background:var(--blue-l);border-radius:6px;padding:9px 12px;margin-top:10px}
+.status.on{display:flex}
+.spin{width:13px;height:13px;border:2px solid #C3D8ED;border-top-color:var(--blue);border-radius:50%;
+  animation:sp .7s linear infinite;flex:none}
+@keyframes sp{to{transform:rotate(360deg)}}
+.out{margin-top:12px;display:none}
+.out.on{display:block}
+.olabel{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;color:var(--ink3);
+  display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.olabel .c{margin-left:auto;font-size:10.5px;letter-spacing:0}
+.olabel .c.ng{color:var(--warn);font-weight:700}
+.otitle{border:1px solid var(--line);border-radius:6px;background:#FAFCFE;padding:9px 11px;font-size:12.5px;
+  line-height:1.7}
+.otext{border:1px solid var(--line);border-radius:6px;background:#FAFCFE;padding:11px 12px;font-size:12px;
+  line-height:1.95;white-space:pre-wrap;max-height:210px;overflow:auto;margin-bottom:2px}
+.otext .cur{display:inline-block;width:7px;background:var(--blue);animation:bl .8s steps(1) infinite;
+  height:13px;vertical-align:-2px}
+@keyframes bl{50%{opacity:0}}
+.warnbox{display:none;background:var(--warn-l);border:1px solid var(--warn-b);border-radius:6px;
+  padding:8px 11px;font-size:11.5px;color:var(--warn);margin-top:8px;line-height:1.75}
+.warnbox.on{display:block}
+.warnbox b{display:block}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:11px}
+.acts button{border:1px solid var(--line2);background:#fff;border-radius:6px;padding:9px 4px;font-size:11.5px}
+.acts button:hover{border-color:var(--blue);color:var(--blue)}
+.acts button.wide{grid-column:1/-1;background:var(--navy);color:#fff;border-color:var(--navy);font-weight:700;font-size:12.5px}
+.acts button.wide:hover{background:var(--blue);border-color:var(--blue);color:#fff}
+.restored{display:none;font-size:11.5px;color:var(--ok);background:var(--ok-l);border:1px solid #BFE0D0;
+  border-radius:6px;padding:8px 11px;margin-top:10px}
+.restored.on{display:block}
+
+/* ══ 仕組み ══ */
+.flowbox{background:#fff;border:1px solid var(--line);border-radius:10px;padding:26px 24px}
+.notes{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px}
+.note{border-left:3px solid var(--blue);background:var(--blue-ll);padding:12px 16px;border-radius:0 6px 6px 0}
+.note b{display:block;font-size:13px;margin-bottom:2px}
+.note p{font-size:12.5px;color:var(--ink2)}
+
+/* ══ ルール ══ */
+.rules{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:20px;align-items:start}
+.para{background:#fff;border:1px solid var(--line);border-radius:10px;padding:0;overflow:hidden}
+.prow{display:grid;grid-template-columns:112px 1fr;border-top:1px solid var(--line)}
+.prow:first-child{border-top:none}
+.prow .k{background:var(--blue-ll);padding:16px 14px;font-size:12.5px;font-weight:700;color:var(--navy);
+  border-right:1px solid var(--line);line-height:1.6}
+.prow .k span{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;color:var(--blue);font-weight:400}
+.prow .v{padding:15px 18px;font-size:12.5px;color:var(--ink2);line-height:1.85}
+.prow .v em{font-style:normal;background:#FFF6D8;padding:0 4px}
+.side .card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:14px}
+.side .card h4{font-size:13px;margin-bottom:9px}
+.ng li{list-style:none;font-size:12.5px;color:var(--ink2);padding:6px 0 6px 24px;position:relative;
+  border-top:1px dashed var(--line);line-height:1.7}
+.ng li:first-child{border-top:none}
+.ng li::before{content:"×";position:absolute;left:4px;top:6px;color:#C05252;font-weight:700}
+.spec{display:flex;justify-content:space-between;font-size:12.5px;padding:6px 0;border-top:1px dashed var(--line)}
+.spec:first-of-type{border-top:none}
+.spec b{font-family:var(--mono)}
+
+/* ══ 導入 ══ */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.step{background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px 18px;position:relative}
+.step .n{width:28px;height:28px;border-radius:50%;background:var(--navy);color:#fff;font-family:var(--mono);
+  font-size:12px;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+.step h4{font-size:14.5px;margin-bottom:6px}
+.step p{font-size:12.5px;color:var(--ink2);line-height:1.8}
+.step .tm{font-family:var(--mono);font-size:10.5px;color:var(--blue);margin-top:9px;display:block}
+
+footer{background:var(--navy);color:rgba(255,255,255,.7);padding:26px 0;font-size:12px;text-align:center;line-height:2}
+footer b{color:#fff}
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--ink);
+  color:#fff;padding:11px 26px;border-radius:7px;font-size:12.5px;opacity:0;pointer-events:none;
+  transition:.24s;z-index:99}
+.toast.show{opacity:1;transform:translateX(-50%)}
+</style>
+</head>
+<body>
+
+<!-- ══════ ヘッダー ══════ -->
+<nav class="nav"><div class="wrap">
+  <div class="brand"><span class="m">AI</span>オファー文面アシスタント</div>
+  <a href="#intro">概要</a>
+  <a href="#demo">体験デモ</a>
+  <a href="#how">仕組み</a>
+  <a href="#rule">文面のルール</a>
+  <a href="#setup">導入の流れ</a>
+  <a href="#demo" class="demo">デモを触ってみる</a>
+</div></nav>
+
+<!-- ══════ 1. イントロ ══════ -->
+<div class="hero" id="intro"><div class="wrap">
+  <div class="eyebrow">CHROME EXTENSION / NEW GRAD SCOUT</div>
+  <h1>学生プロフィールを読むだけで、<br><em>その学生のためのオファー文面が10秒で完成</em>。</h1>
+  <p class="sub">スカウトサイトの企業画面にそのまま常駐するChrome拡張です。開いているプロフィールをAIが読み取り、
+    自社の型に沿ったオファー文面を作成します。画面を移動する必要も、文面を考える時間もありません。</p>
+  <a href="#demo" class="cta">体験デモへ</a>
+
+  <div class="pts">
+    <div class="pt"><div class="n">POINT 01</div>
+      <h3>作成時間の短縮</h3>
+      <p>プロフィールを読み込み、文面を練り、推敲する。これまで<b>1通あたり15〜20分</b>かかっていた工程が、
+        ボタン1回と最終確認だけになります。</p>
+      <span class="big">15分 → 約1分</span></div>
+    <div class="pt"><div class="n">POINT 02</div>
+      <h3>文面の型の統一</h3>
+      <p>文字数・段落構成・語尾・禁止表現をサーバー側のルールで固定。担当者が変わっても、
+        誰が送っても同じ品質の文面になります。</p>
+      <span class="big">全員が同じ型</span></div>
+    <div class="pt"><div class="n">POINT 03</div>
+      <h3>ForYou感のある個別文面</h3>
+      <p>自己PR・エピソード・研究内容・適性検査まで読んだうえで、その学生固有の一点に触れます。
+        テンプレの使い回しとは印象が変わります。</p>
+      <span class="big">1人ずつ書き分け</span></div>
+  </div>
+</div></div>
+
+<!-- ══════ 2. 体験デモ ══════ -->
+<section id="demo"><div class="wrap">
+  <div class="eyebrow">LIVE DEMO</div>
+  <h2 class="sec">体験デモ</h2>
+  <p class="lead">スカウトサイトの企業画面を模したデモ画面です。右下のパネルが拡張機能にあたります。
+    学生タブを切り替えながら、実際に文面を生成してみてください。</p>
+
+  <div class="browser">
+    <div class="bbar">
+      <div class="dots"><i></i><i></i><i></i></div>
+      <div class="url">https://scout-demo.example/company/offer/new</div>
+      <div class="ext">拡張機能：オファー文面アシスタント（有効）</div>
+    </div>
+
+    <div class="site">
+      <div class="sitebar">
+        <div class="logo">スカウトサイト</div>
+        <div class="badge">デモ画面</div>
+        <div class="who">企業アカウント：分譲マンション管理会社（架空）／採用担当</div>
+      </div>
+
+      <div class="tabs" id="tabs"></div>
+
+      <div class="demo2">
+        <!-- 左：プロフィール -->
+        <div class="colL">
+          <div class="prof">
+            <h3 id="pName">—</h3>
+            <div class="uni" id="pUni">—</div>
+
+            <div class="pblock"><div class="lb">APPEAL</div><div class="chips" id="pTags"></div></div>
+            <div class="pblock"><div class="lb">APTITUDE TEST / 5点満点</div><div class="apt" id="pApt"></div></div>
+            <div class="pblock"><div class="lb">自己PR</div><div class="ptext" id="pPr"></div></div>
+            <div class="pblock"><div class="lb">過去のエピソード</div><div class="ptext" id="pEp"></div></div>
+            <div class="pblock"><div class="lb">研究内容</div><div class="ptext" id="pRes"></div></div>
+          </div>
+        </div>
+
+        <!-- 右：オファー入力フォーム -->
+        <div class="colR frm">
+          <p class="fl">オファータイトル <span>全角40文字以内</span></p>
+          <input type="text" id="titleInput" placeholder="タイトルを入力してください">
+
+          <p class="fl" style="margin-top:18px">オファーメッセージ <span>定型テンプレートが挿入済みです</span></p>
+          <div class="msgbox" id="msgBox" contenteditable="true"></div>
+
+          <div class="sendbar">
+            <button class="prim" onclick="toast('デモのため送信は行われません')">オファーを送信</button>
+            <button onclick="toast('デモのため保存は行われません')">下書き保存</button>
+            <span class="cnt" id="msgCount">0 文字</span>
+          </div>
+        </div>
+
+        <!-- 右下：アシスタントパネル -->
+        <div class="asst" id="asst">
+          <div class="ah" id="asstHead">
+            <span class="ic">AI</span><span class="t">オファー文面アシスタント</span>
+            <span class="tg">接続済み</span>
+          </div>
+          <div class="ab">
+            <button class="genbtn" id="genBtn">文面を生成</button>
+
+            <div class="status" id="stat"><span class="spin"></span><span id="statTxt">プロフィールを読み取り中…</span></div>
+            <div class="restored" id="restored">前回の文面を復元しました（下書き自動保存）</div>
+
+            <div class="out" id="out">
+              <div class="olabel">TITLE 案</div>
+              <div class="otitle" id="outTitle"></div>
+
+              <div class="olabel" style="margin-top:11px">MESSAGE
+                <span class="c" id="outCount">0 文字</span></div>
+              <div class="otext" id="outText"></div>
+
+              <div class="warnbox" id="warnBox"></div>
+
+              <div class="acts">
+                <button onclick="copyText()">コピー</button>
+                <button onclick="insertTitle()">タイトル欄へ挿入</button>
+                <button class="wide" onclick="insertMsg()">【個別メッセ―ジ】へ挿入</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<!-- ══════ 3. 仕組み ══════ -->
+<section class="alt" id="how"><div class="wrap">
+  <div class="eyebrow">ARCHITECTURE</div>
+  <h2 class="sec">仕組み</h2>
+  <p class="lead">拡張機能は画面から情報を読み取るだけで、文面のルールと生成処理はすべてサーバー側にあります。</p>
+
+  <div class="flowbox">
+    <svg viewBox="0 0 1080 190" style="width:100%;height:auto" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+          <path d="M0,0 L9,4.5 L0,9 z" fill="#2b6cb0"/></marker>
+        <marker id="ar2" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+          <path d="M0,0 L9,4.5 L0,9 z" fill="#8A94A2"/></marker>
+      </defs>
+      <!-- 1 -->
+      <rect x="8" y="34" width="228" height="96" rx="9" fill="#fff" stroke="#2b6cb0" stroke-width="1.6"/>
+      <text x="24" y="58" font-size="10" fill="#2b6cb0" font-family="monospace" letter-spacing="1.6">STEP 1</text>
+      <text x="24" y="80" font-size="15" font-weight="700" fill="#1a365d">Chrome拡張</text>
+      <text x="24" y="101" font-size="11.5" fill="#4A5568">開いているプロフィール画面から</text>
+      <text x="24" y="118" font-size="11.5" fill="#4A5568">自己PR・エピソード等を読み取る</text>
+      <!-- 2 -->
+      <rect x="284" y="34" width="228" height="96" rx="9" fill="#fff" stroke="#2b6cb0" stroke-width="1.6"/>
+      <text x="300" y="58" font-size="10" fill="#2b6cb0" font-family="monospace" letter-spacing="1.6">STEP 2</text>
+      <text x="300" y="80" font-size="15" font-weight="700" fill="#1a365d">中継サーバー</text>
+      <text x="300" y="101" font-size="11.5" fill="#4A5568">文面ルール・会社情報を付与し</text>
+      <text x="300" y="118" font-size="11.5" fill="#4A5568">生成AIへの指示を組み立てる</text>
+      <!-- 3 -->
+      <rect x="560" y="34" width="228" height="96" rx="9" fill="#1a365d"/>
+      <text x="576" y="58" font-size="10" fill="#8FB6DC" font-family="monospace" letter-spacing="1.6">STEP 3</text>
+      <text x="576" y="80" font-size="15" font-weight="700" fill="#fff">生成AI</text>
+      <text x="576" y="101" font-size="11.5" fill="rgba(255,255,255,.78)">ルールに沿って3段落の</text>
+      <text x="576" y="118" font-size="11.5" fill="rgba(255,255,255,.78)">個別文面とタイトル案を作成</text>
+      <!-- 4 -->
+      <rect x="836" y="34" width="228" height="96" rx="9" fill="#fff" stroke="#1F7A5A" stroke-width="1.6"/>
+      <text x="852" y="58" font-size="10" fill="#1F7A5A" font-family="monospace" letter-spacing="1.6">STEP 4</text>
+      <text x="852" y="80" font-size="15" font-weight="700" fill="#1a365d">文面を画面に返却</text>
+      <text x="852" y="101" font-size="11.5" fill="#4A5568">パネルに表示し、ボタン1回で</text>
+      <text x="852" y="118" font-size="11.5" fill="#4A5568">入力欄へ挿入</text>
+
+      <line x1="240" y1="82" x2="278" y2="82" stroke="#2b6cb0" stroke-width="1.8" marker-end="url(#ar)"/>
+      <line x1="516" y1="82" x2="554" y2="82" stroke="#2b6cb0" stroke-width="1.8" marker-end="url(#ar)"/>
+      <line x1="792" y1="82" x2="830" y2="82" stroke="#2b6cb0" stroke-width="1.8" marker-end="url(#ar)"/>
+
+      <line x1="1064" y1="150" x2="122" y2="150" stroke="#8A94A2" stroke-width="1.2" stroke-dasharray="5 4" marker-end="url(#ar2)"/>
+      <line x1="1064" y1="130" x2="1064" y2="150" stroke="#8A94A2" stroke-width="1.2" stroke-dasharray="5 4"/>
+      <line x1="122" y1="130" x2="122" y2="150" stroke="#8A94A2" stroke-width="1.2" stroke-dasharray="5 4"/>
+      <text x="470" y="145" font-size="11" fill="#8A94A2">読み取った学生情報は処理後に破棄され、どこにも保存されません</text>
+    </svg>
+  </div>
+
+  <div class="notes">
+    <div class="note"><b>文面のルールはサーバー側にあります</b>
+      <p>言い回しや禁止表現を変えたいときは、サーバー側の設定を書き換えるだけ。
+        利用者全員に即時反映され、拡張機能の入れ直しは不要です。</p></div>
+    <div class="note"><b>学生情報はどこにも保存されません</b>
+      <p>読み取った内容は文面を作るためだけに使われ、処理が終われば破棄されます。
+        サーバーにも拡張機能にも学生情報は残りません。</p></div>
+  </div>
+</div></section>
+
+<!-- ══════ 4. 文面のルール ══════ -->
+<section id="rule"><div class="wrap">
+  <div class="eyebrow">WRITING RULES</div>
+  <h2 class="sec">文面のルール</h2>
+  <p class="lead">「うまい文章」ではなく「毎回同じ型で外さない文章」を目指した設計です。</p>
+
+  <div class="rules">
+    <div class="para">
+      <div class="prow"><div class="k">第1段落<span>NOTICE</span></div>
+        <div class="v">この学生の経験への注目。書き出しは固定で
+          <em>「プロフィールを拝見し、●●が気になり、オファーをお送りしました。」</em>
+          ●●にはその学生固有の一点が入ります。続けて、なぜそこに目が留まったのかを2文で述べます。</div></div>
+      <div class="prow"><div class="k">第2段落<span>BRIDGE</span></div>
+        <div class="v">経験と自社業務の接点。学生の経験を褒めて終わらせず、
+          <em>それが実際の仕事のどの場面で活きるか</em>まで踏み込みます。ここが本文の中心で、最も長くなります。</div></div>
+      <div class="prow"><div class="k">第3段落<span>PROOF</span></div>
+        <div class="v">会社の安定性と、適性検査での補強。会社の実績を並べたうえで、
+          <em>適性検査のどの傾向が仕事に向いているか</em>を一言添えて締めます。</div></div>
+    </div>
+
+    <div class="side">
+      <div class="card">
+        <h4>形式の指定</h4>
+        <div class="spec"><span>文字数</span><b>350〜450字</b></div>
+        <div class="spec"><span>段落数</span><b>3段落</b></div>
+        <div class="spec"><span>改行</span><b>句点ごと</b></div>
+        <div class="spec"><span>段落間</span><b>空行1行</b></div>
+        <div class="spec"><span>語尾</span><b>ですます調</b></div>
+      </div>
+      <div class="card">
+        <h4>禁止事項</h4>
+        <ul class="ng">
+          <li>学生の氏名を本文に入れる</li>
+          <li>適性検査の点数など、プロフィール上の数値をそのまま引用する</li>
+          <li>感嘆符（！）を使う</li>
+          <li>締めの挨拶を入れる（定型テンプレート側にあるため重複します）</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<!-- ══════ 5. 導入の流れ ══════ -->
+<section class="alt" id="setup"><div class="wrap">
+  <div class="eyebrow">SETUP</div>
+  <h2 class="sec">導入の流れ</h2>
+  <p class="lead">インストール作業は初回のみです。所要時間はおよそ10分です。</p>
+  <div class="steps">
+    <div class="step"><div class="n">1</div><h4>zipを受け取る</h4>
+      <p>拡張機能のファイル一式をお渡しします。任意のフォルダに解凍してください。</p><span class="tm">約2分</span></div>
+    <div class="step"><div class="n">2</div><h4>Chromeに読み込む</h4>
+      <p>拡張機能の管理画面でデベロッパーモードを有効にし、解凍したフォルダを読み込みます。</p><span class="tm">約3分</span></div>
+    <div class="step"><div class="n">3</div><h4>合言葉を設定する</h4>
+      <p>パネルの設定欄に、社内で共有している合言葉を入力します。以降は入力不要です。</p><span class="tm">約1分</span></div>
+    <div class="step"><div class="n">4</div><h4>利用開始</h4>
+      <p>学生のプロフィール画面を開くとパネルが表示されます。あとはボタンを押すだけです。</p><span class="tm">即日</span></div>
+  </div>
+</div></section>
+
+<footer>
+  <b>本ページはデモです。表示される学生・文面はすべて架空のものです。</b><br>
+  実在のサービス・学生・大学とは一切関係がありません。生成処理は演出であり、外部への通信は行っていません。
+</footer>
+
+<div class="toast" id="toastEl"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+
+/* ══════ 架空の学生データ ══════ */
+const STUDENTS=[
+{
+ key:"a", tab:"学生A",
+ name:"学生A さん", uni:"東雲大学 経済学部 3年（架空）",
+ tags:["体育会サッカー部 副主将","学園祭実行委員","長期インターン（営業同行）"],
+ apt:[["対人影響力",4],["粘り強さ",5],["計画性",3],["協調性",4],["ストレス耐性",4]],
+ pr:"人をまとめる立場を任されることが多く、そのたびに「先に相手の話を聞く」という進め方をとってきました。\n強く引っ張るタイプではありませんが、時間をかけて全員が同じ方向を向く状態をつくることは得意です。",
+ ep:"3年時、部の練習出席率が半分近くまで落ちた時期がありました。\nルールを厳しくする案も出ましたが、まず部員40名全員と個別に話す時間をつくり、就活・アルバイト・怪我など事情がばらばらであることを把握しました。\nそのうえで練習の時間帯を2枠制に変更し、出席率は3ヶ月で回復しました。",
+ res:"地域経済とスポーツ施設の関係について。\n公共施設の利用状況と周辺商店の売上の相関を、自治体の公開データから分析しています。",
+ title:"部の副主将として一人ひとりと向き合われたあなたへ",
+ body:`プロフィールを拝見し、部の副主将として部員一人ひとりと向き合われた経験が気になり、オファーをお送りしました。
+出席率が下がった時期に、まず全員と個別に話す時間をつくられたと拝読しました。
+仕組みを変える前に相手の事情を聞きにいくという順番を、ご自分で選べる方だと感じています。
+
+私たちの仕事は、分譲マンションにお住まいの方々の合意形成を支えることです。
+修繕や規約の変更では、立場も考え方も異なる方が同じ場に集まります。
+そこで求められるのは、正しい説明よりも先に、一人ひとりの事情を聞く姿勢です。
+部活動で選ばれたその順番は、そのまま管理の現場で活きるものだと考えています。
+
+当社は分譲マンション管理を専業とし、23期連続の増収を続けています。
+賞与は平均8.27ヶ月、年間休日は120日、原則定時退社を守っています。
+適性検査では粘り強さと協調性が高く出ており、腰を据えて関係を築く仕事に向いていると感じました。`
+},
+{
+ key:"b", tab:"学生B",
+ name:"学生B さん", uni:"北嶺大学 理工学部 建築学科 3年（架空）",
+ tags:["建築設備の研究","施工現場でのアルバイト","資格勉強中"],
+ apt:[["論理性",5],["計画性",5],["対人影響力",3],["慎重性",4],["ストレス耐性",3]],
+ pr:"図面の上では正しくても、現場ではそのとおりに進まないことがあると、アルバイトを通じて知りました。\nどちらが悪いかを決めるのではなく、間をつなぐ役割に関心があります。",
+ ep:"2年時から建設現場で書類整理のアルバイトをしています。\n設計変更の連絡が職人の方に届いておらず、施工をやり直す場面に立ち会いました。\n以降、変更内容を1枚の紙にまとめて掲示する運用を提案し、同じ手戻りは起きなくなりました。",
+ res:"集合住宅における給排水設備の劣化予測。\n築年数と使用状況から更新時期を推定するモデルを、公開されている修繕記録をもとに検討しています。",
+ title:"図面と現場のずれに気づける視点をお持ちのあなたへ",
+ warn:{type:"len",msg:"文字数が上限（450字）を超えています。第2段落を1文削るか、第3段落の実績を2つに絞ることをおすすめします。"},
+ body:`プロフィールを拝見し、集合住宅の給排水設備の劣化を扱っておられる点が気になり、オファーをお送りしました。
+現場でのアルバイトを通じて、図面のとおりには進まない場面を見てこられたと拝読しました。
+設計と現場の間にあるずれに、学生のうちから目を向けておられる点に関心を持ちました。
+
+私たちが預かるのは、竣工した後の建物です。
+設備は必ず古くなり、いつどこに手を入れるかという判断が毎年発生します。
+図面上の理屈と、実際に暮らしている方の生活との折り合いをつける仕事です。
+劣化の予測を研究され、現場の段取りも見てこられた経験は、そのまま長期修繕計画の組み立てに重なります。
+建物を建てる側ではなく、建てた後の建物と長く付き合う側の技術に関心があれば、面白く感じていただけるはずです。
+
+当社は分譲マンション管理を専業とし、23期連続の増収を続けています。
+賞与は平均8.27ヶ月、年間休日は120日、原則定時退社を守っています。
+適性検査では論理性と計画性が高く出ており、先を見通して段取りを組む仕事に向いていると感じました。`
+},
+{
+ key:"c", tab:"学生C",
+ name:"学生C さん", uni:"みなと国際大学 社会学部 3年（架空）",
+ tags:["地域コミュニティの調査","カフェ接客リーダー","短期留学"],
+ apt:[["協調性",5],["傾聴力",4],["論理性",3],["主体性",4],["ストレス耐性",4]],
+ pr:"人の様子を見て対応を変えることを、接客の現場で自然に覚えました。\nはじめから正解を出すよりも、相手の反応を見ながら調整していくほうが向いていると思っています。",
+ ep:"カフェで接客リーダーを務めていた際、常連の方から席の配置についてご指摘をいただきました。\n反論せずに一度受け止め、他のお客様にも同じことを感じているか聞いて回ったところ、同じ意見が複数ありました。\n配置を変更した結果、指摘をくださった方が新人スタッフに声をかけてくださるようになりました。",
+ res:"都市部の集合住宅における住民間のつながりについて。\n隣に誰が住んでいるか分からない状態がどう生まれるのかを、アンケートと聞き取りから調べています。",
+ title:"住まいを人の集まりとして見る視点をお持ちのあなたへ",
+ body:`プロフィールを拝見し、集合住宅に住む方々のつながりを研究しておられる点が気になり、オファーをお送りしました。
+隣に誰が住んでいるか分からない状態を、そのままにしない方法を調べておられると拝読しました。
+住まいを建物としてではなく、人の集まりとして見ておられる視点だと受け取りました。
+
+私たちの仕事は、その人の集まりが機能するように支えることです。
+管理組合の総会では、意見の合わない方同士が同じ議題を決めていきます。
+そこで必要になるのは、正論を通す力ではなく、双方が納得できる落としどころを探す力です。
+接客の現場で相手の様子を見ながら対応を変えてこられた経験は、その場面でそのまま活きます。
+
+当社は分譲マンション管理を専業とし、23期連続の増収を続けています。
+賞与は平均8.27ヶ月、年間休日は120日、原則定時退社を守っています。
+適性検査では協調性と傾聴の高さが出ており、人と長く関わる仕事に向いていると感じました。`
+}];
+
+/* ══════ 定型テンプレート ══════ */
+const TPL=[
+ {t:"はじめまして。"},
+ {t:"分譲マンション管理会社（デモ用の架空企業）の採用担当です。"},
+ {t:""},
+ {t:"__PH__"},
+ {t:""},
+ {t:"当社は分譲マンション管理を専業とし、首都圏を中心に管理をお預かりしています。"},
+ {t:"新卒の方には、まずフロント業務に同行いただきながら、建物と住民対応の両方を覚えていただきます。"},
+ {t:"資格取得の費用は会社が負担しています。"},
+ {t:""},
+ {t:"少しでもご興味をお持ちいただけましたら、説明会のご案内をお送りいたします。"},
+ {t:"ご検討のほど、よろしくお願いいたします。"}
+];
+
+let cur=0;
+const drafts={};       /* 生成済み文面のキャッシュ＝下書き自動保存 */
+let typing=null;
+
+/* ══════ 描画 ══════ */
+function renderTabs(){
+  $("tabs").innerHTML=STUDENTS.map((s,i)=>
+    `<button class="${i===cur?"on":""} ${drafts[s.key]?"saved":""}" data-i="${i}">
+      <span class="dot"></span>${s.tab}</button>`).join("");
+  $("tabs").querySelectorAll("button").forEach(b=>
+    b.addEventListener("click",()=>switchTo(+b.dataset.i)));
+}
+function renderProfile(){
+  const s=STUDENTS[cur];
+  $("pName").textContent=s.name; $("pUni").textContent=s.uni;
+  $("pTags").innerHTML=s.tags.map(t=>`<span class="chip">${t}</span>`).join("");
+  $("pApt").innerHTML=s.apt.map(a=>
+    `<span>${a[0]}</span><span class="bar"><i style="width:${a[1]/5*100}%"></i></span><span class="v">${a[1]}</span>`).join("");
+  $("pPr").textContent=s.pr; $("pEp").textContent=s.ep; $("pRes").textContent=s.res;
+}
+function renderMsg(inserted){
+  const s=STUDENTS[cur];
+  $("msgBox").innerHTML=TPL.map(l=>{
+    if(l.t==="") return `<div><br></div>`;
+    if(l.t==="__PH__"){
+      if(inserted) return `<div class="ins" id="phLine">`+
+        s.body.split("\n").map(x=>x===""?"<br>":`<div>${x}</div>`).join("")+`</div>`;
+      return `<div><span class="ph" id="phLine">【個別メッセ―ジ】</span></div>`;
+    }
+    return `<div>${l.t}</div>`;
+  }).join("");
+  countMsg();
+}
+function countMsg(){
+  const n=$("msgBox").innerText.replace(/\s/g,"").length;
+  $("msgCount").textContent=n.toLocaleString()+" 文字";
+}
+$("msgBox").addEventListener("input",countMsg);
+
+/* ══════ 学生切替 ══════ */
+function switchTo(i){
+  if(i===cur) return;
+  clearInterval(typing);
+  cur=i; const s=STUDENTS[cur];
+  renderTabs(); renderProfile();
+  $("titleInput").value=""; $("restored").classList.remove("on");
+  $("stat").classList.remove("on"); $("genBtn").disabled=false;
+
+  if(drafts[s.key]){                       /* ← 下書き自動保存の復元 */
+    showOut(s,true);
+    $("restored").classList.add("on");
+    renderMsg(false);
+  }else{
+    $("out").classList.remove("on");
+    $("warnBox").classList.remove("on");
+    renderMsg(false);
+  }
+}
+
+/* ══════ 生成 ══════ */
+$("genBtn").addEventListener("click",()=>{
+  const s=STUDENTS[cur];
+  $("restored").classList.remove("on");
+  $("out").classList.remove("on"); $("warnBox").classList.remove("on");
+  $("genBtn").disabled=true;
+  $("stat").classList.add("on"); $("statTxt").textContent="プロフィールを読み取り中…";
+  setTimeout(()=>{ $("statTxt").textContent="AIが文面を作成中…"; },900);
+  setTimeout(()=>{
+    $("stat").classList.remove("on");
+    showOut(s,false);
+  },2100);
+});
+
+function showOut(s,instant){
+  $("out").classList.add("on");
+  $("outTitle").textContent=s.title;
+  drafts[s.key]=true; renderTabs();
+  const box=$("outText"), text=s.body;
+
+  const finish=()=>{
+    box.textContent=text;
+    const n=text.replace(/\s/g,"").length;
+    const over=n>450, under=n<350;
+    $("outCount").textContent=n+" 文字";
+    $("outCount").className="c"+((over||under)?" ng":"");
+    if(s.warn||over){
+      $("warnBox").classList.add("on");
+      $("warnBox").innerHTML=`<b>要確認：文字数が規定の範囲を超えています（${n}字／上限450字）</b>`+
+        (s.warn?s.warn.msg:"第2段落を1文削ることをおすすめします。");
+    }else $("warnBox").classList.remove("on");
+    $("genBtn").disabled=false;
+  };
+
+  if(instant){ finish(); return; }
+  let i=0; box.innerHTML="";
+  clearInterval(typing);
+  typing=setInterval(()=>{
+    i+=3;
+    if(i>=text.length){ clearInterval(typing); finish(); return; }
+    box.innerHTML=esc(text.slice(0,i))+'<span class="cur"></span>';
+    box.scrollTop=box.scrollHeight;
+    $("outCount").textContent=text.slice(0,i).replace(/\s/g,"").length+" 文字";
+  },16);
+}
+function esc(t){return t.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))}
+
+/* ══════ 挿入・コピー ══════ */
+function insertTitle(){
+  $("titleInput").value=STUDENTS[cur].title;
+  $("titleInput").style.background="#FFF9E3";
+  setTimeout(()=>$("titleInput").style.background="",700);
+  toast("タイトル欄へ挿入しました");
+}
+function insertMsg(){
+  const ph=$("phLine");
+  if(!ph||!ph.classList.contains("ph")){ toast("すでに挿入済みです"); return; }
+  ph.classList.add("flash");
+  setTimeout(()=>{ renderMsg(true); toast("【個別メッセ―ジ】を置き換えました"); },620);
+}
+function copyText(){
+  const t=STUDENTS[cur].body;
+  if(navigator.clipboard) navigator.clipboard.writeText(t).catch(()=>{});
+  toast("文面をコピーしました");
+}
+function toast(m){const e=$("toastEl");e.textContent=m;e.classList.add("show");
+  clearTimeout(toast._t);toast._t=setTimeout(()=>e.classList.remove("show"),2200)}
+
+/* ══════ パネルのドラッグ ══════ */
+(function(){
+  const p=$("asst"),h=$("asstHead");let dx=0,dy=0,on=false;
+  h.addEventListener("mousedown",e=>{
+    const r=p.getBoundingClientRect();const pr=p.parentElement.getBoundingClientRect();
+    p.style.left=(r.left-pr.left)+"px";p.style.top=(r.top-pr.top)+"px";
+    p.style.right="auto";p.style.bottom="auto";
+    dx=e.clientX-r.left;dy=e.clientY-r.top;on=true;e.preventDefault();
+  });
+  document.addEventListener("mousemove",e=>{
+    if(!on)return;const pr=p.parentElement.getBoundingClientRect();
+    let x=e.clientX-pr.left-dx,y=e.clientY-pr.top-dy;
+    x=Math.max(0,Math.min(x,pr.width-p.offsetWidth));
+    y=Math.max(0,Math.min(y,pr.height-p.offsetHeight));
+    p.style.left=x+"px";p.style.top=y+"px";
+  });
+  document.addEventListener("mouseup",()=>on=false);
+})();
+
+renderTabs(); renderProfile(); renderMsg(false);
+</script>
+</body>
+</html>
