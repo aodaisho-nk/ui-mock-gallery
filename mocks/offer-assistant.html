@@ -199,6 +199,69 @@ footer b{color:#fff}
   color:#fff;padding:11px 26px;border-radius:7px;font-size:12.5px;opacity:0;pointer-events:none;
   transition:.24s;z-index:99}
 .toast.show{opacity:1;transform:translateX(-50%)}
+
+/* ══ 個人情報カード（左カラム） ══ */
+.pii{border:1px solid var(--line2);border-radius:8px;overflow:hidden;margin-bottom:16px;background:#fff}
+.piih{background:#F1F4F8;padding:8px 12px;font-size:11.5px;display:flex;align-items:center;gap:8px;
+  border-bottom:1px solid var(--line);color:var(--ink2)}
+.piih .lock{font-family:var(--mono);font-size:9px;background:var(--ink3);color:#fff;border-radius:3px;padding:1px 6px;flex:none}
+.pii.open .piih{background:var(--ok-l);border-bottom-color:#BFE0D0;color:var(--ok)}
+.pii.open .piih .lock{background:var(--ok)}
+.piib{padding:10px 12px;display:grid;grid-template-columns:80px 1fr;gap:5px 10px;font-size:12px;align-items:center}
+.piib .k{color:var(--ink3);font-size:11.5px}
+.piib .v{font-family:var(--mono);letter-spacing:.02em;font-size:11.5px}
+.piib .v.msk{color:#B9C2CC;letter-spacing:.12em}
+.piif{border-top:1px solid var(--line);padding:7px 12px;font-size:10.5px;color:var(--ok);
+  background:#FBFDFC;display:flex;align-items:center;gap:6px}
+.piif b{font-weight:700}
+
+/* ══ パネル内タブ ══ */
+.atabs{display:flex;background:#12294a}
+.atabs button{flex:1;border:none;background:none;color:rgba(255,255,255,.62);padding:9px 4px;
+  font-size:11.5px;border-bottom:2px solid transparent}
+.atabs button.on{color:#fff;border-color:#5B9BD5;background:rgba(255,255,255,.08);font-weight:700}
+.pane{display:none}.pane.on{display:block}
+
+/* ══ 転記ペイン ══ */
+.locked{border:1px dashed var(--line2);border-radius:6px;padding:13px 14px;font-size:11.5px;
+  color:var(--ink2);line-height:1.85;background:#FAFBFC}
+.locked b{display:block;color:var(--ink);margin-bottom:3px;font-size:12px}
+.simbtn{width:100%;margin-top:9px;border:1px solid var(--line2);background:#fff;border-radius:6px;
+  padding:9px;font-size:11.5px}
+.simbtn:hover{border-color:var(--blue);color:var(--blue)}
+.noaibar{background:var(--ok-l);border:1px solid #BFE0D0;border-radius:6px;padding:8px 11px;
+  font-size:11px;color:var(--ok);line-height:1.7;margin-bottom:10px}
+.noaibar b{display:block}
+.fields{border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.fields .f{display:flex;align-items:center;gap:8px;padding:6px 10px;font-size:11.5px;border-top:1px solid var(--line)}
+.fields .f:first-child{border-top:none}
+.fields .n{color:var(--ink3);width:66px;flex:none}
+.fields .val{font-family:var(--mono);font-size:11px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tag2{font-size:9px;border-radius:3px;padding:1px 5px;flex:none;font-family:var(--mono);letter-spacing:.04em}
+.tag2.no{background:var(--ok-l);color:var(--ok);border:1px solid #BFE0D0}
+.dest{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}
+.dest button{border:1px solid var(--line2);border-radius:6px;background:#fff;padding:9px 4px;font-size:11.5px;line-height:1.5}
+.dest button small{display:block;font-size:9.5px;color:var(--ink3)}
+.dest button.on{border-color:var(--blue);background:var(--blue-l);color:var(--blue);font-weight:700}
+.dest button.on small{color:var(--blue)}
+.sendnow{width:100%;margin-top:9px;background:var(--navy);color:#fff;border:none;border-radius:6px;
+  padding:11px;font-size:12.5px;font-weight:700}
+.sendnow:hover{background:var(--blue)}
+.sendnow:disabled{background:#B9C6D4}
+.log{background:#0F2136;color:#9FD3A8;font-family:var(--mono);font-size:10.5px;border-radius:6px;
+  padding:9px 11px;margin-top:10px;line-height:1.95;max-height:132px;overflow:auto;display:none}
+.log.on{display:block}
+.log .d{color:#7E93AA}
+.log .w{color:#F0C674}
+
+/* ══ 個人情報セクション ══ */
+.lanes{background:#fff;border:1px solid var(--line);border-radius:10px;padding:26px 24px}
+.lanetbl{display:grid;grid-template-columns:170px 1fr;gap:0;margin-top:22px;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.lanetbl>div{padding:13px 16px;border-top:1px solid var(--line);font-size:12.5px;line-height:1.8}
+.lanetbl>div:nth-child(1),.lanetbl>div:nth-child(2){border-top:none}
+.lanetbl .h{background:#F4F7FA;font-weight:700;color:var(--navy)}
+.lanetbl .h span{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;font-weight:400;color:var(--ink3)}
+.lanetbl .g{background:#FBFDFC}
 </style>
 </head>
 <body>
@@ -209,6 +272,7 @@ footer b{color:#fff}
   <a href="#intro">概要</a>
   <a href="#demo">体験デモ</a>
   <a href="#how">仕組み</a>
+  <a href="#privacy">個人情報の扱い</a>
   <a href="#rule">文面のルール</a>
   <a href="#setup">導入の流れ</a>
   <a href="#demo" class="demo">デモを触ってみる</a>
@@ -219,7 +283,8 @@ footer b{color:#fff}
   <div class="eyebrow">CHROME EXTENSION / NEW GRAD SCOUT</div>
   <h1>学生プロフィールを読むだけで、<br><em>その学生のためのオファー文面が10秒で完成</em>。</h1>
   <p class="sub">スカウトサイトの企業画面にそのまま常駐するChrome拡張です。開いているプロフィールをAIが読み取り、
-    自社の型に沿ったオファー文面を作成します。画面を移動する必要も、文面を考える時間もありません。</p>
+    自社の型に沿ったオファー文面を作成します。画面を移動する必要も、文面を考える時間もありません。<br>
+    承諾後に開示される候補者の個人情報は、<b>生成AIを通さずに</b>採用管理システムやスプレッドシートへ直接転記します。</p>
   <a href="#demo" class="cta">体験デモへ</a>
 
   <div class="pts">
@@ -267,6 +332,13 @@ footer b{color:#fff}
       <div class="demo2">
         <!-- 左：プロフィール -->
         <div class="colL">
+          <div class="pii" id="piiCard">
+            <div class="piih"><span class="lock" id="piiLock">MASKED</span>
+              <span id="piiState">個人情報は非開示です（オファー承諾前）</span></div>
+            <div class="piib" id="piiBody"></div>
+            <div class="piif">この欄の情報はAIに送信されません</div>
+          </div>
+
           <div class="prof">
             <h3 id="pName">—</h3>
             <div class="uni" id="pUni">—</div>
@@ -300,7 +372,13 @@ footer b{color:#fff}
             <span class="ic">AI</span><span class="t">オファー文面アシスタント</span>
             <span class="tg">接続済み</span>
           </div>
-          <div class="ab">
+          <div class="atabs">
+            <button class="on" data-p="gen">オファー文面</button>
+            <button data-p="xfer">候補者情報の転記</button>
+          </div>
+
+          <!-- ── 文面生成ペイン ── -->
+          <div class="ab pane on" id="paneGen">
             <button class="genbtn" id="genBtn">文面を生成</button>
 
             <div class="status" id="stat"><span class="spin"></span><span id="statTxt">プロフィールを読み取り中…</span></div>
@@ -321,6 +399,30 @@ footer b{color:#fff}
                 <button onclick="insertTitle()">タイトル欄へ挿入</button>
                 <button class="wide" onclick="insertMsg()">【個別メッセ―ジ】へ挿入</button>
               </div>
+            </div>
+          </div>
+
+          <!-- ── 転記ペイン ── -->
+          <div class="ab pane" id="paneXfer">
+            <div id="xLocked">
+              <div class="locked"><b>候補者情報はまだ開示されていません</b>
+                学生がオファーを承諾すると、氏名・連絡先などの個人情報がこの画面に表示されます。
+                その時点から転記機能が使えるようになります。</div>
+              <button class="simbtn" id="acceptBtn">デモ：オファー承諾を再現する</button>
+            </div>
+
+            <div id="xOpen" style="display:none">
+              <div class="noaibar"><b>この画面の項目はAIを経由しません</b>
+                拡張機能から送信先へ直接転記されます。生成AIには渡りません。</div>
+              <div class="fields" id="xFields"></div>
+
+              <div class="olabel" style="margin-top:12px">送信先</div>
+              <div class="dest">
+                <button class="on" data-d="ats">採用管理システム<small>候補者マスタへ登録</small></button>
+                <button data-d="ss">スプレッドシート<small>応募者一覧へ追記</small></button>
+              </div>
+              <button class="sendnow" id="sendNow">読み取った情報を転記</button>
+              <div class="log" id="xLog"></div>
             </div>
           </div>
         </div>
@@ -387,6 +489,113 @@ footer b{color:#fff}
     <div class="note"><b>学生情報はどこにも保存されません</b>
       <p>読み取った内容は文面を作るためだけに使われ、処理が終われば破棄されます。
         サーバーにも拡張機能にも学生情報は残りません。</p></div>
+  </div>
+</div></section>
+
+<!-- ══════ 3-2. 個人情報の扱い ══════ -->
+<section id="privacy"><div class="wrap">
+  <div class="eyebrow">PRIVACY BY DESIGN</div>
+  <h2 class="sec">個人情報の扱い ── 2つの経路を分けています</h2>
+  <p class="lead">オファー承諾後に開示される氏名・連絡先などは、生成AIを一切通りません。
+    拡張機能から採用管理システムやスプレッドシートへ直接送信されます。</p>
+
+  <div class="lanes">
+    <svg viewBox="0 0 1080 300" style="width:100%;height:auto" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="b1" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+          <path d="M0,0 L9,4.5 L0,9 z" fill="#2b6cb0"/></marker>
+        <marker id="g1" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+          <path d="M0,0 L9,4.5 L0,9 z" fill="#1F7A5A"/></marker>
+      </defs>
+
+      <!-- 起点 -->
+      <rect x="8" y="96" width="196" height="108" rx="9" fill="#fff" stroke="#C7D0DA" stroke-width="1.6"/>
+      <text x="24" y="122" font-size="10" fill="#8A94A2" font-family="monospace" letter-spacing="1.6">SOURCE</text>
+      <text x="24" y="144" font-size="14" font-weight="700" fill="#1a365d">学生のプロフィール画面</text>
+      <text x="24" y="166" font-size="11.5" fill="#4A5568">拡張機能が項目ごとに</text>
+      <text x="24" y="183" font-size="11.5" fill="#4A5568">2種類に仕分けます</text>
+
+      <!-- 上レーン：AI経路 -->
+      <rect x="262" y="16" width="238" height="104" rx="9" fill="#EBF2FA" stroke="#2b6cb0" stroke-width="1.6"/>
+      <text x="278" y="40" font-size="10" fill="#2b6cb0" font-family="monospace" letter-spacing="1.6">LANE A / AIを通す</text>
+      <text x="278" y="61" font-size="13.5" font-weight="700" fill="#1a365d">本文テキストのみ</text>
+      <text x="278" y="81" font-size="11" fill="#4A5568">自己PR・エピソード・研究内容・</text>
+      <text x="278" y="98" font-size="11" fill="#4A5568">適性検査の傾向（氏名等は除外）</text>
+
+      <rect x="556" y="16" width="216" height="104" rx="9" fill="#1a365d"/>
+      <text x="572" y="40" font-size="10" fill="#8FB6DC" font-family="monospace" letter-spacing="1.6">GENERATIVE AI</text>
+      <text x="572" y="61" font-size="13.5" font-weight="700" fill="#fff">生成AI</text>
+      <text x="572" y="81" font-size="11" fill="rgba(255,255,255,.78)">オファー文面を作成</text>
+      <text x="572" y="98" font-size="11" fill="rgba(255,255,255,.78)">処理後に入力は破棄</text>
+
+      <rect x="828" y="16" width="236" height="104" rx="9" fill="#fff" stroke="#2b6cb0" stroke-width="1.6"/>
+      <text x="844" y="40" font-size="10" fill="#2b6cb0" font-family="monospace" letter-spacing="1.6">RETURN</text>
+      <text x="844" y="61" font-size="13.5" font-weight="700" fill="#1a365d">オファー文面</text>
+      <text x="844" y="81" font-size="11" fill="#4A5568">パネルに表示し、入力欄へ挿入</text>
+
+      <!-- 下レーン：AI非経路 -->
+      <rect x="262" y="180" width="238" height="104" rx="9" fill="#E6F4EE" stroke="#1F7A5A" stroke-width="1.6"/>
+      <text x="278" y="204" font-size="10" fill="#1F7A5A" font-family="monospace" letter-spacing="1.6">LANE B / AIを通さない</text>
+      <text x="278" y="225" font-size="13.5" font-weight="700" fill="#1a365d">個人情報</text>
+      <text x="278" y="245" font-size="11" fill="#4A5568">氏名・フリガナ・メール・電話・</text>
+      <text x="278" y="262" font-size="11" fill="#4A5568">大学名・卒業予定・選考状況</text>
+
+      <rect x="556" y="180" width="216" height="104" rx="9" fill="#fff" stroke="#1F7A5A" stroke-width="1.6" stroke-dasharray="6 4"/>
+      <text x="572" y="204" font-size="10" fill="#1F7A5A" font-family="monospace" letter-spacing="1.6">DIRECT</text>
+      <text x="572" y="225" font-size="13.5" font-weight="700" fill="#1a365d">拡張機能から直送</text>
+      <text x="572" y="245" font-size="11" fill="#4A5568">中継サーバーも生成AIも</text>
+      <text x="572" y="262" font-size="11" fill="#4A5568">経由しません</text>
+
+      <rect x="828" y="180" width="236" height="104" rx="9" fill="#fff" stroke="#1F7A5A" stroke-width="1.6"/>
+      <text x="844" y="204" font-size="10" fill="#1F7A5A" font-family="monospace" letter-spacing="1.6">DESTINATION</text>
+      <text x="844" y="225" font-size="13.5" font-weight="700" fill="#1a365d">社内システム</text>
+      <text x="844" y="245" font-size="11" fill="#4A5568">採用管理システムの候補者マスタ／</text>
+      <text x="844" y="262" font-size="11" fill="#4A5568">社内スプレッドシートの応募者一覧</text>
+
+      <!-- 線 -->
+      <path d="M208 130 L232 130 L232 68 L256 68" fill="none" stroke="#2b6cb0" stroke-width="1.8" marker-end="url(#b1)"/>
+      <line x1="504" y1="68" x2="550" y2="68" stroke="#2b6cb0" stroke-width="1.8" marker-end="url(#b1)"/>
+      <line x1="776" y1="68" x2="822" y2="68" stroke="#2b6cb0" stroke-width="1.8" marker-end="url(#b1)"/>
+
+      <path d="M208 170 L232 170 L232 232 L256 232" fill="none" stroke="#1F7A5A" stroke-width="1.8" marker-end="url(#g1)"/>
+      <line x1="504" y1="232" x2="550" y2="232" stroke="#1F7A5A" stroke-width="1.8" marker-end="url(#g1)"/>
+      <line x1="776" y1="232" x2="822" y2="232" stroke="#1F7A5A" stroke-width="1.8" marker-end="url(#g1)"/>
+
+      <line x1="262" y1="150" x2="1064" y2="150" stroke="#DDE3EA" stroke-width="1"/>
+      <text x="266" y="145" font-size="10.5" fill="#8A94A2" font-family="monospace">— 2つの経路は交わりません —</text>
+    </svg>
+
+    <div class="lanetbl">
+      <div class="h">項目<span>ITEM</span></div>
+      <div class="h">扱い<span>HANDLING</span></div>
+
+      <div>自己PR・エピソード・研究内容</div>
+      <div>生成AIへ送信します。文面を作るために必要なためです。処理が終わり次第、入力内容は破棄されます。</div>
+
+      <div class="g">氏名・フリガナ</div>
+      <div class="g">生成AIへは<b>送信しません</b>。文面本文にも氏名は入れないルールです。転記のみに使用します。</div>
+
+      <div class="g">メールアドレス・電話番号</div>
+      <div class="g">生成AIへは<b>送信しません</b>。拡張機能から送信先システムへ直接転記されます。</div>
+
+      <div class="g">大学名・学部・卒業予定</div>
+      <div class="g">生成AIへは<b>送信しません</b>。候補者を特定しうる情報のため、転記経路のみで扱います。</div>
+
+      <div>適性検査</div>
+      <div>傾向のみを生成AIへ送信します。点数そのものは文面に引用しないルールです。</div>
+
+      <div class="g">転記の記録</div>
+      <div class="g">いつ・誰が・どの送信先へ転記したかのログのみ社内に残ります。個人情報の本体はサーバーに保存されません。</div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <div class="note"><b>開示のタイミングは学生側が決めます</b>
+      <p>オファーを承諾するまで、氏名や連絡先は画面に表示されません。
+        拡張機能も、表示されていない情報は読み取れません。</p></div>
+    <div class="note"><b>転記は手作業をなくすためだけの機能です</b>
+      <p>開示された情報を人が見ながら別システムへ打ち直す作業を置き換えるものです。
+        転記先は事前に登録した社内システムに限定されます。</p></div>
   </div>
 </div></section>
 
@@ -530,6 +739,18 @@ const STUDENTS=[
 適性検査では協調性と傾聴の高さが出ており、人と長く関わる仕事に向いていると感じました。`
 }];
 
+/* ══════ 承諾後に開示される個人情報（すべて架空） ══════ */
+const PII={
+ a:{name:"相原 悠真",kana:"アイハラ ユウマ",mail:"y.aihara@example-univ.ac.jp",
+    tel:"090-0000-1111",uni:"東雲大学 経済学部",grad:"2028年3月 卒業予定"},
+ b:{name:"桐生 一颯",kana:"キリュウ イブキ",mail:"i.kiryu@example-univ.ac.jp",
+    tel:"080-0000-2222",uni:"北嶺大学 理工学部 建築学科",grad:"2028年3月 卒業予定"},
+ c:{name:"南 咲希",kana:"ミナミ サキ",mail:"s.minami@example-univ.ac.jp",
+    tel:"070-0000-3333",uni:"みなと国際大学 社会学部",grad:"2028年3月 卒業予定"}
+};
+const disclosed={};   /* 学生ごとの開示状態 */
+let dest="ats";
+
 /* ══════ 定型テンプレート ══════ */
 const TPL=[
  {t:"はじめまして。"},
@@ -557,9 +778,65 @@ function renderTabs(){
   $("tabs").querySelectorAll("button").forEach(b=>
     b.addEventListener("click",()=>switchTo(+b.dataset.i)));
 }
+/* ══════ 個人情報カード／転記ペイン ══════ */
+function renderPii(){
+  const s=STUDENTS[cur], p=PII[s.key], open=!!disclosed[s.key];
+  const rows=[["氏名","name"],["フリガナ","kana"],["メール","mail"],["電話番号","tel"],["卒業予定","grad"]];
+  $("piiCard").classList.toggle("open",open);
+  $("piiLock").textContent=open?"DISCLOSED":"MASKED";
+  $("piiState").textContent=open?"オファー承諾により個人情報が開示されました":"個人情報は非開示です（オファー承諾前）";
+  $("piiBody").innerHTML=rows.map(r=>
+    `<span class="k">${r[0]}</span><span class="v${open?"":" msk"}">${open?p[r[1]]:"●●●●●●●●"}</span>`).join("");
+
+  $("xLocked").style.display=open?"none":"block";
+  $("xOpen").style.display=open?"block":"none";
+  if(open){
+    const f=[["氏名",p.name],["フリガナ",p.kana],["メール",p.mail],["電話",p.tel],
+             ["大学・学部",p.uni],["卒業予定",p.grad],["選考状況","オファー承諾済み"]];
+    $("xFields").innerHTML=f.map(x=>
+      `<div class="f"><span class="n">${x[0]}</span><span class="val">${x[1]}</span>
+        <span class="tag2 no">AI非経由</span></div>`).join("");
+  }
+  $("xLog").classList.remove("on"); $("xLog").innerHTML=""; $("sendNow").disabled=false;
+}
+$("acceptBtn").addEventListener("click",()=>{
+  disclosed[STUDENTS[cur].key]=true;
+  renderPii(); renderProfile();
+  toast("学生がオファーを承諾しました（デモ）");
+});
+document.querySelectorAll(".dest button").forEach(b=>b.addEventListener("click",()=>{
+  dest=b.dataset.d;
+  document.querySelectorAll(".dest button").forEach(x=>x.classList.toggle("on",x===b));
+}));
+$("sendNow").addEventListener("click",()=>{
+  const p=PII[STUDENTS[cur].key], log=$("xLog");
+  const isAts=dest==="ats";
+  const lines=[
+    ['<span class="d">［1/4］</span> 画面から候補者情報を取得（7項目）',260],
+    ['<span class="d">［2/4］</span> <span class="w">生成AIへは送信しません</span>（AI非経由）',620],
+    [`<span class="d">［3/4］</span> ${isAts?"採用管理システムへ接続":"社内スプレッドシートへ接続"}`,980],
+    [isAts?`<span class="d">［4/4］</span> 候補者マスタに登録　ID：CND-20260904-0148`
+          :`<span class="d">［4/4］</span> 応募者一覧シートへ追記　行：248`,1380],
+    [`完了　${p.kana} さんの情報を転記しました`,1620],
+    ['<span class="d">転記ログを社内に記録（個人情報の本体は保存されません）</span>',1860]
+  ];
+  log.innerHTML=""; log.classList.add("on"); $("sendNow").disabled=true;
+  lines.forEach(l=>setTimeout(()=>{
+    log.insertAdjacentHTML("beforeend",l[0]+"<br>"); log.scrollTop=log.scrollHeight;
+  },l[1]));
+  setTimeout(()=>{ $("sendNow").disabled=false;
+    toast(isAts?"採用管理システムへ転記しました（デモ）":"スプレッドシートへ送信しました（デモ）"); },1900);
+});
+document.querySelectorAll(".atabs button").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll(".atabs button").forEach(x=>x.classList.toggle("on",x===b));
+  $("paneGen").classList.toggle("on",b.dataset.p==="gen");
+  $("paneXfer").classList.toggle("on",b.dataset.p==="xfer");
+}));
+
 function renderProfile(){
-  const s=STUDENTS[cur];
-  $("pName").textContent=s.name; $("pUni").textContent=s.uni;
+  const s=STUDENTS[cur], op=!!disclosed[s.key];
+  $("pName").textContent=op?PII[s.key].name+" さん（架空）":s.name;
+  $("pUni").textContent=s.uni;
   $("pTags").innerHTML=s.tags.map(t=>`<span class="chip">${t}</span>`).join("");
   $("pApt").innerHTML=s.apt.map(a=>
     `<span>${a[0]}</span><span class="bar"><i style="width:${a[1]/5*100}%"></i></span><span class="v">${a[1]}</span>`).join("");
@@ -589,7 +866,7 @@ function switchTo(i){
   if(i===cur) return;
   clearInterval(typing);
   cur=i; const s=STUDENTS[cur];
-  renderTabs(); renderProfile();
+  renderTabs(); renderProfile(); renderPii();
   $("titleInput").value=""; $("restored").classList.remove("on");
   $("stat").classList.remove("on"); $("genBtn").disabled=false;
 
@@ -691,7 +968,7 @@ function toast(m){const e=$("toastEl");e.textContent=m;e.classList.add("show");
   document.addEventListener("mouseup",()=>on=false);
 })();
 
-renderTabs(); renderProfile(); renderMsg(false);
+renderTabs(); renderProfile(); renderPii(); renderMsg(false);
 </script>
 </body>
 </html>
