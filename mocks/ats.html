@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>採用管理システム（ATS）｜営業デモ</title>
+<style>
+:root{
+  --ink:#1f2a2e; --sub:#5c6b70; --line:#d7dee0; --bg:#f2f5f5;
+  --accent:#0f766e; --accent-soft:#e4efee;
+  --warn:#b45309; --warn-soft:#fef3e2;
+  --ng:#b91c1c; --ng-soft:#fde8e8;
+  --ok:#166534; --ok-soft:#e3f3e8;
+  --side:#12332f; --side-ink:#cfe3e0; --side-hover:#1c453f; --side-mark:#5eead4;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",sans-serif;
+  font-size:14px;color:var(--ink);background:var(--bg);line-height:1.7;display:flex;min-width:1024px}
+button{font-family:inherit;cursor:pointer;color:inherit}
+
+/* ══ サイドバー ══ */
+.side{width:200px;flex:none;background:var(--side);color:var(--side-ink);height:100vh;
+  position:sticky;top:0;display:flex;flex-direction:column;padding:16px 0}
+.side .ttl{padding:0 16px 14px;font-size:14px;font-weight:bold;color:#fff}
+.side .ver{padding:0 16px 12px;font-size:10px;color:#8fb5b0}
+.side .tenant{margin:0 12px 14px;padding:8px 10px;background:rgba(255,255,255,.07);
+  border-radius:6px;font-size:11px;line-height:1.6}
+.side .tenant b{display:block;font-size:12px;color:#fff}
+.side nav{flex:1;overflow:auto}
+.side nav button{display:block;width:100%;text-align:left;background:none;border:none;
+  color:var(--side-ink);font-size:13px;padding:8px 16px;border-left:3px solid transparent}
+.side nav button:hover{background:var(--side-hover)}
+.side nav button.on{background:var(--side-hover);border-left-color:var(--side-mark);color:#fff;font-weight:bold}
+.side .sep{height:1px;background:rgba(255,255,255,.12);margin:12px 16px}
+.side .out{margin:0 16px;padding:7px;border:1px solid rgba(255,255,255,.22);border-radius:6px;
+  background:none;font-size:12px;color:var(--side-ink)}
+
+/* ══ メイン ══ */
+main{flex:1;min-width:0;padding:18px 22px;max-width:1120px}
+.crumb{font-size:11px;color:var(--sub)}
+h1{font-size:18px;margin:2px 0 2px}
+.note{font-size:11px;color:var(--sub);margin-bottom:14px}
+.head{display:flex;align-items:flex-start;gap:14px;margin-bottom:14px}
+.head .note{margin:0}
+.ba{margin-left:auto;flex:none;font-size:11px;background:#fff;border:1px solid var(--line);
+  border-radius:10px;padding:3px 12px;color:var(--sub);white-space:nowrap}
+.ba b{color:var(--accent)}
+
+.card{background:#fff;border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:14px}
+.card h2{font-size:13px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.card h2 a{margin-left:auto;font-size:11px;color:var(--accent);text-decoration:none;font-weight:normal;cursor:pointer}
+.row{display:flex;gap:14px;flex-wrap:wrap}
+.row .card{flex:1;min-width:200px}
+.kpi{font-size:26px;font-weight:bold}
+.kpi small{font-size:11px;color:var(--sub);font-weight:normal;margin-left:4px}
+.kpi.w{color:var(--warn)}
+.hint{font-size:11px;color:var(--sub);margin-top:8px}
+.hint a{color:var(--accent);text-decoration:none;cursor:pointer}
+
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--accent-soft);text-align:left;padding:8px;font-size:11px;
+  border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:8px;border-bottom:1px solid #edf1f2}
+tr:hover td{background:#f7fafa}
+td.n,th.n{text-align:right}
+
+.chip{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px}
+.chip.new{background:var(--warn-soft);color:var(--warn)}
+.chip.fix{background:var(--accent-soft);color:var(--accent)}
+.chip.done{background:var(--ok-soft);color:var(--ok)}
+.chip.ng{background:var(--ng-soft);color:var(--ng)}
+.chip.gray{background:#eef1f2;color:var(--sub)}
+
+.btn{padding:7px 14px;border-radius:6px;border:1px solid var(--line);background:#fff;font-size:13px;cursor:pointer}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:bold}
+.btn.sm{padding:4px 10px;font-size:11px}
+
+.todo{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #edf1f2;font-size:13px}
+.todo:last-child{border-bottom:none}
+.todo .btn{margin-left:auto;flex:none}
+.warncard{background:var(--warn-soft);border:1px solid #f3d9ae;border-radius:8px;padding:12px 14px;
+  margin-bottom:14px;font-size:13px;color:var(--warn)}
+.warncard b{display:block}
+.warncard span{display:block;font-size:11px;color:var(--sub);margin-top:2px}
+.okband{background:var(--ok-soft);border:1px solid #bfe0c8;border-radius:8px;padding:12px 14px;
+  margin-bottom:14px;font-size:13px;color:var(--ok)}
+.okband b{font-weight:bold}
+.okband .steps{margin-top:8px;color:var(--ink);font-size:12px;line-height:1.9}
+.okband .steps i{font-style:normal;display:inline-block;width:18px;height:18px;border-radius:50%;
+  background:var(--ok);color:#fff;font-size:10px;text-align:center;line-height:18px;margin-right:6px}
+.okband .acts{margin-top:10px;display:flex;gap:8px}
+.mustself{font-size:11px;color:var(--warn);background:var(--warn-soft);border:1px solid #f3d9ae;
+  border-radius:6px;padding:6px 10px;margin-top:9px;line-height:1.7}
+
+/* ══ 応募者詳細 2カラム ══ */
+.two{display:grid;grid-template-columns:minmax(0,1fr) 452px;gap:14px;align-items:start}
+.dl{display:grid;grid-template-columns:86px 1fr 86px 1fr;gap:6px 10px;font-size:13px}
+.dl .k{color:var(--sub);font-size:11.5px}
+.sel{padding:6px 10px;border:1px solid var(--line);border-radius:6px;font-size:13px;font-family:inherit;background:#fff}
+
+.mediabox{border:1px dashed #b9c4c6;border-radius:8px;background:#e9edee;height:328px;
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;color:var(--sub);font-size:12px}
+.mediabox b{font-size:13px;color:#77868a}
+.extwrap{position:relative;margin-top:-104px;padding-left:64px}
+.ext{width:380px;border-radius:12px;overflow:hidden;background:#fff;border:1px solid var(--line);
+  box-shadow:0 8px 28px rgba(0,0,0,.18)}
+.ext .eh{background:linear-gradient(135deg,#1e88e5,#1565c0);color:#fff;padding:9px 12px;font-size:12px;font-weight:bold}
+.ext .eb{padding:12px}
+.judge{border:1px solid #bfe0c8;background:var(--ok-soft);border-radius:8px;padding:10px 12px;margin-bottom:10px}
+.judge .big{font-size:20px;font-weight:bold;color:var(--ok)}
+.judge p{font-size:11px;color:var(--sub);margin-top:2px;line-height:1.6}
+.ef{display:grid;grid-template-columns:auto 1fr auto 1fr;gap:4px 8px;font-size:11.5px;align-items:baseline}
+.ef .k{color:var(--sub);white-space:nowrap}
+.ef .v{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.geo{font-size:11px;color:var(--ok);background:var(--ok-soft);border-radius:5px;padding:5px 9px;margin-top:9px}
+.radios{margin-top:10px;font-size:12px;display:flex;flex-direction:column;gap:4px}
+.radios .lb{font-size:11px;color:var(--sub);margin-bottom:2px}
+.sendext{width:100%;margin-top:10px;background:#1565c0;border:none;color:#fff;font-weight:bold;
+  padding:10px;border-radius:6px;font-size:13px}
+.extnote{font-size:10.5px;color:var(--sub);text-align:center;margin-top:5px}
+
+/* ══ カレンダー ══ */
+.tools{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.tools .nav button{border:1px solid var(--line);background:#fff;padding:5px 11px;font-size:13px}
+.tools .nav button:first-child{border-radius:6px 0 0 6px}
+.tools .nav button:last-child{border-radius:0 6px 6px 0;border-left:none}
+.tools .nav{display:flex}
+.tools .mon{font-size:18px;font-weight:bold}
+.tools .rng{font-size:11px;color:var(--sub)}
+.seg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;margin-left:auto}
+.seg button{border:none;background:#fff;padding:5px 14px;font-size:12px;border-left:1px solid var(--line)}
+.seg button:first-child{border-left:none}
+.seg button.on{background:var(--accent);color:#fff;font-weight:bold}
+.filt{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--sub)}
+.filt button{border:1px solid var(--line);background:#fff;border-radius:12px;padding:3px 11px;font-size:11.5px}
+.filt button.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:bold}
+
+.cal{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff}
+.calhead{display:grid;grid-template-columns:56px repeat(7,1fr);background:var(--accent-soft);
+  border-bottom:1px solid var(--line)}
+.calhead div{padding:6px 4px;font-size:11px;text-align:center;border-left:1px solid var(--line)}
+.calhead div:first-child{border-left:none}
+.calhead div.td{background:#d5e8e5;font-weight:bold}
+.calbody{display:grid;grid-template-columns:56px repeat(7,1fr);position:relative}
+.axis div{height:26px;font-size:10px;color:var(--sub);text-align:right;padding-right:6px;
+  border-bottom:1px solid #eef2f2;line-height:26px}
+.day{position:relative;border-left:1px solid var(--line)}
+.slot{height:26px;border-bottom:1px solid #eef2f2;position:relative}
+.slot:nth-child(even){border-bottom-color:#e2e8e8}
+.slot:hover{background:#f1f7f6}
+.slot:hover::after{content:"＋";position:absolute;inset:0;display:flex;align-items:center;
+  justify-content:center;color:var(--accent);font-size:13px}
+.band{position:absolute;left:0;right:0;background:#fffbe6;border:1px solid #ffe082;
+  border-radius:4px;z-index:1;pointer-events:none}
+.band span{font-size:9.5px;color:#a06a00;padding:1px 4px;display:block}
+.ev{position:absolute;left:4px;right:4px;border-radius:4px;padding:2px 5px;font-size:10.5px;
+  color:#fff;z-index:2;overflow:hidden;line-height:1.4;cursor:default}
+.ev b{display:block;font-size:10px;font-weight:normal;opacity:.85}
+.ev.ext2{background:repeating-linear-gradient(45deg,#e4e8e9,#e4e8e9 5px,#d7dee0 5px,#d7dee0 10px);
+  color:var(--sub);border:1px solid var(--line)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--sub);margin-top:10px;align-items:center}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.book{position:fixed;right:22px;top:120px;width:268px;background:#fff;border:1px solid var(--line);
+  border-radius:8px;padding:14px;z-index:30;display:none}
+.book.on{display:block}
+.book h3{font-size:13px;margin-bottom:10px}
+.book .dl2{display:grid;grid-template-columns:62px 1fr;gap:6px 8px;font-size:12px;margin-bottom:10px}
+.book .dl2 .k{color:var(--sub)}
+.book .x{position:absolute;right:10px;top:8px;border:none;background:none;color:var(--sub);font-size:14px}
+
+/* ══ サマリ表 ══ */
+.scroll{overflow-x:auto}
+table.sum th,table.sum td{padding:5px 7px;font-size:11.5px;white-space:nowrap}
+table.sum th.grp{text-align:center;border-left:2px solid var(--line)}
+table.sum td.gl,table.sum th.gl{border-left:2px solid var(--line)}
+table.sum tr.b td{font-weight:bold;background:#fafcfc}
+table.sum td.kubun{color:var(--sub);font-size:10.5px}
+.kgi{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.kgi .box{border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.kgi .bh{background:var(--accent-soft);padding:6px 10px;font-size:11px;font-weight:bold;color:var(--accent)}
+.kgi table{font-size:12px}
+.kgi input{width:56px;border:1px solid var(--line);border-radius:4px;padding:3px 6px;text-align:right;font-family:inherit}
+.skip{background:#fff;border:1px dashed var(--line);border-radius:8px;padding:38px;text-align:center;color:var(--sub)}
+.skip b{display:block;font-size:14px;color:var(--ink);margin-bottom:4px}
+[hidden]{display:none !important}
+.fade{animation:fd .15s ease-out}
+@keyframes fd{from{opacity:0}to{opacity:1}}
+</style>
+</head>
+<body>
+
+<!-- ══════ サイドバー ══════ -->
+<aside class="side">
+  <div class="ttl">採用管理システム</div>
+  <div class="tenant"><b>管理会社A社</b>採用担当</div>
+  <nav id="nav">
+    <button class="on" data-s="dash">🏠 ダッシュボード</button>
+    <button data-s="cand">👤 応募者</button>
+    <button data-s="sum">📈 クール別サマリ</button>
+    <button data-s="skip">📊 求人</button>
+    <button data-s="sched">📅 面接調整</button>
+    <button data-s="skip">✉️ 連絡</button>
+    <button data-s="skip">🗓 可否日設定</button>
+    <button data-s="skip">📥 CSVインポート</button>
+    <button data-s="skip">⚙️ 設定</button>
+  </nav>
+  <div class="sep"></div>
+  <button class="out">ログアウト</button>
+</aside>
+
+<main>
+
+<!-- ══════ ① ダッシュボード ══════ -->
+<section id="s-dash">
+  <div class="head">
+    <div>
+      <div class="crumb">ホーム</div>
+      <h1>ダッシュボード</h1>
+      <div class="note">2026年7月17日（木）</div>
+    </div>
+    <span class="ba" id="baDash"></span>
+  </div>
+
+  <div class="row">
+    <div class="card"><h2>未対応の新規応募</h2>
+      <div class="kpi w">3<small>件</small></div>
+      <div class="hint"><a data-go="cand">応募者一覧で確認 →</a></div></div>
+    <div class="card"><h2>応募者総数</h2>
+      <div class="kpi">120<small>名</small></div>
+      <div class="hint">Chrome拡張・手動登録の累計</div></div>
+    <div class="card"><h2>本日の面接</h2>
+      <div class="kpi">2<small>件</small></div>
+      <div class="hint"><a data-go="sched">面接調整へ →</a></div></div>
+    <div class="card"><h2>事前連絡が未送信</h2>
+      <div class="kpi w">1<small>件</small></div>
+      <div class="hint">面接確定済み・連絡待ち</div></div>
+  </div>
+
+  <div class="card"><h2>クール別サマリ<a data-go="sum">すべての数字を見る →</a></h2>
+    <div class="scroll"><table id="tCool"></table></div>
+  </div>
+
+  <div class="card"><h2>要対応</h2>
+    <div class="todo">✉️　<b>桜井 美咲</b> 様の一次面接（7/18 10:00）の事前連絡が未送信です
+      <button class="btn sm" onclick="goCand()">連絡画面へ</button></div>
+    <div class="todo">⏰　明日 <b>田中 一郎</b> 様の一次面接（11:00・山崎）— 前日リマインドを送りましょう
+      <button class="btn sm" onclick="skipMsg('連絡')">リマインドを作成</button></div>
+  </div>
+
+  <div class="card"><h2>直近の面接</h2>
+    <div class="scroll"><table id="tNext"></table></div>
+  </div>
+</section>
+
+<!-- ══════ ② 応募者詳細 ══════ -->
+<section id="s-cand" hidden>
+  <div class="head">
+    <div>
+      <div class="crumb">応募者 › 桜井 美咲</div>
+      <h1>桜井 美咲　<span class="chip fix">1次選考確定</span></h1>
+      <div class="note">応募ID APP-20260715-0083 ／ 2026年7月クール・営業職</div>
+    </div>
+    <span class="ba" id="baCand"></span>
+  </div>
+
+  <div class="two">
+    <!-- 左：ATS -->
+    <div>
+      <div class="card"><h2>基本情報<a onclick="skipMsg('編集')">編集</a></h2>
+        <div class="dl">
+          <span class="k">フリガナ</span><span>サクライ ミサキ</span>
+          <span class="k">性別</span><span>女性</span>
+          <span class="k">年齢</span><span>28歳</span>
+          <span class="k">生年月日</span><span>1998年3月12日</span>
+          <span class="k">電話</span><span>090-****-1234</span>
+          <span class="k">メール</span><span>m.s****@example.com</span>
+          <span class="k">都道府県</span><span>東京都</span>
+          <span class="k">住所</span><span>東京都〇〇区（以下伏せ字）</span>
+          <span class="k">応募日</span><span>2026/07/15</span>
+          <span class="k">媒体</span><span>媒体A</span>
+          <span class="k">職種</span><span>営業職</span>
+          <span class="k">応募ID</span><span>APP-20260715-0083</span>
+        </div>
+      </div>
+
+      <div class="card"><h2>選考</h2>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <select class="sel">
+            <option>1次面接調整中</option>
+            <option selected>1次選考確定</option>
+            <option>1次選考実施済み</option>
+            <option>2次選考調整中</option>
+            <option>内定</option>
+            <option>内定承諾</option>
+            <option>辞退</option>
+            <option>書類NG</option>
+          </select>
+          <button class="btn" onclick="skipMsg('ステータス保存')">変更を保存</button>
+        </div>
+        <div class="hint">変更内容は、いまお使いの進捗管理スプレッドシートにも同時に反映されます。</div>
+      </div>
+
+      <div class="card"><h2>面接</h2>
+        <div class="scroll"><table>
+          <tr><th>回次</th><th>日時</th><th>面接官</th><th>状態</th></tr>
+          <tr><td>一次</td><td>7/18(金) 10:00〜10:30</td><td>山崎</td><td><span class="chip fix">確定</span></td></tr>
+        </table></div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn" onclick="goSched()">📅 面接を調整する</button>
+          <button class="btn" onclick="skipMsg('連絡')">✉️ 連絡文面を作成</button>
+        </div>
+      </div>
+
+      <div class="okband">
+        <b>✅ 面接設定が完了しました。候補者にメッセージを送りましょう。</b>
+        <div class="steps">
+          <div><i>1</i>求人媒体の管理画面を開きます</div>
+          <div><i>2</i>この応募者のメッセージタブを開きます</div>
+          <div><i>3</i>下の［文面をコピー］で本文欄に貼り付けます</div>
+          <div><i>4</i><b>送信ボタンはご自身で押してください</b></div>
+        </div>
+        <div class="acts">
+          <button class="btn" onclick="skipMsg('媒体を開く')">🔗 媒体でこの応募者を開く</button>
+          <button class="btn pri" onclick="toast('文面をコピーしました（デモ）')">📋 文面をコピー</button>
+        </div>
+        <div class="mustself">貼り付けまでが自動です。送信は必ずご自身で押してください（媒体の規約対応のため）。</div>
+      </div>
+    </div>
+
+    <!-- 右：媒体ページの見立て＋拡張 -->
+    <div>
+      <div class="mediabox">
+        <b>求人媒体の応募者ページ（イメージ）</b>
+        <span>※実在の媒体の画面・ロゴは使用していません</span>
+      </div>
+      <div class="extwrap">
+        <div class="ext">
+          <div class="eh">📋 応募者情報の確認　v1.6.21</div>
+          <div class="eb">
+            <div class="judge">
+              <div class="big">○ OK</div>
+              <p>年齢・転職回数・管理物件・エリア すべて条件内<br>
+                （判定は規則ベース。条件は設定画面で管理しています）</p>
+            </div>
+            <div class="ef">
+              <span class="k">氏名</span><span class="v">桜井 美咲</span>
+              <span class="k">フリガナ</span><span class="v">サクライ ミサキ</span>
+              <span class="k">性別</span><span class="v">女性</span>
+              <span class="k">年齢</span><span class="v">28歳</span>
+              <span class="k">電話</span><span class="v">090-****-1234</span>
+              <span class="k">メール</span><span class="v">m.s****@example.com</span>
+              <span class="k">都道府県</span><span class="v">東京都</span>
+              <span class="k">住所</span><span class="v">東京都〇〇区（伏せ字）</span>
+              <span class="k">応募日</span><span class="v">2026/07/15</span>
+              <span class="k">媒体</span><span class="v">媒体A</span>
+              <span class="k">原稿名称</span><span class="v">営業職／7月</span>
+              <span class="k">転職回数</span><span class="v">1回</span>
+            </div>
+            <div class="geo">🗺️ 住所の自動検証：管理物件と一致なし</div>
+            <div class="radios">
+              <span class="lb">送信先の求人</span>
+              <label><input type="radio" name="jb" checked> 営業職（2026年7月クール）</label>
+              <label><input type="radio" name="jb"> 事務職（2026年5月クール）</label>
+            </div>
+            <button class="sendext" onclick="toast('シートとATSへ登録しました（デモ）')">📤 シートへ送信</button>
+            <div class="extnote">シート＋ATSへ同時に登録されます</div>
+            <div class="mustself">媒体へのメッセージ送信は行いません。貼り付けまでが自動です。</div>
+          </div>
+        </div>
+      </div>
+      <div class="hint" style="margin-top:14px">
+        この画面、<b>入力欄が1つも埋められていません</b>。すべて媒体の応募者ページから自動で読み取っています。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ ③ 面接調整 ══════ -->
+<section id="s-sched" hidden>
+  <div class="head">
+    <div>
+      <div class="crumb">面接調整</div>
+      <h1>面接調整</h1>
+      <div class="note">週表示（面接官ごとに色分け）</div>
+    </div>
+    <span class="ba" id="baSched"></span>
+  </div>
+
+  <div class="okband" style="padding:10px 14px">
+    <b>✅ 07/18(金) 11:00〜11:30 で設定済みです</b>
+    <span style="font-size:12px;color:var(--ink)">　田中 一郎 様・一次面接・山崎　／　カレンダーに本体・前日リマインド・書類提出期日を作成しました</span>
+  </div>
+
+  <div class="tools">
+    <div class="nav"><button onclick="toast('デモでは週の移動はできません')">＜</button>
+      <button onclick="toast('デモでは週の移動はできません')">＞</button>
+      <button onclick="toast('今週を表示しています')">今日</button></div>
+    <div><div class="mon">2026年7月</div><div class="rng">7月16日（水）〜 7月22日（火）</div></div>
+    <div class="seg"><button onclick="segClick(this)">日</button>
+      <button class="on" onclick="segClick(this)">週</button>
+      <button onclick="segClick(this)">月</button></div>
+  </div>
+  <div class="tools filt" style="margin-top:-4px">面接官：
+    <button class="on" data-i="all">全員</button>
+    <button data-i="中野">中野</button>
+    <button data-i="土屋">土屋</button>
+    <button data-i="山崎">山崎</button>
+  </div>
+
+  <div class="cal">
+    <div class="calhead" id="calHead"></div>
+    <div class="calbody" id="calBody"></div>
+  </div>
+  <div class="legend">
+    <span><i style="background:#0f766e"></i>山崎</span>
+    <span><i style="background:#1e88e5"></i>土屋</span>
+    <span><i style="background:#7c3aed"></i>中野</span>
+    <span><i style="background:#fffbe6;border:1px solid #ffe082"></i>希望日（相手のボール）</span>
+    <span><i style="background:repeating-linear-gradient(45deg,#e4e8e9,#e4e8e9 3px,#d7dee0 3px,#d7dee0 6px)"></i>外部予定（カレンダー由来）</span>
+  </div>
+  <div class="hint">希望日は、候補者からの返信をChrome拡張で取り込むと自動で色が付きます。空き枠にカーソルを合わせると「＋」が出ます。</div>
+
+  <div class="book" id="book">
+    <button class="x" onclick="closeBook()">✕</button>
+    <h3>この枠で面接を設定</h3>
+    <div class="dl2">
+      <span class="k">候補者</span><span>桜井 美咲</span>
+      <span class="k">回次</span><span>一次面接</span>
+      <span class="k">面接官</span><span>山崎</span>
+      <span class="k">日時</span><span id="bookWhen">—</span>
+    </div>
+    <button class="btn pri" style="width:100%" onclick="confirmBook()">この枠で確定する</button>
+    <div class="hint">確定すると、カレンダーに面接本体・前日リマインド・書類提出期日が自動で作成されます。</div>
+  </div>
+</section>
+
+<!-- ══════ ④ クール別サマリ ══════ -->
+<section id="s-sum" hidden>
+  <div class="head">
+    <div>
+      <div class="crumb">クール別サマリ</div>
+      <h1>2026年7月クール ／ 営業職</h1>
+      <div class="note">媒体A ／ 掲載 2026/07/02〜2026/09/02（63日）</div>
+    </div>
+    <span class="ba" id="baSum"></span>
+  </div>
+
+  <div class="warncard"><b>⚠️ 実施有無が未入力の面接が 2件あります</b>
+    <span>日時は過ぎているのに、実施／未実施／実施前辞退が入っていないものです。数字が合わない原因はここに出ます。</span></div>
+
+  <div class="card"><h2>日次 応募推移</h2>
+    <div class="scroll"><table class="sum" id="tDaily"></table></div></div>
+
+  <div class="card"><h2>歩留まり</h2>
+    <div class="scroll"><table class="sum" id="tFunnel"></table></div>
+    <div class="hint">1次選考の実施率のみ分母が「設定数−予定数」のため、実施＋未実施＋実施前辞退を足しても100%にはなりません（現行の集計表と同じ挙動です）。</div></div>
+
+  <div class="card"><h2>KGI / KPI</h2>
+    <div class="kgi">
+      <div class="box"><div class="bh">KGI</div><table id="tKgi"></table></div>
+      <div class="box"><div class="bh">KPI</div><table id="tKpi"></table></div>
+    </div></div>
+
+  <div class="card"><h2>掲載期間</h2>
+    <div class="scroll"><table id="tPub"></table></div></div>
+</section>
+
+<!-- ══════ 省略 ══════ -->
+<section id="s-skip" hidden>
+  <div class="skip"><b id="skipTtl">デモでは省略</b>
+    この画面は本番のシステムには実装済みですが、デモでは省略しています。</div>
+</section>
+
+</main>
+
+<div id="toastEl" style="position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(14px);
+  background:#1f2a2e;color:#fff;padding:10px 22px;border-radius:6px;font-size:12.5px;opacity:0;
+  transition:.15s;pointer-events:none;z-index:99"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+
+/* ══════ §8-1 Before / After バッジ（商談相手に合わせてここだけ差し替える） ══════ */
+const BA={
+  dash:"これまで：3つの画面を行き来 → <b>いま：1画面</b>",
+  cand:"これまで：媒体を見ながら手入力 15分 → <b>いま：0分</b>",
+  sched:"これまで：希望日をメールから読み取り → <b>いま：自動で色が付く</b>",
+  sum:"これまで：週1で手集計 → <b>いま：常に最新</b>"
+};
+$("baDash").innerHTML=BA.dash; $("baCand").innerHTML=BA.cand;
+$("baSched").innerHTML=BA.sched; $("baSum").innerHTML=BA.sum;
+
+/* ══════ §7.1 クール ══════ */
+const COOL=[
+ {n:"2026年7月クール／営業職",tag:"掲載中",job:"媒体A",v:[120,96,78,58,16,4,3],day:"1.90",land:"120"},
+ {n:"2026年5月クール／事務職",tag:"",job:"媒体A",v:[74,61,44,31,9,2,2],day:"1.35",land:"74"}
+];
+$("tCool").innerHTML=
+ `<tr><th>クール／職種</th><th class="n">総応募</th><th class="n">有効応募</th><th class="n">1次設定</th>
+   <th class="n">1次実施</th><th class="n">通過</th><th class="n">内定</th><th class="n">承諾</th>
+   <th class="n">1日あたり</th><th class="n">着地の見込み</th></tr>`+
+ COOL.map(c=>`<tr><td>${c.n}${c.tag?' <span class="chip new">'+c.tag+'</span>':''}</td>`+
+   c.v.map(x=>`<td class="n">${x}</td>`).join("")+
+   `<td class="n">${c.day}</td><td class="n">${c.land}</td></tr>`).join("");
+
+/* ══════ 直近の面接 ══════ */
+const NEXT=[
+ ["本日","7/17(木) 13:30〜14:15","高橋 直樹","二次","土屋","✅ 同期済み"],
+ ["本日","7/17(木) 17:00〜17:30","森田 拓海","一次","山崎","✅ 同期済み"],
+ ["明日","7/18(金) 10:00〜10:30","桜井 美咲","一次","山崎","✅ 同期済み"],
+ ["明日","7/18(金) 11:00〜11:30","田中 一郎","一次","山崎","✅ 同期済み"],
+ ["7/22(火)","7/22(火) 16:30〜17:15","井上 遥","二次","土屋","✅ 同期済み"]
+];
+$("tNext").innerHTML=`<tr><th>日付</th><th>時刻</th><th>候補者</th><th>回次</th><th>面接官</th><th>カレンダー</th></tr>`+
+ NEXT.map(r=>`<tr><td><span class="chip ${r[0]==="本日"?"fix":"gray"}">${r[0]}</span></td>
+   <td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td></tr>`).join("");
+
+/* ══════ §7.3 日次 応募推移 ══════ */
+const DAILY=[["合計",120,96,24],["07/02(木)",3,2,1],["07/03(金)",5,4,1],
+             ["07/06(月)",4,4,""],["07/07(火)",2,1,1],["07/08(水)",6,5,1]];
+$("tDaily").innerHTML=
+ `<tr><th rowspan="2">日付</th><th class="grp" colspan="3">全体</th><th class="grp" colspan="3">媒体A</th></tr>
+  <tr><th class="n gl">総応募</th><th class="n">有効応募</th><th class="n">対象外</th>
+      <th class="n gl">総応募</th><th class="n">有効応募</th><th class="n">対象外</th></tr>`+
+ DAILY.map((r,i)=>`<tr class="${i===0?"b":""}"><td>${r[0]}</td>`+
+   [0,1].map(()=>`<td class="n gl">${r[1]}</td><td class="n">${r[2]}</td><td class="n">${r[3]}</td>`).join("")+
+   `</tr>`).join("");
+
+/* ══════ §7.2 歩留まり ══════ */
+const F=[
+ ["","総応募",120,"100.0%","1.90",120,1],
+ ["","有効応募",96,"80.0%","1.52",96,1],
+ ["1次選考","設定数",78,"81.3%","1.24",78,1],
+ ["1次選考","設定前辞退数",3,"3.1%","0.05",3,0],
+ ["1次選考","実施数",58,"76.3%","0.92",58,1],
+ ["1次選考","未実施数",8,"10.3%","0.13",8,0],
+ ["1次選考","実施前辞退数",10,"12.8%","0.16",10,0],
+ ["1次選考","予定数",2,"—","0.03",2,0],
+ ["結果","通過数",16,"27.6%","0.25",16,1],
+ ["適正","実施数","—","—","—","—",0],
+ ["2次選考","待機数",3,"—","0.05",3,0],
+ ["2次選考","設定数",12,"75.0%","0.19",12,1],
+ ["2次選考","設定前辞退数",4,"25.0%","0.06",4,0],
+ ["2次選考","実施数",11,"100.0%","0.17",11,1],
+ ["2次選考","未実施数",0,"0.0%","0.00",0,0],
+ ["2次選考","実施前辞退数",0,"0.0%","0.00",0,0],
+ ["2次選考","予定数",1,"—","0.02",1,0],
+ ["結果","内定数",4,"36.4%","0.06",4,1],
+ ["結果","待機数",2,"—","0.03",2,0],
+ ["結果","承諾数",3,"75.0%","0.05",3,1],
+ ["結果","辞退数",1,"25.0%","0.02",1,0]
+];
+(function(){
+  let prev=null;
+  $("tFunnel").innerHTML=
+   `<tr><th rowspan="2">区分</th><th rowspan="2">指標</th>
+     <th class="grp" colspan="4">全体</th><th class="grp" colspan="4">媒体A</th></tr>
+    <tr><th class="n gl">件数</th><th class="n">歩留まり</th><th class="n">平均値/日</th><th class="n">着地</th>
+        <th class="n gl">件数</th><th class="n">歩留まり</th><th class="n">平均値/日</th><th class="n">着地</th></tr>`+
+   F.map(r=>{
+     const kub=(r[0]&&r[0]!==prev)?r[0]:""; prev=r[0]||prev;
+     return `<tr class="${r[6]?"b":""}"><td class="kubun">${kub}</td><td>${r[1]}</td>`+
+       [0,1].map(()=>`<td class="n gl">${r[2]}</td><td class="n">${r[3]}</td>
+         <td class="n">${r[4]}</td><td class="n">${r[5]}</td>`).join("")+`</tr>`;
+   }).join("");
+})();
+
+/* ══════ §7.4 KGI / KPI ══════ */
+$("tKgi").innerHTML=`<tr><th>指標</th><th class="n">目標</th><th class="n">進捗</th></tr>`+
+ [["内定承諾",3,3]].map(r=>`<tr><td>${r[0]}</td>
+   <td class="n"><input value="${r[1]}"></td><td class="n"><b>${r[2]}</b></td></tr>`).join("");
+$("tKpi").innerHTML=`<tr><th>指標</th><th class="n">目標</th><th class="n">進捗</th></tr>`+
+ [["内定",5,4],["2次実施",10,11],["2次未実施","—",0],["2次実施予定","—",1],["2次調整中","—",2]]
+ .map(r=>`<tr><td>${r[0]}</td><td class="n">${r[1]==="—"?"—":`<input value="${r[1]}">`}</td>
+   <td class="n"><b>${r[2]}</b></td></tr>`).join("");
+
+/* ══════ 掲載期間 ══════ */
+$("tPub").innerHTML=`<tr><th>媒体</th><th>掲載開始日</th><th>掲載終了日</th><th class="n">掲載日数</th><th class="n">経過した日数</th></tr>
+ <tr><td>媒体A（営業職）</td><td>2026/07/02</td><td>2026/09/02</td><td class="n">63</td><td class="n">16</td></tr>
+ <tr><td>媒体A（事務職）</td><td>2026/05/07</td><td>2026/06/30</td><td class="n">55</td><td class="n">55</td></tr>`;
+
+/* ══════ ③ カレンダー ══════ */
+const DAYS=[["7/16","水",0],["7/17","木",1],["7/18","金",0],["7/19","土",0],
+            ["7/20","日",0],["7/21","月",0],["7/22","火",0]];
+const COLOR={"山崎":"#0f766e","土屋":"#1e88e5","中野":"#7c3aed"};
+/* d=曜日index, s=開始(9:00からの30分単位), len=30分単位の長さ */
+const EVENTS=[
+ {d:0,s:2,len:1,who:"山崎",t:"一次 森田 拓海"},
+ {d:0,s:8,len:2,who:"外部",t:"外部予定"},
+ {d:1,s:1,len:2,who:"外部",t:"外部予定"},
+ {d:1,s:9,len:2,who:"土屋",t:"二次 高橋 直樹"},
+ {d:1,s:16,len:1,who:"山崎",t:"一次 森田 拓海"},
+ {d:2,s:2,len:1,who:"山崎",t:"一次 桜井 美咲"},
+ {d:2,s:4,len:1,who:"山崎",t:"一次 田中 一郎"},
+ {d:5,s:12,len:2,who:"中野",t:"外部予定"},
+ {d:6,s:15,len:2,who:"土屋",t:"二次 井上 遥"}
+];
+const BANDS=[{d:2,s:2,len:4},{d:6,s:10,len:4}];   /* 希望日 7/18 10:00-12:00 ／ 7/22 14:00-16:00 */
+const SLOTS=20;                                    /* 9:00〜19:00 を30分刻み */
+const t2s=i=>{const h=9+Math.floor(i/2);return h+":"+(i%2?"30":"00")};
+
+$("calHead").innerHTML=`<div></div>`+DAYS.map(d=>
+  `<div class="${d[2]?"td":""}">${d[0]}（${d[1]}）${d[2]?"・本日":""}</div>`).join("");
+
+function drawCal(filter){
+  let h=`<div class="axis">`+Array.from({length:SLOTS},(_,i)=>`<div>${t2s(i)}</div>`).join("")+`</div>`;
+  DAYS.forEach((d,di)=>{
+    h+=`<div class="day" data-d="${di}">`+
+       Array.from({length:SLOTS},(_,i)=>`<div class="slot" data-i="${i}"></div>`).join("")+
+       BANDS.filter(b=>b.d===di).map(b=>
+         `<div class="band" style="top:${b.s*26}px;height:${b.len*26-2}px"><span>希望日</span></div>`).join("")+
+       EVENTS.filter(e=>e.d===di&&(filter==="all"||e.who===filter||e.who==="外部")).map(e=>
+         e.who==="外部"
+         ?`<div class="ev ext2" style="top:${e.s*26+1}px;height:${e.len*26-3}px">${t2s(e.s)} ${e.t}</div>`
+         :`<div class="ev" style="top:${e.s*26+1}px;height:${e.len*26-3}px;background:${COLOR[e.who]}">
+             ${e.t}<b>${t2s(e.s)}・${e.who}</b></div>`).join("")+
+       `</div>`;
+  });
+  $("calBody").innerHTML=h;
+  $("calBody").querySelectorAll(".slot").forEach(s=>s.addEventListener("click",e=>{
+    const di=+s.closest(".day").dataset.d, i=+s.dataset.i;
+    $("bookWhen").textContent=`${DAYS[di][0]}（${DAYS[di][1]}）${t2s(i)}〜${t2s(i+1)}`;
+    $("book").classList.add("on");
+  }));
+}
+drawCal("all");
+document.querySelectorAll(".filt button").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll(".filt button").forEach(x=>x.classList.toggle("on",x===b));
+  drawCal(b.dataset.i);
+}));
+function closeBook(){$("book").classList.remove("on")}
+function confirmBook(){closeBook();
+  toast("確定しました。カレンダーに面接・前日リマインド・書類提出期日を作成しました（デモ）")}
+function segClick(b){document.querySelectorAll(".seg button").forEach(x=>x.classList.toggle("on",x===b));
+  if(b.textContent!=="週") toast("デモでは週表示のみご覧いただけます")}
+
+/* ══════ 画面切替 ══════ */
+function show(key,label){
+  ["dash","cand","sched","sum","skip"].forEach(k=>$("s-"+k).hidden=(k!==key));
+  $("s-"+key).classList.remove("fade"); void $("s-"+key).offsetWidth; $("s-"+key).classList.add("fade");
+  closeBook();
+  if(key==="skip") $("skipTtl").textContent=(label||"")+"：デモでは省略";
+  window.scrollTo(0,0);
+}
+$("nav").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{
+  const s=b.dataset.s;
+  if(s!=="skip"){$("nav").querySelectorAll("button").forEach(x=>x.classList.remove("on"));b.classList.add("on")}
+  show(s,b.textContent.replace(/^\S+\s*/,""));
+}));
+document.querySelectorAll("[data-go]").forEach(a=>a.addEventListener("click",()=>{
+  const k=a.dataset.go;
+  $("nav").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x.dataset.s===k));
+  show(k);
+}));
+function goCand(){document.querySelector('[data-s="cand"]').click()}
+function goSched(){document.querySelector('[data-s="sched"]').click()}
+function skipMsg(n){toast(n+"：デモでは省略しています")}
+function toast(m){const e=$("toastEl");e.textContent=m;e.style.opacity=1;e.style.transform="translateX(-50%)";
+  clearTimeout(toast._t);toast._t=setTimeout(()=>{e.style.opacity=0;e.style.transform="translateX(-50%) translateY(14px)"},2300)}
+</script>
+</body>
+</html>
