@@ -241,6 +241,36 @@ table.mini th,table.mini td{padding:5px 7px;font-size:11.5px}
 .fwcomment{margin-top:12px;border-left:3px solid var(--accent);background:var(--accent-soft);
   padding:10px 14px;font-size:12.5px;line-height:1.85;border-radius:0 6px 6px 0}
 .fwcomment b{display:block;margin-bottom:2px}
+/* ══ カレンダー連携POP ══ */
+.ov{position:fixed;inset:0;background:rgba(31,42,46,.42);z-index:60;display:none;
+  align-items:center;justify-content:center}
+.ov.on{display:flex}
+.pop{width:440px;background:#fff;border-radius:10px;overflow:hidden;
+  box-shadow:0 18px 50px rgba(0,0,0,.28);animation:pin .15s ease-out}
+@keyframes pin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.pop .ph{background:var(--ok);color:#fff;padding:12px 16px;font-size:14px;font-weight:bold}
+.pop .ph small{display:block;font-size:11px;font-weight:normal;opacity:.9;margin-top:1px}
+.pop .pb{padding:14px 16px}
+.synbox{border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.synh{background:#f4f7f7;padding:7px 12px;font-size:11.5px;color:var(--sub);
+  display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line)}
+.synh .gc{width:18px;height:18px;border:2px solid #5c6b70;border-radius:4px;position:relative;flex:none}
+.synh .gc::before{content:"";position:absolute;left:2px;right:2px;top:3px;height:2px;background:#5c6b70}
+.synh b{color:var(--ink)}
+.synh .st{margin-left:auto;color:var(--ok);font-weight:bold}
+.syn{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid #edf1f2;
+  font-size:12px;opacity:0;transform:translateX(-6px);transition:.22s}
+.syn:last-child{border-bottom:none}
+.syn.in{opacity:1;transform:none}
+.syn .ck{width:18px;height:18px;border-radius:50%;background:var(--ok-soft);color:var(--ok);
+  font-size:11px;display:flex;align-items:center;justify-content:center;flex:none}
+.syn .tx{flex:1;min-width:0;line-height:1.5}
+.syn .tx b{display:block;font-size:12.5px}
+.syn .tx span{font-size:11px;color:var(--sub)}
+.syn .bar{width:4px;height:30px;border-radius:2px;flex:none}
+.popnote{font-size:11px;color:var(--sub);margin-top:10px;line-height:1.75}
+.popacts{display:flex;gap:8px;margin-top:12px}
+.popacts .btn{flex:1}
 [hidden]{display:none !important}
 .fade{animation:fd .15s ease-out}
 @keyframes fd{from{opacity:0}to{opacity:1}}
@@ -584,6 +614,36 @@ table.mini th,table.mini td{padding:5px 7px;font-size:11.5px}
   </div>
 </section>
 
+<!-- ══════ カレンダー連携POP ══════ -->
+<div class="ov" id="ov">
+  <div class="pop">
+    <div class="ph">✅ 面接を確定しました
+      <small id="popWhen">—</small></div>
+    <div class="pb">
+      <div class="synbox">
+        <div class="synh"><span class="gc"></span>
+          <span>Googleカレンダー（<b>採用カレンダー</b>／連携済み）</span>
+          <span class="st" id="synSt">同期中…</span></div>
+        <div class="syn" id="syn1"><span class="ck">✓</span><span class="bar" style="background:#0f766e"></span>
+          <span class="tx"><b>【一次面接】桜井 美咲 様</b><span id="ev1">—</span></span></div>
+        <div class="syn" id="syn2"><span class="ck">✓</span><span class="bar" style="background:#b45309"></span>
+          <span class="tx"><b>前日リマインド（面接官・候補者）</b><span id="ev2">—</span></span></div>
+        <div class="syn" id="syn3"><span class="ck">✓</span><span class="bar" style="background:#1e88e5"></span>
+          <span class="tx"><b>書類提出期日</b><span id="ev3">—</span></span></div>
+      </div>
+      <div class="popnote">
+        面接官（山崎）の予定にも同じ内容が入りました。<br>
+        面接が取消・辞退になった場合は、この3件がカレンダーから自動で削除されます。
+      </div>
+      <div class="mustself">連絡文面の下書きまで自動で作成します。媒体への送信は必ずご自身で押してください。</div>
+      <div class="popacts">
+        <button class="btn" onclick="closePop()">閉じる</button>
+        <button class="btn pri" onclick="closePop();skipMsg('連絡')">✉️ 連絡文面を作成</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ══════ ④ クール別サマリ ══════ -->
 <section id="s-sum" hidden>
   <div class="head">
@@ -877,6 +937,7 @@ function drawCal(filter){
   $("calBody").innerHTML=h;
   $("calBody").querySelectorAll(".slot").forEach(s=>s.addEventListener("click",e=>{
     const di=+s.closest(".day").dataset.d, i=+s.dataset.i;
+    SEL={di,i};
     $("bookWhen").textContent=`${DAYS[di][0]}（${DAYS[di][1]}）${t2s(i)}〜${t2s(i+1)}`;
     $("book").classList.add("on");
   }));
@@ -886,9 +947,24 @@ document.querySelectorAll(".filt button").forEach(b=>b.addEventListener("click",
   document.querySelectorAll(".filt button").forEach(x=>x.classList.toggle("on",x===b));
   drawCal(b.dataset.i);
 }));
+let SEL={di:2,i:2};
 function closeBook(){$("book").classList.remove("on")}
-function confirmBook(){closeBook();
-  toast("確定しました。カレンダーに面接・前日リマインド・書類提出期日を作成しました（デモ）")}
+function closePop(){$("ov").classList.remove("on")}
+function confirmBook(){
+  closeBook();
+  const d=DAYS[SEL.di], pv=DAYS[SEL.di-1]||["7/15","火"], pv2=DAYS[SEL.di-2]||["7/14","月"];
+  const when=`${d[0]}（${d[1]}）${t2s(SEL.i)}〜${t2s(SEL.i+1)}　／　桜井 美咲 様・一次面接・山崎`;
+  $("popWhen").textContent=when;
+  $("ev1").textContent=`${d[0]}（${d[1]}） ${t2s(SEL.i)}〜${t2s(SEL.i+1)}　Zoom URL を本文に自動挿入`;
+  $("ev2").textContent=`${pv[0]}（${pv[1]}） 18:00　通知：面接前日のお知らせ`;
+  $("ev3").textContent=`${pv2[0]}（${pv2[1]}） 12:00　履歴書・職務経歴書の提出期限`;
+  ["syn1","syn2","syn3"].forEach(id=>$(id).classList.remove("in"));
+  $("synSt").textContent="同期中…"; $("synSt").style.color="var(--sub)";
+  $("ov").classList.add("on");
+  ["syn1","syn2","syn3"].forEach((id,n)=>setTimeout(()=>$(id).classList.add("in"),320+n*380));
+  setTimeout(()=>{$("synSt").textContent="✅ 3件を作成しました";$("synSt").style.color="var(--ok)";},1500);
+}
+$("ov").addEventListener("click",e=>{if(e.target===$("ov"))closePop()});
 function segClick(b){document.querySelectorAll(".seg button").forEach(x=>x.classList.toggle("on",x===b));
   if(b.textContent!=="週") toast("デモでは週表示のみご覧いただけます")}
 
