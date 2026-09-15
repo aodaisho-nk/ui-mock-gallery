@@ -182,6 +182,65 @@ table.sum td.kubun{color:var(--sub);font-size:10.5px}
 .kgi input{width:56px;border:1px solid var(--line);border-radius:4px;padding:3px 6px;text-align:right;font-family:inherit}
 .skip{background:#fff;border:1px dashed var(--line);border-radius:8px;padding:38px;text-align:center;color:var(--sub)}
 .skip b{display:block;font-size:14px;color:var(--ink);margin-bottom:4px}
+/* ══ 分析ダッシュボード ══ */
+.two2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}
+.plabel{font-size:11px;color:var(--accent);font-weight:bold;margin-bottom:6px}
+.pnrow{display:flex;gap:18px;align-items:flex-start}
+.pnrow>div{flex:1;min-width:0}
+.bignum{font-size:28px;font-weight:bold;line-height:1.2}
+.bignum small{font-size:12px;font-weight:normal;color:var(--sub)}
+.pnums{border-left:1px solid var(--line);padding-left:18px}
+.dwrap{display:flex;align-items:center;gap:14px}
+.dwrap.c{flex-direction:column;gap:10px}
+.donut{width:142px;height:142px;border-radius:50%;position:relative;flex:none}
+.donut.sm{width:118px;height:118px}
+.donut::after{content:"";position:absolute;inset:25px;background:#fff;border-radius:50%}
+.donut.sm::after{inset:21px}
+.donut .lb{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;z-index:2}
+.donut .lb b{font-size:21px;line-height:1.2}
+.donut.sm .lb b{font-size:18px}
+.donut .lb small{font-size:9.5px;color:var(--sub)}
+.dleg{display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--sub)}
+.dwrap.c .dleg{flex-direction:row;flex-wrap:wrap;justify-content:center;gap:4px 12px}
+.dleg i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+table.mini th,table.mini td{padding:5px 7px;font-size:11.5px}
+.mb{display:flex;align-items:center;gap:6px}
+.mb i{display:block;height:11px;border-radius:2px;background:#2b6cb0;flex:none}
+.mb i.o{background:#ef8a3a}
+.mb span{font-size:11px;white-space:nowrap}
+
+/* ══ フリーワード分析 ══ */
+.card.fw{border-color:#b7cfcb;background:linear-gradient(180deg,#f4faf9,#fff 60px)}
+.fwtag{margin-left:auto;font-size:11px;font-weight:normal;color:var(--sub)}
+.fwin{display:flex;gap:8px}
+.fwin input{flex:1;border:1px solid var(--line);border-radius:6px;padding:10px 12px;
+  font-family:inherit;font-size:14px;outline:none;background:#fff}
+.fwin input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(15,118,110,.12)}
+.fwsug{margin-top:9px;font-size:11px;color:var(--sub);display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.fwsug button{border:1px solid var(--line);background:#fff;border-radius:12px;padding:3px 11px;font-size:11px;color:var(--sub)}
+.fwsug button:hover{border-color:var(--accent);color:var(--accent)}
+.fwstat{margin-top:14px;font-size:12px;color:var(--accent);display:flex;align-items:center;gap:8px}
+.fwstat .sp{width:12px;height:12px;border:2px solid #bcd9d5;border-top-color:var(--accent);
+  border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.fwchips{margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.fwchips .t{font-size:11px;color:var(--sub);margin-right:2px}
+.fwchips .wc{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--accent);
+  color:var(--accent);border-radius:13px;padding:3px 10px;font-size:11.5px}
+.fwchips .wc em{font-style:normal;color:var(--sub);font-size:10px}
+.fwchips .wc b{font-weight:bold}
+.fwchips .wc span{cursor:pointer;color:var(--sub);font-size:11px}
+.fwcards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+.fwc{border:1px solid var(--line);border-radius:6px;background:#fff;padding:10px 12px}
+.fwc .t{font-size:11px;color:var(--sub);line-height:1.5;min-height:33px}
+.fwc .v{font-size:22px;font-weight:bold;margin-top:2px}
+.fwc .v small{font-size:11px;font-weight:normal;color:var(--sub)}
+.fwc .dl{font-size:11px;margin-top:2px}
+.fwc .up{color:var(--ok)}.fwc .dn{color:var(--ng)}
+.fwcomment{margin-top:12px;border-left:3px solid var(--accent);background:var(--accent-soft);
+  padding:10px 14px;font-size:12.5px;line-height:1.85;border-radius:0 6px 6px 0}
+.fwcomment b{display:block;margin-bottom:2px}
 [hidden]{display:none !important}
 .fade{animation:fd .15s ease-out}
 @keyframes fd{from{opacity:0}to{opacity:1}}
@@ -234,6 +293,98 @@ table.sum td.kubun{color:var(--sub);font-size:10.5px}
     <div class="card"><h2>事前連絡が未送信</h2>
       <div class="kpi w">1<small>件</small></div>
       <div class="hint">面接確定済み・連絡待ち</div></div>
+  </div>
+
+  <!-- ── フリーワード分析 ── -->
+  <div class="card fw">
+    <h2>🔎 フリーワード分析<span class="fwtag">知りたいことを、そのまま文章で入力してください</span></h2>
+    <div class="fwin">
+      <input type="text" id="fwQ" placeholder="例）直近3日間と全クールの比較を作成して"
+        value="直近3日間と全クールの比較を作成して">
+      <button class="btn pri" id="fwGo">分析する</button>
+    </div>
+    <div class="fwsug">
+      <span>よく使われる質問：</span>
+      <button data-q="直近3日間と全クールの比較を作成して">直近3日間と全クールの比較を作成して</button>
+      <button data-q="媒体別の有効応募率を比較して">媒体別の有効応募率を比較して</button>
+      <button data-q="今週の1次選考の設定数と実施数を出して">今週の1次設定数と実施数を出して</button>
+      <button data-q="HPの流入経路別の応募率を分析して">HPの流入経路別の応募率を分析して</button>
+    </div>
+
+    <div id="fwOut" hidden>
+      <div class="fwstat" id="fwStat"></div>
+      <div class="fwchips" id="fwChips"></div>
+      <div class="fwcards" id="fwCards"></div>
+      <div class="scroll" style="margin-top:12px"><table class="sum" id="fwTable"></table></div>
+      <div class="fwcomment" id="fwComment"></div>
+      <div class="hint">認識したワードは上のチップで確認・削除できます。分析項目はワードから自動で組み立てています。</div>
+    </div>
+  </div>
+
+  <!-- ── 分析パネル ── -->
+  <div class="two2">
+    <!-- 左 -->
+    <div class="card"><h2>媒体別応募数<a data-go="sum">詳細はこちら →</a></h2>
+      <div class="pnrow">
+        <div>
+          <div class="plabel">応募数内訳</div>
+          <div class="dwrap">
+            <div class="donut" id="dMedia"><div class="lb"><b>29.2%</b><small>採用HP</small></div></div>
+            <div class="dleg">
+              <span><i style="background:#2b6cb0"></i>採用HP　35名</span>
+              <span><i style="background:#ef8a3a"></i>その他　85名</span>
+            </div>
+          </div>
+        </div>
+        <div class="pnums">
+          <div class="plabel">HPからの応募数</div>
+          <div class="bignum">35 <small>名</small></div>
+          <div class="plabel" style="margin-top:14px">公開中の原稿数</div>
+          <div class="bignum">6 <small>件</small></div>
+          <div class="hint">2026年7月17日時点</div>
+        </div>
+      </div>
+
+      <div class="plabel" style="margin-top:16px">媒体別 応募数（2026年7月クール／営業職）</div>
+      <div class="scroll"><table class="mini" id="tMedia"></table></div>
+    </div>
+
+    <!-- 右 -->
+    <div>
+      <div class="card"><h2>採用HP 訪問数・応募率</h2>
+        <div class="pnrow">
+          <div><div class="plabel">HP訪問数</div><div class="bignum">4,280</div></div>
+          <div style="text-align:right"><div class="plabel">HP応募率</div><div class="bignum">0.8 <small>%</small></div></div>
+        </div>
+      </div>
+
+      <div class="card"><h2>HP流入経路</h2>
+        <div class="scroll"><table class="mini" id="tFlow"></table></div>
+      </div>
+
+      <div class="row">
+        <div class="card"><h2>デバイス別</h2>
+          <div class="dwrap c">
+            <div class="donut sm" id="dDev"><div class="lb"><b>61.2%</b><small>スマートフォン</small></div></div>
+            <div class="dleg">
+              <span><i style="background:#2b6cb0"></i>スマートフォン 61.2%</span>
+              <span><i style="background:#7fb3de"></i>PC 33.1%</span>
+              <span><i style="background:#4fb39a"></i>タブレット 5.7%</span>
+            </div>
+          </div>
+        </div>
+        <div class="card"><h2>ランディングページ別</h2>
+          <div class="dwrap c">
+            <div class="donut sm" id="dLand"><div class="lb"><b>46.3%</b><small>求人詳細</small></div></div>
+            <div class="dleg">
+              <span><i style="background:#1d5b91"></i>求人詳細 46.3%</span>
+              <span><i style="background:#7fb3de"></i>トップ 31.5%</span>
+              <span><i style="background:#c6dcf0"></i>社員インタビュー 22.2%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="card"><h2>クール別サマリ<a data-go="sum">すべての数字を見る →</a></h2>
@@ -481,7 +632,7 @@ const $=id=>document.getElementById(id);
 
 /* ══════ §8-1 Before / After バッジ（商談相手に合わせてここだけ差し替える） ══════ */
 const BA={
-  dash:"これまで：3つの画面を行き来 → <b>いま：1画面</b>",
+  dash:"これまで：集計してから考える → <b>いま：文章で聞くだけ</b>",
   cand:"これまで：媒体を見ながら手入力 15分 → <b>いま：0分</b>",
   sched:"これまで：希望日をメールから読み取り → <b>いま：自動で色が付く</b>",
   sum:"これまで：週1で手集計 → <b>いま：常に最新</b>"
@@ -501,6 +652,114 @@ $("tCool").innerHTML=
  COOL.map(c=>`<tr><td>${c.n}${c.tag?' <span class="chip new">'+c.tag+'</span>':''}</td>`+
    c.v.map(x=>`<td class="n">${x}</td>`).join("")+
    `<td class="n">${c.day}</td><td class="n">${c.land}</td></tr>`).join("");
+
+/* ══════ 分析パネル（2026年7月クール／営業職・総応募120と整合） ══════ */
+const MEDIA=[["採用HP","採用ホームページ",35,31],["その他","媒体A",46,38],["その他","媒体B",21,15],
+             ["その他","媒体C",12,8],["その他","社員紹介",6,4]];
+(function(){
+  const max=Math.max(...MEDIA.map(m=>m[2]));
+  $("tMedia").innerHTML=`<tr><th>カテゴリ</th><th>媒体</th><th>応募数</th><th>有効応募</th><th class="n">有効率</th></tr>`+
+   MEDIA.map((m,i)=>{const hp=i===0;
+    return `<tr><td>${i===0||m[0]!==MEDIA[i-1][0]?m[0]:""}</td><td>${m[1]}</td>
+      <td><div class="mb"><i class="${hp?"":"o"}" style="width:${m[2]/max*92}px"></i><span>${m[2]}</span></div></td>
+      <td><div class="mb"><i class="${hp?"":"o"}" style="width:${m[3]/max*92}px"></i><span>${m[3]}</span></div></td>
+      <td class="n">${(m[3]/m[2]*100).toFixed(1)}%</td></tr>`}).join("")+
+   `<tr class="b"><td></td><td>合計</td><td>120</td><td>96</td><td class="n">80.0%</td></tr>`;
+  $("dMedia").style.background="conic-gradient(#2b6cb0 0 29.2%, #ef8a3a 29.2% 100%)";
+  $("dDev").style.background="conic-gradient(#2b6cb0 0 61.2%, #7fb3de 61.2% 94.3%, #4fb39a 94.3% 100%)";
+  $("dLand").style.background="conic-gradient(#1d5b91 0 46.3%, #7fb3de 46.3% 77.8%, #c6dcf0 77.8% 100%)";
+})();
+
+const FLOW=[["検索（自然流入）",2140,168,0.9],["媒体Aの企業ページ",1015,154,0.8],
+            ["SNS",612,121,0.5],["直接アクセス",348,205,1.1],["社員紹介リンク",165,233,0.6]];
+$("tFlow").innerHTML=`<tr><th>流入経路</th><th>訪問数</th><th>平均滞在(秒)</th><th>応募率</th></tr>`+
+ FLOW.map(f=>`<tr><td>${f[0]}</td>
+   <td><div class="mb"><i style="width:${f[1]/2140*78}px;background:#7fb3de"></i><span>${f[1].toLocaleString()}</span></div></td>
+   <td><div class="mb"><i style="width:${f[2]/233*56}px"></i><span>${f[2]}</span></div></td>
+   <td><div class="mb"><i style="width:${f[3]/1.1*36}px;background:#1d5b91"></i><span>${f[3].toFixed(1)}%</span></div></td></tr>`).join("");
+
+/* ══════ フリーワード分析（ワード認識のデモ） ══════ */
+const DICT={
+ 期間:[["直近3日間",["直近3日","直近三日","ここ3日","過去3日"]],["今週",["今週"]],["先週",["先週"]],
+      ["今月",["今月"]],["直近7日間",["直近7日","1週間","一週間"]],["全期間",["全期間","累計"]]],
+ 比較対象:[["全クール平均",["全クール","全体","平均"]],["2026年7月クール",["7月クール","7月"]],
+      ["2026年5月クール",["5月クール","5月"]],["前週",["前週","先週比"]]],
+ 分析軸:[["媒体別",["媒体別","媒体","チャネル"]],["流入経路別",["流入","経路","ランディング"]],
+      ["職種別",["職種別","営業職","事務職"]],["面接官別",["面接官"]]],
+ 指標:[["応募数",["応募数","応募"]],["有効応募率",["有効応募率","有効"]],["1次設定数",["1次設定","設定数","1次"]],
+      ["1次実施数",["実施数","実施"]],["通過率",["通過"]],["内定・承諾",["内定","承諾"]],
+      ["応募率",["応募率"]],["滞在時間",["滞在"]]]
+};
+function parse(q){
+  const hits=[];
+  for(const cat in DICT) for(const [label,keys] of DICT[cat])
+    if(keys.some(k=>q.includes(k))) hits.push({cat,label});
+  if(!hits.some(h=>h.cat==="期間")) hits.unshift({cat:"期間",label:"直近7日間"});
+  if(!hits.some(h=>h.cat==="指標")) hits.push({cat:"指標",label:"応募数"});
+  if(!hits.some(h=>h.cat==="分析軸")) hits.push({cat:"分析軸",label:"媒体別"});
+  return hits;
+}
+/* デモ用の固定データ：直近3日間（7/15・7/16・7/17） */
+const R3={days:["07/15(火)","07/16(水)","07/17(木)"],app:[4,3,4],val:[3,3,3],
+  media:[["採用ホームページ",5,4],["媒体A",3,3],["媒体B",2,1],["媒体C",1,1],["社員紹介",0,0]]};
+
+function runFw(){
+  const q=$("fwQ").value.trim(); if(!q) return;
+  const out=$("fwOut"); out.hidden=false;
+  $("fwStat").innerHTML=`<span class="sp"></span>入力された文章からワードを抽出しています…`;
+  $("fwChips").innerHTML=""; $("fwCards").innerHTML=""; $("fwTable").innerHTML=""; $("fwComment").innerHTML="";
+  setTimeout(()=>{
+    $("fwStat").innerHTML=`<span class="sp"></span>該当データを集計し、分析項目を組み立てています…`;
+  },700);
+  setTimeout(()=>{ renderFw(parse(q)); },1500);
+}
+function renderFw(hits){
+  const g=c=>hits.filter(h=>h.cat===c).map(h=>h.label);
+  const kikan=g("期間")[0], hikaku=g("比較対象")[0]||"全クール平均", jiku=g("分析軸")[0];
+  $("fwStat").innerHTML=`<span style="color:var(--ok)">✅ 分析が完了しました</span>
+    <span style="color:var(--sub);font-size:11px">（${hits.length}個のワードを認識／分析項目を4件生成）</span>`;
+  $("fwChips").innerHTML=`<span class="t">認識したワード：</span>`+hits.map(h=>
+    `<span class="wc"><em>${h.cat}</em><b>${h.label}</b><span onclick="this.parentNode.remove()">✕</span></span>`).join("");
+
+  const app3=R3.app.reduce((a,b)=>a+b,0), val3=R3.val.reduce((a,b)=>a+b,0);
+  const avg3=(app3/3), base=1.90, diff=((avg3/base-1)*100);
+  const vr3=val3/app3*100, vrBase=80.0;
+  const cards=[
+    {t:`${kikan}の応募数`,v:app3,u:"件",d:`1日あたり ${avg3.toFixed(2)}件`},
+    {t:`${hikaku} との差（1日あたり）`,v:(diff>=0?"+":"")+diff.toFixed(0)+"%",u:"",
+     d:`${kikan} ${avg3.toFixed(2)}件 ／ ${hikaku} ${base.toFixed(2)}件`,up:diff>=0},
+    {t:`${kikan}の有効応募率`,v:vr3.toFixed(1),u:"%",
+     d:`${hikaku} ${vrBase.toFixed(1)}%`,up:vr3>=vrBase},
+    {t:`${jiku}で最も伸びた項目`,v:"採用HP",u:"",d:`5件（構成比 45.5%／全期間は29.2%）`,up:true}
+  ];
+  $("fwCards").innerHTML=cards.map(c=>`<div class="fwc"><div class="t">${c.t}</div>
+    <div class="v">${c.v}${c.u?` <small>${c.u}</small>`:""}</div>
+    <div class="dl ${c.up===undefined?"":(c.up?"up":"dn")}">${c.d}</div></div>`).join("");
+
+  $("fwTable").innerHTML=
+   `<tr><th rowspan="2">${jiku}</th><th class="grp" colspan="3">${kikan}</th><th class="grp" colspan="3">${hikaku}</th></tr>
+    <tr><th class="n gl">応募数</th><th class="n">有効応募</th><th class="n">構成比</th>
+        <th class="n gl">応募数</th><th class="n">有効応募</th><th class="n">構成比</th></tr>`+
+   R3.media.map((m,i)=>{const t=MEDIA[i];
+     return `<tr><td>${m[0]}</td>
+       <td class="n gl">${m[1]}</td><td class="n">${m[2]}</td><td class="n">${(m[1]/app3*100).toFixed(1)}%</td>
+       <td class="n gl">${t[2]}</td><td class="n">${t[3]}</td><td class="n">${(t[2]/120*100).toFixed(1)}%</td></tr>`}).join("")+
+   `<tr class="b"><td>合計</td><td class="n gl">${app3}</td><td class="n">${val3}</td><td class="n">100.0%</td>
+     <td class="n gl">120</td><td class="n">96</td><td class="n">100.0%</td></tr>`;
+
+  $("fwComment").innerHTML=`<b>読み取れること</b>
+    ${kikan}は1日あたり ${avg3.toFixed(2)}件で、${hikaku}（${base.toFixed(2)}件）を ${diff.toFixed(0)}% 上回っています。
+    伸びの中心は採用ホームページ経由で、構成比が 29.2% → 45.5% に上がっています。
+    一方で有効応募率は ${vr3.toFixed(1)}%（${hikaku} ${vrBase.toFixed(1)}%）とやや下がっているため、
+    母数の増加に対して条件に合う方の割合は横ばい以下です。原稿の条件文を見直す余地があります。
+    <span style="display:block;margin-top:6px;font-size:11px;color:var(--sub)">
+    ※ デモのため、数値は2026年7月クール（営業職）の固定データを表示しています。</span>`;
+}
+$("fwGo").addEventListener("click",runFw);
+$("fwQ").addEventListener("keydown",e=>{if(e.key==="Enter")runFw()});
+document.querySelectorAll(".fwsug button").forEach(b=>b.addEventListener("click",()=>{
+  $("fwQ").value=b.dataset.q; runFw();
+}));
 
 /* ══════ 直近の面接 ══════ */
 const NEXT=[
