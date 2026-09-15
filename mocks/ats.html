@@ -283,6 +283,34 @@ table.mini th,table.mini td{padding:5px 7px;font-size:11.5px}
 .popnote{font-size:11px;color:var(--sub);margin-top:10px;line-height:1.75}
 .popacts{display:flex;gap:8px;margin-top:12px}
 .popacts .btn{flex:1}
+.fwfoot{display:flex;align-items:center;gap:14px;margin-top:12px}
+.fwfoot .btn{margin-left:auto;flex:none}
+/* ══ レポートPOP ══ */
+.pop.wide{width:520px}
+.pop .ph.nv{background:var(--accent)}
+.rset{display:grid;grid-template-columns:88px 1fr;gap:8px 10px;font-size:12.5px;align-items:center}
+.rset .k{color:var(--sub);font-size:11.5px}
+.rset .sel{width:100%}
+.rcond{background:var(--accent-soft);border-radius:6px;padding:8px 11px;font-size:11.5px;
+  color:var(--accent);line-height:1.7;margin-bottom:12px}
+.rfiles{display:flex;gap:8px;margin-top:10px}
+.rfile{flex:1;border:1px solid var(--line);border-radius:6px;padding:9px 11px;display:flex;gap:9px;align-items:center}
+.rfile .ic{width:26px;height:32px;border-radius:3px;color:#fff;font-size:9px;font-weight:bold;
+  display:flex;align-items:center;justify-content:center;flex:none}
+.rfile .nm{font-size:11px;line-height:1.45;word-break:break-all}
+.rfile .nm small{color:var(--sub);display:block;font-size:10px}
+.path{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:11.5px;
+  background:#f4f7f7;border:1px solid var(--line);border-radius:6px;padding:8px 11px;margin-top:10px}
+.path b{color:var(--ink)}
+.path span{color:var(--sub)}
+.mail{border:1px solid var(--line);border-radius:6px;margin-top:10px;overflow:hidden}
+.mailh{background:#f4f7f7;padding:6px 11px;font-size:11px;color:var(--sub);display:flex;gap:8px;align-items:center;
+  border-bottom:1px solid var(--line)}
+.mailh .st{margin-left:auto;color:var(--ok);font-weight:bold}
+.mailb{padding:10px 12px;font-size:11.5px;line-height:1.75}
+.mailb .h{display:grid;grid-template-columns:44px 1fr;gap:2px 8px;color:var(--sub);margin-bottom:7px}
+.mailb .h b{color:var(--ink);font-weight:normal}
+.mailb .bd{border-top:1px dashed var(--line);padding-top:7px;color:var(--ink2);white-space:pre-line}
 [hidden]{display:none !important}
 .fade{animation:fd .15s ease-out}
 @keyframes fd{from{opacity:0}to{opacity:1}}
@@ -359,7 +387,10 @@ table.mini th,table.mini td{padding:5px 7px;font-size:11.5px}
       <div class="fwcards" id="fwCards"></div>
       <div class="scroll" style="margin-top:12px"><table class="sum" id="fwTable"></table></div>
       <div class="fwcomment" id="fwComment"></div>
-      <div class="hint">認識したワードは上のチップで確認・削除できます。分析項目はワードから自動で組み立てています。</div>
+      <div class="fwfoot">
+        <div class="hint" style="margin:0">認識したワードは上のチップで確認・削除できます。分析項目はワードから自動で組み立てています。</div>
+        <button class="btn pri" id="repBtn">📄 レポートを抽出</button>
+      </div>
     </div>
   </div>
 
@@ -434,10 +465,10 @@ table.mini th,table.mini td{padding:5px 7px;font-size:11.5px}
   </div>
 
   <div class="card"><h2>要対応</h2>
-    <div class="todo">✉️　<b>桜井 美咲</b> 様の一次面接（7/18 10:00）の事前連絡が未送信です
-      <button class="btn sm" onclick="goCand()">連絡画面へ</button></div>
-    <div class="todo">⏰　明日 <b>田中 一郎</b> 様の一次面接（11:00・山崎）— 前日リマインドを送りましょう
-      <button class="btn sm" onclick="skipMsg('連絡')">リマインドを作成</button></div>
+    <div class="todo">🟡　<b>桜井 美咲</b> 様から面接の希望日が届いています（7/18・7/22）— 日程を確定しましょう
+      <button class="btn sm" onclick="goSched()">面接調整へ</button></div>
+    <div class="todo">✉️　<b>田中 一郎</b> 様の一次面接（7/18 11:00）の事前連絡が未送信です
+      <button class="btn sm" onclick="skipMsg('連絡')">連絡画面へ</button></div>
   </div>
 
   <div class="card"><h2>直近の面接</h2>
@@ -450,7 +481,7 @@ table.mini th,table.mini td{padding:5px 7px;font-size:11.5px}
   <div class="head">
     <div>
       <div class="crumb">応募者 › 桜井 美咲</div>
-      <h1>桜井 美咲　<span class="chip fix">1次選考確定</span></h1>
+      <h1>桜井 美咲　<span class="chip new" id="candChip">1次面接 調整中</span></h1>
       <div class="note">応募ID APP-20260715-0083 ／ 2026年7月クール・営業職</div>
     </div>
     <span class="ba" id="baCand"></span>
@@ -494,9 +525,11 @@ table.mini th,table.mini td{padding:5px 7px;font-size:11.5px}
       </div>
 
       <div class="card"><h2>面接</h2>
-        <div class="scroll"><table>
+        <div class="scroll"><table id="tItv">
           <tr><th>回次</th><th>日時</th><th>面接官</th><th>状態</th></tr>
-          <tr><td>一次</td><td>7/18(金) 10:00〜10:30</td><td>山崎</td><td><span class="chip fix">確定</span></td></tr>
+          <tr><td>一次</td><td>7/18（金）10:00〜12:00 ／ 7/22（火）14:00〜16:00<br>
+            <small style="color:var(--sub)">候補者からの希望日（Chrome拡張が返信から取り込み）</small></td>
+            <td>山崎</td><td><span class="chip new">調整中</span></td></tr>
         </table></div>
         <div style="display:flex;gap:8px;margin-top:10px">
           <button class="btn" onclick="goSched()">📅 面接を調整する</button>
@@ -504,8 +537,15 @@ table.mini th,table.mini td{padding:5px 7px;font-size:11.5px}
         </div>
       </div>
 
-      <div class="okband">
+      <div class="warncard" id="candWait">
+        <b>🟡 面接日はまだ確定していません</b>
+        <span>候補者から希望日が届いています。面接調整の画面で黄色い枠をクリックして日時を確定すると、
+          ここに連絡文面のご案内が表示されます。</span>
+      </div>
+
+      <div class="okband" id="candDone" hidden>
         <b>✅ 面接設定が完了しました。候補者にメッセージを送りましょう。</b>
+        <div id="candFixed" style="font-size:12px;color:var(--ink);margin-top:2px"></div>
         <div class="steps">
           <div><i>1</i>求人媒体の管理画面を開きます</div>
           <div><i>2</i>この応募者のメッセージタブを開きます</div>
@@ -583,7 +623,7 @@ table.mini th,table.mini td{padding:5px 7px;font-size:11.5px}
     <span style="font-size:12px;color:var(--ink)">　田中 一郎 様・一次面接・山崎　／　カレンダーに本体・前日リマインド・書類提出期日を作成しました</span>
   </div>
   <div class="warncard" style="padding:10px 14px"><b>🟡 希望日が届いています（1名）</b>
-    <span>高橋 直樹 様・二次面接：7/18（金）10:00〜12:00 ／ 7/22（火）14:00〜16:00。カレンダーの黄色い枠をクリックすると、その中から日時を選んで確定できます。</span></div>
+    <span>桜井 美咲 様・一次面接：7/18（金）10:00〜12:00 ／ 7/22（火）14:00〜16:00。カレンダーの黄色い枠をクリックすると、その中から日時を選んで確定できます。</span></div>
 
   <div class="tools">
     <div class="nav"><button onclick="toast('デモでは週の移動はできません')">＜</button>
@@ -634,6 +674,79 @@ table.mini th,table.mini td{padding:5px 7px;font-size:11.5px}
     <div class="hint">確定すると、カレンダーに予定が入り、Googleカレンダーへ面接本体・前日リマインド・書類提出期日が自動で作成されます。</div>
   </div>
 </section>
+
+<!-- ══════ レポート抽出POP ══════ -->
+<div class="ov" id="ovRep">
+  <div class="pop wide">
+    <div class="ph nv" id="repHead">📄 分析レポートを作成
+      <small id="repSub">この分析結果をレポートにして、指定の場所へ格納します</small></div>
+    <div class="pb">
+
+      <!-- ① 設定 -->
+      <div id="repStep1">
+        <div class="rcond" id="repCond">—</div>
+        <div class="rset">
+          <span class="k">形式</span><span><select class="sel" id="repFmt">
+            <option>PDF ＋ スプレッドシート</option><option>PDFのみ</option><option>スプレッドシートのみ</option></select></span>
+          <span class="k">格納先</span><span><select class="sel" id="repDir">
+            <option>共有ドライブ ＞ 採用 ＞ 2026年7月クール ＞ 分析レポート</option>
+            <option>共有ドライブ ＞ 採用 ＞ 月次報告</option>
+            <option>共有ドライブ ＞ 経営会議資料 ＞ 2026年7月</option></select></span>
+          <span class="k">通知先</span><span><select class="sel" id="repTo">
+            <option>採用チーム（3名）</option><option>採用チーム＋役員（5名）</option><option>自分だけ</option></select></span>
+        </div>
+        <div class="popacts">
+          <button class="btn" onclick="closeRep()">キャンセル</button>
+          <button class="btn pri" id="repRun">作成して格納する</button>
+        </div>
+      </div>
+
+      <!-- ② 進行 -->
+      <div id="repStep2" hidden>
+        <div class="synbox">
+          <div class="synh"><span>レポート生成</span><span class="st" id="repSt">処理中…</span></div>
+          <div class="syn" id="rs1"><span class="ck">✓</span><span class="tx">
+            <b>分析条件を確定</b><span id="rs1s">—</span></span></div>
+          <div class="syn" id="rs2"><span class="ck">✓</span><span class="tx">
+            <b>集計データを書き出し</b><span>7シート／18項目・グラフ4点を生成</span></span></div>
+          <div class="syn" id="rs3"><span class="ck">✓</span><span class="tx">
+            <b>レポートを生成</b><span id="rs3s">—</span></span></div>
+          <div class="syn" id="rs4"><span class="ck">✓</span><span class="tx">
+            <b>指定の格納先へ保存</b><span id="rs4s">—</span></span></div>
+          <div class="syn" id="rs5"><span class="ck">✓</span><span class="tx">
+            <b>社内通知メールを送信</b><span id="rs5s">—</span></span></div>
+        </div>
+      </div>
+
+      <!-- ③ 完了 -->
+      <div id="repStep3" hidden>
+        <div class="rfiles">
+          <div class="rfile"><span class="ic" style="background:#b91c1c">PDF</span>
+            <span class="nm" id="repF1">—<small>1.8 MB・12ページ</small></span></div>
+          <div class="rfile"><span class="ic" style="background:#166534">XLSX</span>
+            <span class="nm" id="repF2">—<small>7シート・生データ付き</small></span></div>
+        </div>
+        <div class="path">📁 <span>格納先：</span><b id="repPath">—</b>
+          <button class="btn sm" style="margin-left:auto" onclick="toast('格納先フォルダを開きます（デモ）')">フォルダを開く</button></div>
+
+        <div class="mail">
+          <div class="mailh">✉️ 社内通知メール<span class="st" id="repMailSt">✅ 送信しました</span></div>
+          <div class="mailb">
+            <div class="h"><span>宛先</span><b id="repMailTo">—</b>
+              <span>件名</span><b id="repMailSubj">—</b></div>
+            <div class="bd" id="repMailBody">—</div>
+          </div>
+        </div>
+        <div class="popnote">次回から同じ条件のレポートを毎週月曜の朝に自動作成することもできます。</div>
+        <div class="popacts">
+          <button class="btn" onclick="closeRep()">閉じる</button>
+          <button class="btn pri" onclick="toast('毎週月曜 08:00 の自動作成を登録しました（デモ）')">⏰ 定期作成に登録</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
 
 <!-- ══════ カレンダー連携POP ══════ -->
 <div class="ov" id="ov">
@@ -797,6 +910,7 @@ function runFw(){
 function renderFw(hits){
   const g=c=>hits.filter(h=>h.cat===c).map(h=>h.label);
   const kikan=g("期間")[0], hikaku=g("比較対象")[0]||"全クール平均", jiku=g("分析軸")[0];
+  LASTFW={kikan,hikaku,jiku,n:4};
   $("fwStat").innerHTML=`<span style="color:var(--ok)">✅ 分析が完了しました</span>
     <span style="color:var(--sub);font-size:11px">（${hits.length}個のワードを認識／分析項目を4件生成）</span>`;
   $("fwChips").innerHTML=`<span class="t">認識したワード：</span>`+hits.map(h=>
@@ -836,6 +950,57 @@ function renderFw(hits){
     <span style="display:block;margin-top:6px;font-size:11px;color:var(--sub)">
     ※ デモのため、数値は2026年7月クール（営業職）の固定データを表示しています。</span>`;
 }
+/* ══════ レポート抽出 ══════ */
+let LASTFW={kikan:"直近3日間",hikaku:"全クール平均",jiku:"媒体別",n:4};
+function closeRep(){$("ovRep").classList.remove("on")}
+$("repBtn").addEventListener("click",()=>{
+  $("repStep1").hidden=false; $("repStep2").hidden=true; $("repStep3").hidden=true;
+  $("repHead").firstChild.textContent="📄 分析レポートを作成";
+  $("repSub").textContent="この分析結果をレポートにして、指定の場所へ格納します";
+  $("repCond").innerHTML=`<b>レポートに含める内容</b><br>
+    期間：${LASTFW.kikan}　／　比較対象：${LASTFW.hikaku}　／　分析軸：${LASTFW.jiku}<br>
+    分析項目 ${LASTFW.n}件・比較テーブル1点・所見コメント`;
+  $("ovRep").classList.add("on");
+});
+$("repRun").addEventListener("click",()=>{
+  const fmt=$("repFmt").value, dir=$("repDir").value, to=$("repTo").value;
+  const stamp="20260717_0941";
+  const base=`採用分析レポート_${stamp}_${LASTFW.kikan}vs${LASTFW.hikaku}`;
+  $("repStep1").hidden=true; $("repStep2").hidden=false;
+  $("repSt").textContent="処理中…"; $("repSt").style.color="var(--sub)";
+  ["rs1","rs2","rs3","rs4","rs5"].forEach(id=>$(id).classList.remove("in"));
+  $("rs1s").textContent=`${LASTFW.kikan} × ${LASTFW.hikaku}／${LASTFW.jiku}`;
+  $("rs3s").textContent=fmt;
+  $("rs4s").textContent=dir;
+  $("rs5s").textContent=`${to} 宛に送信`;
+  ["rs1","rs2","rs3","rs4","rs5"].forEach((id,n)=>setTimeout(()=>$(id).classList.add("in"),300+n*420));
+  setTimeout(()=>{$("repSt").textContent="✅ 完了";$("repSt").style.color="var(--ok)"},2350);
+  setTimeout(()=>{
+    $("repHead").firstChild.textContent="✅ レポートを作成しました";
+    $("repSub").textContent="格納と通知まで完了しています";
+    $("repStep2").hidden=true; $("repStep3").hidden=false;
+    $("repF1").innerHTML=`${base}.pdf<small>1.8 MB・12ページ</small>`;
+    $("repF2").innerHTML=`${base}.xlsx<small>7シート・生データ付き</small>`;
+    $("repPath").textContent=dir;
+    $("repMailTo").textContent=to==="自分だけ"?"自分（採用担当）":to;
+    $("repMailSubj").textContent=`【採用分析】${LASTFW.kikan}と${LASTFW.hikaku}の比較レポート`;
+    $("repMailBody").textContent=
+`お疲れさまです。採用管理システムの自動通知です。
+
+ご依頼の分析レポートを作成し、下記へ格納しました。
+　格納先：${dir}
+　ファイル：${base}.pdf ほか
+
+要点：
+・${LASTFW.kikan}の応募は1日あたり3.67件で、${LASTFW.hikaku}（1.90件）を93%上回っています。
+・伸びの中心は採用ホームページ経由で、構成比が29.2%→45.5%に上がりました。
+・有効応募率は81.8%（${LASTFW.hikaku}は80.0%）で、ほぼ横ばいです。
+
+詳細はレポート本体をご確認ください。`;
+  },2700);
+});
+$("ovRep").addEventListener("click",e=>{if(e.target===$("ovRep"))closeRep()});
+
 $("fwGo").addEventListener("click",runFw);
 $("fwQ").addEventListener("keydown",e=>{if(e.key==="Enter")runFw()});
 document.querySelectorAll(".fwsug button").forEach(b=>b.addEventListener("click",()=>{
@@ -846,9 +1011,9 @@ document.querySelectorAll(".fwsug button").forEach(b=>b.addEventListener("click"
 const NEXT=[
  ["本日","7/17(木) 13:30〜14:30","井上 遥","二次","土屋","✅ 同期済み"],
  ["本日","7/17(木) 17:00〜17:30","森田 拓海","一次","山崎","✅ 同期済み"],
- ["明日","7/18(金) 10:00〜10:30","桜井 美咲","一次","山崎","✅ 同期済み"],
  ["明日","7/18(金) 11:00〜11:30","田中 一郎","一次","山崎","✅ 同期済み"],
- ["調整中","希望日 7/18・7/22 を受領","高橋 直樹","二次","土屋","🟡 希望日あり"]
+ ["調整中","希望日 7/18・7/22 を受領","桜井 美咲","一次","山崎","🟡 希望日あり"],
+ ["調整中","日程の候補を送付済み","高橋 直樹","二次","土屋","— 返信待ち"]
 ];
 $("tNext").innerHTML=`<tr><th>日付</th><th>時刻</th><th>候補者</th><th>回次</th><th>面接官</th><th>カレンダー</th></tr>`+
  NEXT.map(r=>`<tr><td><span class="chip ${r[0]==="本日"?"fix":"gray"}">${r[0]}</span></td>
@@ -929,17 +1094,16 @@ const EVENTS=[
  {d:1,s:1,len:2,who:"外部",t:"外部予定"},
  {d:1,s:9,len:2,who:"土屋",t:"二次 井上 遥"},
  {d:1,s:16,len:1,who:"山崎",t:"一次 森田 拓海"},
- {d:2,s:2,len:1,who:"山崎",t:"一次 桜井 美咲"},
  {d:2,s:4,len:1,who:"山崎",t:"一次 田中 一郎"},
  {d:5,s:12,len:2,who:"中野",t:"外部予定"},
  {d:6,s:15,len:2,who:"外部",t:"外部予定"}
 ];
-/* 希望日（高橋 直樹 様から2枠いただいている想定） */
+/* 希望日（桜井 美咲 様から2枠いただいている想定） */
 const BANDS=[
- {d:2,s:2,len:4,cand:"高橋 直樹",round:"二次面接",who:"土屋",done:false},
- {d:6,s:10,len:4,cand:"高橋 直樹",round:"二次面接",who:"土屋",done:false}
+ {d:2,s:2,len:4,cand:"桜井 美咲",round:"一次面接",who:"山崎",done:false},
+ {d:6,s:10,len:4,cand:"桜井 美咲",round:"一次面接",who:"山崎",done:false}
 ];
-const CANDS=["高橋 直樹","桜井 美咲","田中 一郎","森田 拓海","井上 遥"];
+const CANDS=["桜井 美咲","高橋 直樹","田中 一郎","森田 拓海","井上 遥"];
 const SLOTS=20;                                    /* 9:00〜19:00 を30分刻み */
 const t2s=i=>{const m=9*60+i*30;return Math.floor(m/60)+":"+String(Math.round(m%60)).padStart(2,"0")};
 
@@ -986,9 +1150,9 @@ function openBook(di,i,bandIdx){
   $("bkWish").hidden=!b;
   if(b){ $("bkWish").innerHTML=`🟡 <b>${b.cand}</b> 様からの希望日です<br>
     ${DAYS[b.d][0]}（${DAYS[b.d][1]}） ${t2s(b.s)}〜${t2s(b.s+b.len)} のあいだでお選びください`; }
-  $("bkCand").value=b?b.cand:"高橋 直樹";
-  $("bkRound").value=b?b.round:"二次面接";
-  $("bkWho").value=b?b.who:"土屋";
+  $("bkCand").value=b?b.cand:"桜井 美咲";
+  $("bkRound").value=b?b.round:"一次面接";
+  $("bkWho").value=b?b.who:"山崎";
   $("bkDate").textContent=`${DAYS[di][0]}（${DAYS[di][1]}）`;
   const from=b?b.s:i, to=b?b.s+b.len:i+1;
   $("bkTime").innerHTML=Array.from({length:to-from},(_,k)=>
@@ -1024,6 +1188,15 @@ function confirmBook(){
   $("ev1t").textContent=`【${round}】${cand} 様`;
   $("ev1").textContent=`${d[0]}（${d[1]}） ${t2s(s)}〜${t2s(s+len)}　Zoom URL を本文に自動挿入`;
   $("popWho").textContent=who;
+  /* ④ 応募者詳細にも反映（桜井 美咲 様の場合） */
+  if(cand==="桜井 美咲"){
+    $("candChip").textContent="1次選考確定"; $("candChip").className="chip fix";
+    $("tItv").innerHTML=`<tr><th>回次</th><th>日時</th><th>面接官</th><th>状態</th></tr>
+      <tr><td>${round.replace("面接","")}</td><td>${d[0]}（${d[1]}） ${t2s(s)}〜${t2s(s+len)}</td>
+        <td>${who}</td><td><span class="chip fix">確定</span></td></tr>`;
+    $("candWait").hidden=true; $("candDone").hidden=false;
+    $("candFixed").textContent=`確定日時：${d[0]}（${d[1]}） ${t2s(s)}〜${t2s(s+len)}・${who}`;
+  }
   $("ev2").textContent=`${pv[0]}（${pv[1]}） 18:00　通知：面接前日のお知らせ`;
   $("ev3").textContent=`${pv2[0]}（${pv2[1]}） 12:00　履歴書・職務経歴書の提出期限`;
   ["syn1","syn2","syn3"].forEach(id=>$(id).classList.remove("in"));
