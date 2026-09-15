@@ -311,6 +311,49 @@ table.mini th,table.mini td{padding:5px 7px;font-size:11.5px}
 .mailb .h{display:grid;grid-template-columns:44px 1fr;gap:2px 8px;color:var(--sub);margin-bottom:7px}
 .mailb .h b{color:var(--ink);font-weight:normal}
 .mailb .bd{border-top:1px dashed var(--line);padding-top:7px;color:var(--ink2);white-space:pre-line}
+/* ══ レポートビューア ══ */
+.pop.doc{width:840px;max-height:94vh;display:flex;flex-direction:column}
+.docbar{background:#2b3538;color:#fff;padding:8px 14px;display:flex;align-items:center;gap:10px;font-size:12px}
+.docbar .fn{font-family:var(--mono);font-size:11px;opacity:.85;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.docbar .sp{margin-left:auto;display:flex;gap:6px}
+.docbar button{border:1px solid rgba(255,255,255,.3);background:none;color:#fff;border-radius:5px;
+  padding:4px 11px;font-size:11.5px}
+.docbar button:hover{background:rgba(255,255,255,.14)}
+.viewer{background:#dfe4e5;padding:18px;overflow:auto;flex:1}
+.a4{width:700px;margin:0 auto 16px;background:#fff;padding:34px 42px;box-shadow:0 3px 14px rgba(0,0,0,.18);
+  font-size:12px;line-height:1.8;color:#1f2a2e}
+.a4 .rh{border-bottom:3px solid var(--accent);padding-bottom:10px;margin-bottom:16px}
+.a4 .rh .k{font-size:10px;letter-spacing:.2em;color:var(--accent);font-family:var(--mono)}
+.a4 .rh h1{font-size:21px;margin:3px 0 4px;border:none}
+.a4 .rh .meta{font-size:10.5px;color:var(--sub)}
+.a4 h3{font-size:13px;margin:20px 0 8px;padding-left:9px;border-left:4px solid var(--accent)}
+.a4 h3:first-of-type{margin-top:6px}
+.rkpi{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.rkpi div{border:1px solid var(--line);border-radius:5px;padding:8px 10px}
+.rkpi .t{font-size:9.5px;color:var(--sub);line-height:1.4;min-height:26px}
+.rkpi .v{font-size:19px;font-weight:bold}
+.rkpi .v small{font-size:10px;font-weight:normal;color:var(--sub)}
+.rkpi .d{font-size:9.5px;color:var(--sub)}
+.rkpi .d.up{color:var(--ok)}
+.bars{display:flex;align-items:flex-end;gap:26px;height:132px;padding:8px 10px 0;
+  border-bottom:1px solid var(--line);position:relative}
+.bars .b{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.bars .b i{display:block;width:44px;background:var(--accent);border-radius:3px 3px 0 0}
+.bars .b i.v{background:#7fb3de}
+.bars .b .st{display:flex;gap:3px;align-items:flex-end}
+.bars .b .n{font-size:10px;margin-bottom:3px}
+.avgline{position:absolute;left:10px;right:10px;border-top:2px dashed var(--warn)}
+.avgline span{position:absolute;right:0;top:-15px;font-size:9.5px;color:var(--warn);background:#fff;padding:0 4px}
+.xlab{display:flex;gap:26px;padding:4px 10px 0}
+.xlab div{flex:1;text-align:center;font-size:10px;color:var(--sub)}
+.a4 table{font-size:11px}
+.a4 th{background:var(--accent-soft);padding:5px 7px;font-size:10px}
+.a4 td{padding:5px 7px}
+.a4 .cmt{background:#f6f9f9;border-left:3px solid var(--accent);padding:10px 13px;font-size:11.5px;
+  line-height:1.9;border-radius:0 5px 5px 0}
+.a4 .fo{margin-top:22px;padding-top:8px;border-top:1px solid var(--line);
+  display:flex;font-size:9.5px;color:var(--sub)}
+.a4 .fo span:last-child{margin-left:auto}
 [hidden]{display:none !important}
 .fade{animation:fd .15s ease-out}
 @keyframes fd{from{opacity:0}to{opacity:1}}
@@ -737,14 +780,28 @@ table.mini th,table.mini td{padding:5px 7px;font-size:11.5px}
             <div class="bd" id="repMailBody">—</div>
           </div>
         </div>
-        <div class="popnote">次回から同じ条件のレポートを毎週月曜の朝に自動作成することもできます。</div>
+        <div class="popnote">次回から同じ条件のレポートを毎週月曜の朝に自動作成することもできます。
+          <button class="btn sm" style="margin-left:6px" onclick="toast('毎週月曜 08:00 の自動作成を登録しました（デモ）')">⏰ 定期作成に登録</button></div>
         <div class="popacts">
           <button class="btn" onclick="closeRep()">閉じる</button>
-          <button class="btn pri" onclick="toast('毎週月曜 08:00 の自動作成を登録しました（デモ）')">⏰ 定期作成に登録</button>
+          <button class="btn pri" onclick="openView()">👁 レポートを開く</button>
         </div>
       </div>
 
     </div>
+  </div>
+</div>
+
+<!-- ══════ レポートビューア ══════ -->
+<div class="ov" id="ovView">
+  <div class="pop doc">
+    <div class="docbar">📄 <span class="fn" id="vwName">—</span>
+      <span class="sp">
+        <button onclick="toast('ダウンロードしました（デモ）')">ダウンロード</button>
+        <button onclick="toast('印刷プレビューを開きます（デモ）')">印刷</button>
+        <button onclick="closeView()">閉じる</button>
+      </span></div>
+    <div class="viewer" id="vwBody"></div>
   </div>
 </div>
 
@@ -1000,6 +1057,87 @@ $("repRun").addEventListener("click",()=>{
   },2700);
 });
 $("ovRep").addEventListener("click",e=>{if(e.target===$("ovRep"))closeRep()});
+
+/* ══════ レポートビューア ══════ */
+function closeView(){$("ovView").classList.remove("on")}
+$("ovView").addEventListener("click",e=>{if(e.target===$("ovView"))closeView()});
+function openView(){
+  const L=LASTFW, dir=$("repDir").value, fname=$("repF1").childNodes[0].textContent;
+  $("vwName").textContent=`${fname}　—　${dir}`;
+  const app3=11, val3=9, avg3=3.67, base=1.90, diff=93, vr3=81.8, vrB=80.0;
+  const days=[["07/15（火）",4,3],["07/16（水）",3,3],["07/17（木）",4,3]];
+  const maxv=5, H=104;
+  $("vwBody").innerHTML=`
+  <div class="a4">
+    <div class="rh"><div class="k">RECRUITMENT ANALYTICS REPORT</div>
+      <h1>${L.kikan}と${L.hikaku}の比較</h1>
+      <div class="meta">2026年7月クール ／ 営業職 ／ 媒体A・採用ホームページ　|
+        分析軸：${L.jiku}　|　作成日時：2026年7月17日 09:41　|　作成：採用管理システム（自動）</div></div>
+
+    <h3>1. サマリー</h3>
+    <div class="rkpi">
+      <div><div class="t">${L.kikan}の応募数</div><div class="v">${app3} <small>件</small></div>
+        <div class="d">1日あたり ${avg3.toFixed(2)}件</div></div>
+      <div><div class="t">${L.hikaku}との差<br>（1日あたり）</div><div class="v">+${diff}<small>%</small></div>
+        <div class="d up">${avg3.toFixed(2)}件 ／ ${base.toFixed(2)}件</div></div>
+      <div><div class="t">${L.kikan}の有効応募率</div><div class="v">${vr3}<small>%</small></div>
+        <div class="d">${L.hikaku} ${vrB.toFixed(1)}%</div></div>
+      <div><div class="t">最も伸びた${L.jiku.replace("別","")}</div><div class="v" style="font-size:15px">採用HP</div>
+        <div class="d up">構成比 29.2% → 45.5%</div></div>
+    </div>
+
+    <h3>2. 応募数の推移（${L.kikan}）</h3>
+    <div class="bars">
+      <div class="avgline" style="bottom:${base/maxv*H}px"><span>${L.hikaku} ${base.toFixed(2)}件/日</span></div>
+      ${days.map(d=>`<div class="b">
+        <div class="n">${d[1]} / ${d[2]}</div>
+        <div class="st"><i style="height:${d[1]/maxv*H}px"></i><i class="v" style="height:${d[2]/maxv*H}px"></i></div>
+      </div>`).join("")}
+    </div>
+    <div class="xlab">${days.map(d=>`<div>${d[0]}</div>`).join("")}</div>
+    <div style="font-size:10px;color:var(--sub);margin-top:6px">
+      ■ 濃色＝総応募数　■ 淡色＝有効応募数　－－－ 破線＝${L.hikaku}（1日あたり）</div>
+
+    <h3>3. ${L.jiku}の比較</h3>
+    <table><tr><th rowspan="2">${L.jiku.replace("別","")}</th>
+        <th colspan="3" style="text-align:center">${L.kikan}</th>
+        <th colspan="3" style="text-align:center">${L.hikaku}</th></tr>
+      <tr><th class="n">応募</th><th class="n">有効</th><th class="n">構成比</th>
+          <th class="n">応募</th><th class="n">有効</th><th class="n">構成比</th></tr>
+      ${R3.media.map((m,i)=>{const t=MEDIA[i];
+        return `<tr><td>${m[0]}</td><td class="n">${m[1]}</td><td class="n">${m[2]}</td>
+          <td class="n">${(m[1]/app3*100).toFixed(1)}%</td>
+          <td class="n">${t[2]}</td><td class="n">${t[3]}</td>
+          <td class="n">${(t[2]/120*100).toFixed(1)}%</td></tr>`}).join("")}
+      <tr style="font-weight:bold;background:#fafcfc"><td>合計</td>
+        <td class="n">${app3}</td><td class="n">${val3}</td><td class="n">100.0%</td>
+        <td class="n">120</td><td class="n">96</td><td class="n">100.0%</td></tr>
+    </table>
+
+    <h3>4. 所見</h3>
+    <div class="cmt">
+      ${L.kikan}は1日あたり ${avg3.toFixed(2)}件で、${L.hikaku}（${base.toFixed(2)}件）を ${diff}% 上回りました。<br>
+      伸びの中心は採用ホームページ経由で、構成比が 29.2% → 45.5% に上がっています。
+      同期間の採用HP訪問数は増加しており、検索からの自然流入が牽引しています。<br>
+      一方で有効応募率は ${vr3}%（${L.hikaku} ${vrB.toFixed(1)}%）とほぼ横ばいです。
+      応募数の増加に対して条件に合う方の割合は変わっていないため、
+      原稿の条件文を見直すと、面接設定までの工数を下げられる可能性があります。
+    </div>
+
+    <h3>5. 次のアクション（案）</h3>
+    <table><tr><th>優先</th><th>内容</th><th>担当</th><th>期限</th></tr>
+      <tr><td>高</td><td>採用HPの求人詳細ページに応募条件の明記を追加</td><td>採用担当</td><td>7/24</td></tr>
+      <tr><td>中</td><td>媒体Bの原稿を、応募が伸びている訴求軸に差し替え</td><td>採用担当</td><td>7/31</td></tr>
+      <tr><td>中</td><td>実施有無が未入力の面接2件を入力し、集計精度を回復</td><td>採用担当</td><td>7/18</td></tr>
+    </table>
+
+    <div class="fo"><span>採用分析レポート ／ 管理会社A社</span><span>1 / 1</span></div>
+  </div>
+
+  <div style="text-align:center;font-size:11px;color:#7c8a8e;padding-bottom:6px">
+    ※ デモ用のサンプルレポートです。数値はすべて架空のものです。</div>`;
+  $("ovView").classList.add("on");
+}
 
 $("fwGo").addEventListener("click",runFw);
 $("fwQ").addEventListener("keydown",e=>{if(e.key==="Enter")runFw()});
