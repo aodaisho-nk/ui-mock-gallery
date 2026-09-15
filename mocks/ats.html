@@ -167,6 +167,18 @@ td.n,th.n{text-align:right}
 .book .dl2{display:grid;grid-template-columns:62px 1fr;gap:6px 8px;font-size:12px;margin-bottom:10px}
 .book .dl2 .k{color:var(--sub)}
 .book .x{position:absolute;right:10px;top:8px;border:none;background:none;color:var(--sub);font-size:14px}
+.book .dl2{align-items:center}
+.sel.s2{width:100%;padding:3px 5px;font-size:12px}
+.bkwish{background:#fffbe6;border:1px solid #ffe082;border-radius:6px;padding:6px 10px;
+  font-size:11px;color:#8a6a00;margin-bottom:10px;line-height:1.6}
+.bkprev{background:var(--accent-soft);border-radius:6px;padding:7px 10px;font-size:11.5px;
+  color:var(--accent);margin:4px 0 10px;line-height:1.6}
+.band{cursor:pointer}
+.band:hover{background:#fff4c4}
+.band.done{background:var(--ok-soft);border-color:#bfe0c8;cursor:default}
+.band.done span{color:var(--ok)}
+.ev.newone{outline:2px solid #fff;box-shadow:0 0 0 2px var(--ok);animation:pp .5s ease-out 3}
+@keyframes pp{0%,100%{box-shadow:0 0 0 2px var(--ok)}50%{box-shadow:0 0 0 5px rgba(22,101,52,.35)}}
 
 /* ══ サマリ表 ══ */
 .scroll{overflow-x:auto}
@@ -566,10 +578,12 @@ table.mini th,table.mini td{padding:5px 7px;font-size:11.5px}
     <span class="ba" id="baSched"></span>
   </div>
 
-  <div class="okband" style="padding:10px 14px">
-    <b>✅ 07/18(金) 11:00〜11:30 で設定済みです</b>
+  <div class="okband" style="padding:10px 14px" id="schBanner">
+    <b>✅ 7/18（金） 11:00〜11:30 で設定済みです</b>
     <span style="font-size:12px;color:var(--ink)">　田中 一郎 様・一次面接・山崎　／　カレンダーに本体・前日リマインド・書類提出期日を作成しました</span>
   </div>
+  <div class="warncard" style="padding:10px 14px"><b>🟡 希望日が届いています（1名）</b>
+    <span>高橋 直樹 様・二次面接：7/18（金）10:00〜12:00 ／ 7/22（火）14:00〜16:00。カレンダーの黄色い枠をクリックすると、その中から日時を選んで確定できます。</span></div>
 
   <div class="tools">
     <div class="nav"><button onclick="toast('デモでは週の移動はできません')">＜</button>
@@ -602,15 +616,22 @@ table.mini th,table.mini td{padding:5px 7px;font-size:11.5px}
 
   <div class="book" id="book">
     <button class="x" onclick="closeBook()">✕</button>
-    <h3>この枠で面接を設定</h3>
+    <h3 id="bookTtl">この枠で面接を設定</h3>
+    <div class="bkwish" id="bkWish" hidden>🟡 候補者からの希望日です</div>
     <div class="dl2">
-      <span class="k">候補者</span><span>桜井 美咲</span>
-      <span class="k">回次</span><span>一次面接</span>
-      <span class="k">面接官</span><span>山崎</span>
-      <span class="k">日時</span><span id="bookWhen">—</span>
+      <span class="k">候補者</span><span><select class="sel s2" id="bkCand"></select></span>
+      <span class="k">回次</span><span><select class="sel s2" id="bkRound">
+        <option>一次面接</option><option>二次面接</option><option>最終面接</option></select></span>
+      <span class="k">面接官</span><span><select class="sel s2" id="bkWho">
+        <option>山崎</option><option>土屋</option><option>中野</option></select></span>
+      <span class="k">日付</span><span id="bkDate">—</span>
+      <span class="k">開始</span><span><select class="sel s2" id="bkTime"></select></span>
+      <span class="k">所要</span><span><select class="sel s2" id="bkLen">
+        <option value="1">30分</option><option value="1.5">45分</option><option value="2">60分</option></select></span>
     </div>
-    <button class="btn pri" style="width:100%" onclick="confirmBook()">この枠で確定する</button>
-    <div class="hint">確定すると、カレンダーに面接本体・前日リマインド・書類提出期日が自動で作成されます。</div>
+    <div class="bkprev" id="bkPrev">—</div>
+    <button class="btn pri" style="width:100%" onclick="confirmBook()">この日時で確定する</button>
+    <div class="hint">確定すると、カレンダーに予定が入り、Googleカレンダーへ面接本体・前日リマインド・書類提出期日が自動で作成されます。</div>
   </div>
 </section>
 
@@ -625,14 +646,14 @@ table.mini th,table.mini td{padding:5px 7px;font-size:11.5px}
           <span>Googleカレンダー（<b>採用カレンダー</b>／連携済み）</span>
           <span class="st" id="synSt">同期中…</span></div>
         <div class="syn" id="syn1"><span class="ck">✓</span><span class="bar" style="background:#0f766e"></span>
-          <span class="tx"><b>【一次面接】桜井 美咲 様</b><span id="ev1">—</span></span></div>
+          <span class="tx"><b id="ev1t">—</b><span id="ev1">—</span></span></div>
         <div class="syn" id="syn2"><span class="ck">✓</span><span class="bar" style="background:#b45309"></span>
           <span class="tx"><b>前日リマインド（面接官・候補者）</b><span id="ev2">—</span></span></div>
         <div class="syn" id="syn3"><span class="ck">✓</span><span class="bar" style="background:#1e88e5"></span>
           <span class="tx"><b>書類提出期日</b><span id="ev3">—</span></span></div>
       </div>
       <div class="popnote">
-        面接官（山崎）の予定にも同じ内容が入りました。<br>
+        面接官（<b id="popWho">—</b>）の予定にも同じ内容が入りました。候補者へは確定した日時が反映されています。<br>
         面接が取消・辞退になった場合は、この3件がカレンダーから自動で削除されます。
       </div>
       <div class="mustself">連絡文面の下書きまで自動で作成します。媒体への送信は必ずご自身で押してください。</div>
@@ -823,11 +844,11 @@ document.querySelectorAll(".fwsug button").forEach(b=>b.addEventListener("click"
 
 /* ══════ 直近の面接 ══════ */
 const NEXT=[
- ["本日","7/17(木) 13:30〜14:15","高橋 直樹","二次","土屋","✅ 同期済み"],
+ ["本日","7/17(木) 13:30〜14:30","井上 遥","二次","土屋","✅ 同期済み"],
  ["本日","7/17(木) 17:00〜17:30","森田 拓海","一次","山崎","✅ 同期済み"],
  ["明日","7/18(金) 10:00〜10:30","桜井 美咲","一次","山崎","✅ 同期済み"],
  ["明日","7/18(金) 11:00〜11:30","田中 一郎","一次","山崎","✅ 同期済み"],
- ["7/22(火)","7/22(火) 16:30〜17:15","井上 遥","二次","土屋","✅ 同期済み"]
+ ["調整中","希望日 7/18・7/22 を受領","高橋 直樹","二次","土屋","🟡 希望日あり"]
 ];
 $("tNext").innerHTML=`<tr><th>日付</th><th>時刻</th><th>候補者</th><th>回次</th><th>面接官</th><th>カレンダー</th></tr>`+
  NEXT.map(r=>`<tr><td><span class="chip ${r[0]==="本日"?"fix":"gray"}">${r[0]}</span></td>
@@ -903,19 +924,24 @@ const DAYS=[["7/16","水",0],["7/17","木",1],["7/18","金",0],["7/19","土",0],
 const COLOR={"山崎":"#0f766e","土屋":"#1e88e5","中野":"#7c3aed"};
 /* d=曜日index, s=開始(9:00からの30分単位), len=30分単位の長さ */
 const EVENTS=[
- {d:0,s:2,len:1,who:"山崎",t:"一次 森田 拓海"},
+ {d:0,s:2,len:1,who:"中野",t:"書類選考MTG"},
  {d:0,s:8,len:2,who:"外部",t:"外部予定"},
  {d:1,s:1,len:2,who:"外部",t:"外部予定"},
- {d:1,s:9,len:2,who:"土屋",t:"二次 高橋 直樹"},
+ {d:1,s:9,len:2,who:"土屋",t:"二次 井上 遥"},
  {d:1,s:16,len:1,who:"山崎",t:"一次 森田 拓海"},
  {d:2,s:2,len:1,who:"山崎",t:"一次 桜井 美咲"},
  {d:2,s:4,len:1,who:"山崎",t:"一次 田中 一郎"},
  {d:5,s:12,len:2,who:"中野",t:"外部予定"},
- {d:6,s:15,len:2,who:"土屋",t:"二次 井上 遥"}
+ {d:6,s:15,len:2,who:"外部",t:"外部予定"}
 ];
-const BANDS=[{d:2,s:2,len:4},{d:6,s:10,len:4}];   /* 希望日 7/18 10:00-12:00 ／ 7/22 14:00-16:00 */
+/* 希望日（高橋 直樹 様から2枠いただいている想定） */
+const BANDS=[
+ {d:2,s:2,len:4,cand:"高橋 直樹",round:"二次面接",who:"土屋",done:false},
+ {d:6,s:10,len:4,cand:"高橋 直樹",round:"二次面接",who:"土屋",done:false}
+];
+const CANDS=["高橋 直樹","桜井 美咲","田中 一郎","森田 拓海","井上 遥"];
 const SLOTS=20;                                    /* 9:00〜19:00 を30分刻み */
-const t2s=i=>{const h=9+Math.floor(i/2);return h+":"+(i%2?"30":"00")};
+const t2s=i=>{const m=9*60+i*30;return Math.floor(m/60)+":"+String(Math.round(m%60)).padStart(2,"0")};
 
 $("calHead").innerHTML=`<div></div>`+DAYS.map(d=>
   `<div class="${d[2]?"td":""}">${d[0]}（${d[1]}）${d[2]?"・本日":""}</div>`).join("");
@@ -925,21 +951,25 @@ function drawCal(filter){
   DAYS.forEach((d,di)=>{
     h+=`<div class="day" data-d="${di}">`+
        Array.from({length:SLOTS},(_,i)=>`<div class="slot" data-i="${i}"></div>`).join("")+
-       BANDS.filter(b=>b.d===di).map(b=>
-         `<div class="band" style="top:${b.s*26}px;height:${b.len*26-2}px"><span>希望日</span></div>`).join("")+
+       BANDS.map((b,bi)=>b.d!==di?"":
+         `<div class="band ${b.done?"done":""}" data-b="${bi}"
+            style="top:${b.s*26}px;height:${b.len*26-2}px">
+            <span>${b.done?"✅ この希望日で確定":"希望日｜"+b.cand+" 様"}</span></div>`).join("")+
        EVENTS.filter(e=>e.d===di&&(filter==="all"||e.who===filter||e.who==="外部")).map(e=>
          e.who==="外部"
          ?`<div class="ev ext2" style="top:${e.s*26+1}px;height:${e.len*26-3}px">${t2s(e.s)} ${e.t}</div>`
-         :`<div class="ev" style="top:${e.s*26+1}px;height:${e.len*26-3}px;background:${COLOR[e.who]}">
+         :`<div class="ev ${e.isNew?"newone":""}" style="top:${e.s*26+1}px;height:${e.len*26-3}px;background:${COLOR[e.who]}">
              ${e.t}<b>${t2s(e.s)}・${e.who}</b></div>`).join("")+
        `</div>`;
   });
   $("calBody").innerHTML=h;
-  $("calBody").querySelectorAll(".slot").forEach(s=>s.addEventListener("click",e=>{
-    const di=+s.closest(".day").dataset.d, i=+s.dataset.i;
-    SEL={di,i};
-    $("bookWhen").textContent=`${DAYS[di][0]}（${DAYS[di][1]}）${t2s(i)}〜${t2s(i+1)}`;
-    $("book").classList.add("on");
+  $("calBody").querySelectorAll(".slot").forEach(s=>s.addEventListener("click",()=>{
+    openBook(+s.closest(".day").dataset.d, +s.dataset.i, null);
+  }));
+  $("calBody").querySelectorAll(".band").forEach(b=>b.addEventListener("click",ev=>{
+    ev.stopPropagation();
+    const bi=+b.dataset.b; if(BANDS[bi].done){toast("この希望日はすでに確定済みです");return}
+    openBook(BANDS[bi].d,BANDS[bi].s,bi);
   }));
 }
 drawCal("all");
@@ -947,15 +977,53 @@ document.querySelectorAll(".filt button").forEach(b=>b.addEventListener("click",
   document.querySelectorAll(".filt button").forEach(x=>x.classList.toggle("on",x===b));
   drawCal(b.dataset.i);
 }));
-let SEL={di:2,i:2};
+let SEL={di:2,i:2,band:null};
+$("bkCand").innerHTML=CANDS.map(c=>`<option>${c}</option>`).join("");
+function openBook(di,i,bandIdx){
+  SEL={di,i,band:bandIdx};
+  const b=bandIdx!==null?BANDS[bandIdx]:null;
+  $("bookTtl").textContent=b?"希望日から面接を設定":"この枠で面接を設定";
+  $("bkWish").hidden=!b;
+  if(b){ $("bkWish").innerHTML=`🟡 <b>${b.cand}</b> 様からの希望日です<br>
+    ${DAYS[b.d][0]}（${DAYS[b.d][1]}） ${t2s(b.s)}〜${t2s(b.s+b.len)} のあいだでお選びください`; }
+  $("bkCand").value=b?b.cand:"高橋 直樹";
+  $("bkRound").value=b?b.round:"二次面接";
+  $("bkWho").value=b?b.who:"土屋";
+  $("bkDate").textContent=`${DAYS[di][0]}（${DAYS[di][1]}）`;
+  const from=b?b.s:i, to=b?b.s+b.len:i+1;
+  $("bkTime").innerHTML=Array.from({length:to-from},(_,k)=>
+    `<option value="${from+k}">${t2s(from+k)}</option>`).join("");
+  $("bkTime").value=String(i>=from&&i<to?i:from);
+  $("bkLen").value="1";
+  prevBook(); $("book").classList.add("on");
+}
+function prevBook(){
+  const s=+$("bkTime").value, len=parseFloat($("bkLen").value);
+  $("bkPrev").innerHTML=`確定する予定：<b>${DAYS[SEL.di][0]}（${DAYS[SEL.di][1]}） ${t2s(s)}〜${t2s(s+len)}</b><br>
+    ${$("bkCand").value} 様・${$("bkRound").value}・${$("bkWho").value}`;
+}
+["bkTime","bkLen","bkCand","bkRound","bkWho"].forEach(id=>$(id).addEventListener("change",prevBook));
 function closeBook(){$("book").classList.remove("on")}
 function closePop(){$("ov").classList.remove("on")}
 function confirmBook(){
+  const s=+$("bkTime").value, len=parseFloat($("bkLen").value);
+  const cand=$("bkCand").value, round=$("bkRound").value, who=$("bkWho").value;
+  SEL.i=s;
+  /* ① カレンダーに実際の予定を入れる */
+  EVENTS.forEach(e=>e.isNew=false);
+  EVENTS.push({d:SEL.di,s,len,who,t:`${round.replace("面接","")} ${cand}`,isNew:true});
+  if(SEL.band!==null) BANDS[SEL.band].done=true;
+  drawCal(document.querySelector(".filt button.on").dataset.i);
+  /* ② 画面上部の確定バナーを更新 */
+  $("schBanner").innerHTML=`<b>✅ ${DAYS[SEL.di][0]}（${DAYS[SEL.di][1]}） ${t2s(s)}〜${t2s(s+len)} で設定済みです</b>
+    <span style="font-size:12px;color:var(--ink)">　${cand} 様・${round}・${who}　／　カレンダーに本体・前日リマインド・書類提出期日を作成しました</span>`;
   closeBook();
+  /* ③ Googleカレンダー連携のPOP */
   const d=DAYS[SEL.di], pv=DAYS[SEL.di-1]||["7/15","火"], pv2=DAYS[SEL.di-2]||["7/14","月"];
-  const when=`${d[0]}（${d[1]}）${t2s(SEL.i)}〜${t2s(SEL.i+1)}　／　桜井 美咲 様・一次面接・山崎`;
-  $("popWhen").textContent=when;
-  $("ev1").textContent=`${d[0]}（${d[1]}） ${t2s(SEL.i)}〜${t2s(SEL.i+1)}　Zoom URL を本文に自動挿入`;
+  $("popWhen").textContent=`${d[0]}（${d[1]}）${t2s(s)}〜${t2s(s+len)}　／　${cand} 様・${round}・${who}`;
+  $("ev1t").textContent=`【${round}】${cand} 様`;
+  $("ev1").textContent=`${d[0]}（${d[1]}） ${t2s(s)}〜${t2s(s+len)}　Zoom URL を本文に自動挿入`;
+  $("popWho").textContent=who;
   $("ev2").textContent=`${pv[0]}（${pv[1]}） 18:00　通知：面接前日のお知らせ`;
   $("ev3").textContent=`${pv2[0]}（${pv2[1]}） 12:00　履歴書・職務経歴書の提出期限`;
   ["syn1","syn2","syn3"].forEach(id=>$(id).classList.remove("in"));
