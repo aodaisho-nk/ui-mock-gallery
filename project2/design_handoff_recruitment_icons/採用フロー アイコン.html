@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>採用フロー アイコン</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f6f6f4; --ink:#1d1e20; --muted:#8a8b8e; --line:#e3e3e0; --card:#fff;
+    --accent:oklch(0.58 0.12 250); --sw:1.5;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:"Noto Sans JP",sans-serif;font-weight:400;padding:56px 48px 80px;min-height:100vh}
+  .wrap{max-width:1240px;margin:0 auto}
+  header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:40px;gap:24px;flex-wrap:wrap}
+  h1{font-weight:300;font-size:26px;letter-spacing:.08em}
+  .sub{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--muted);letter-spacing:.12em;margin-top:8px;text-transform:uppercase}
+  .ctrl{display:flex;gap:20px;align-items:center;font-size:12px;color:var(--muted)}
+  .seg{display:flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:#fff}
+  .seg button{border:0;background:none;font:inherit;font-family:"JetBrains Mono",monospace;font-size:11px;padding:6px 12px;border-radius:999px;color:var(--muted);cursor:pointer}
+  .seg button.on{background:var(--ink);color:#fff}
+
+  .flow{display:grid;grid-template-columns:repeat(8,1fr);gap:12px;position:relative}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 16px 18px;display:flex;flex-direction:column;align-items:center;position:relative;transition:border-color .2s, transform .2s}
+  .card:hover{border-color:var(--ink);transform:translateY(-2px)}
+  .num{position:absolute;top:12px;left:14px;font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--muted);letter-spacing:.1em}
+  .card .ico{width:64px;height:64px;margin:18px 0 22px;color:var(--ink)}
+  .card .ico svg{width:100%;height:100%}
+  .jp{font-size:15px;font-weight:500;letter-spacing:.1em}
+  .en{font-family:"JetBrains Mono",monospace;font-size:9.5px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;margin-top:6px}
+  .dl{margin-top:16px;border:0;background:none;font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.1em;color:var(--muted);cursor:pointer;opacity:0;transition:opacity .2s}
+  .card:hover .dl{opacity:1}
+  .dl:hover{color:var(--accent)}
+  .arrow{position:absolute;right:-11px;top:50%;width:10px;height:1px;background:var(--muted);z-index:1}
+
+  section{margin-top:56px}
+  .label{font-family:"JetBrains Mono",monospace;font-size:10.5px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;margin-bottom:16px}
+  .panel{border:1px solid var(--line);border-radius:14px;background:#fff;padding:28px 32px}
+  .panel.dark{background:#17181a;border-color:#17181a;color:#ededeb}
+  .row{display:grid;grid-template-columns:repeat(8,1fr);gap:12px;align-items:center;justify-items:center}
+  .sizes{display:grid;grid-template-columns:60px 1fr;row-gap:22px;align-items:center}
+  .sizes .s{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--muted)}
+  .chip{display:inline-flex;align-items:center;gap:8px;font-size:13px;letter-spacing:.06em}
+  .chip svg{width:20px;height:20px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .tl{display:flex;flex-direction:column;gap:14px}
+  @media (max-width:1000px){.flow,.row{grid-template-columns:repeat(4,1fr)}.arrow{display:none}.two{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>採用フロー アイコン</h1>
+      <div class="sub">Recruitment Icon Set · 24px grid · Line</div>
+    </div>
+    <div class="ctrl">線幅
+      <div class="seg" id="sw">
+        <button data-v="1.25">1.25</button><button data-v="1.5" class="on">1.5</button><button data-v="2">2.0</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="flow" id="flow"></div>
+
+  <section>
+    <div class="label">Sizes</div>
+    <div class="panel sizes" id="sizes"></div>
+  </section>
+
+  <section>
+    <div class="label">In Use</div>
+    <div class="two">
+      <div class="panel tl" id="useLight"></div>
+      <div class="panel dark tl" id="useDark"></div>
+    </div>
+  </section>
+</div>
+
+<script>
+const ICONS = [
+  { jp:"採用計画", en:"Planning", id:"planning", d:`
+    <path d="M9 4H7a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2"/>
+    <rect x="9" y="2.75" width="6" height="2.75" rx="1"/>
+    <polyline points="8.5 16.5 11 13.75 13 15.5 15.5 11"/>
+    <polyline points="13.25 11 15.5 11 15.5 13.25"/>`},
+  { jp:"求人作成", en:"Job Posting", id:"job-posting", d:`
+    <path d="M12 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v2.5"/>
+    <path d="M14 3v5h5"/>
+    <line x1="8.5" y1="12" x2="13" y2="12"/>
+    <line x1="8.5" y1="15.5" x2="11" y2="15.5"/>
+    <path d="M18.25 13 21 15.75 15.75 21H13v-2.75z"/>`},
+  { jp:"募集", en:"Recruiting", id:"recruiting", d:`
+    <path d="M3.5 10v4a1 1 0 0 0 1 1H7l7 4V5L7 9H4.5a1 1 0 0 0-1 1z"/>
+    <line x1="7.5" y1="15.25" x2="9" y2="20"/>
+    <path d="M17.25 9.75a3.25 3.25 0 0 1 0 4.5"/>
+    <path d="M19.75 7.25a6.75 6.75 0 0 1 0 9.5"/>`},
+  { jp:"書類選考", en:"Screening", id:"screening", d:`
+    <path d="M10.5 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l4 4v2.5"/>
+    <path d="M14 3v4h4"/>
+    <line x1="8.5" y1="9.5" x2="11.5" y2="9.5"/>
+    <line x1="8.5" y1="13" x2="10.5" y2="13"/>
+    <circle cx="15.75" cy="15.25" r="3.5"/>
+    <line x1="18.25" y1="17.75" x2="20.75" y2="20.25"/>`},
+  { jp:"面接", en:"Interview", id:"interview", d:`
+    <circle cx="7" cy="8.5" r="2.5"/>
+    <circle cx="17" cy="8.5" r="2.5"/>
+    <path d="M3 17.5a4 4 0 0 1 8 0"/>
+    <path d="M13 17.5a4 4 0 0 1 8 0"/>
+    <line x1="2.5" y1="20.5" x2="21.5" y2="20.5"/>`},
+  { jp:"内定", en:"Offer", id:"offer", d:`
+    <circle cx="12" cy="9" r="5.75"/>
+    <polyline points="9.5 9 11.25 10.75 14.5 7.5"/>
+    <path d="M8.75 13.75 7.5 21l4.5-2.25L16.5 21l-1.25-7.25"/>`},
+  { jp:"入社", en:"Onboarding", id:"onboarding", d:`
+    <path d="M14 3.5h4a1.5 1.5 0 0 1 1.5 1.5v14a1.5 1.5 0 0 1-1.5 1.5h-4"/>
+    <line x1="4" y1="12" x2="14.5" y2="12"/>
+    <polyline points="11 8.5 14.5 12 11 15.5"/>`},
+  { jp:"分析", en:"Analytics", id:"analytics", d:`
+    <path d="M11 5a8 8 0 1 0 8 8h-8z"/>
+    <path d="M13.5 3v7.5H21A7.5 7.5 0 0 0 13.5 3z"/>`},
+];
+
+const svg = (i, sw) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round">${i.d.trim()}</svg>`;
+let SW = parseFloat(localStorage.getItem('icon-sw') || '1.5');
+
+function render(){
+  document.querySelectorAll('#sw button').forEach(b=>b.classList.toggle('on', parseFloat(b.dataset.v)===SW));
+  document.getElementById('flow').innerHTML = ICONS.map((i,n)=>`
+    <div class="card">
+      <span class="num">${String(n+1).padStart(2,'0')}</span>
+      <div class="ico">${svg(i,SW)}</div>
+      <div class="jp">${i.jp}</div>
+      <div class="en">${i.en}</div>
+      <button class="dl" data-n="${n}">↓ SVG</button>
+      ${n<ICONS.length-1?'<span class="arrow"></span>':''}
+    </div>`).join('');
+  document.getElementById('sizes').innerHTML = [48,32,24,16].map(s=>`
+    <div class="s">${s}px</div>
+    <div class="row">${ICONS.map(i=>`<div style="width:${s}px;height:${s}px">${svg(i,SW)}</div>`).join('')}</div>`).join('');
+  const use = ICONS.map(i=>`<span class="chip">${svg(i,SW)}${i.jp}</span>`).join('');
+  document.getElementById('useLight').innerHTML = use;
+  document.getElementById('useDark').innerHTML = use;
+  document.querySelectorAll('.dl').forEach(b=>b.onclick=()=>{
+    const i = ICONS[b.dataset.n];
+    const blob = new Blob([svg(i,SW).replace('currentColor','#1d1e20')],{type:'image/svg+xml'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = `icon-${String(+b.dataset.n+1).padStart(2,'0')}-${i.id}.svg`; a.click();
+  });
+}
+document.querySelectorAll('#sw button').forEach(b=>b.onclick=()=>{SW=parseFloat(b.dataset.v);localStorage.setItem('icon-sw',SW);render();});
+render();
+</script>
+</body>
+</html>

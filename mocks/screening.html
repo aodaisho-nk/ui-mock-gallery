@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>書類スクリーニング｜採用管理システム デモ</title>
+<style>
+:root{
+  --ink:#1f2a2e; --sub:#5c6b70; --line:#d7dee0; --bg:#f2f5f5;
+  --accent:#0f766e; --accent-soft:#e4efee;
+  --warn:#b45309; --warn-soft:#fef3e2;
+  --ng:#b91c1c; --ng-soft:#fde8e8;
+  --ok:#166534; --ok-soft:#e3f3e8;
+  --mono:"SFMono-Regular","Consolas",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{overflow-x:hidden}
+body{font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",sans-serif;
+  background:var(--bg);color:var(--ink);font-size:14px;line-height:1.7}
+button{font-family:inherit;color:inherit}
+.card{background:#fff;border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:14px}
+.card h2{font-size:13px;margin-bottom:10px}
+.btn{padding:7px 14px;border-radius:6px;border:1px solid var(--line);background:#fff;font-size:13px;cursor:pointer}
+.btn:hover{background:#f7fafa}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:bold}
+.btn.pri:hover{background:#0d6660}
+.btn.sm{padding:4px 10px;font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--accent-soft);text-align:left;padding:8px;font-size:11px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:8px;border-bottom:1px solid #edf1f2}
+tr:hover td{background:#f7fafa}
+
+/* アプリバー */
+.appbar{background:#12332f;color:#fff;padding:0 24px;height:44px;display:flex;align-items:center;gap:14px;font-size:13px}
+.appbar .brand{font-weight:bold;letter-spacing:.04em}
+.appbar .sep{opacity:.4}
+.appbar .scr{opacity:.85}
+.appbar .right{margin-left:auto;font-size:11.5px;opacity:.7;font-family:var(--mono)}
+
+.wrap{max-width:1240px;margin:0 auto;padding:18px 20px 60px}
+
+.head{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.head h1{font-size:20px;letter-spacing:.02em}
+.head .cond-meta{font-size:12px;color:var(--sub)}
+.badge{margin-left:auto;background:#fff;border:1px solid var(--accent);color:var(--accent);
+  border-radius:999px;padding:5px 14px;font-size:12px;white-space:nowrap}
+.badge b{font-size:13px}
+
+/* 条件パネル */
+.panel-h{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
+.panel-h h2{margin-bottom:0}
+.panel-h .tgl{margin-left:auto;font-size:12px;color:var(--sub);border:1px solid var(--line);
+  border-radius:5px;padding:2px 9px}
+.panel-b{margin-top:10px}
+.panel-b.hide{display:none}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.cchip{border:1px solid var(--line);background:var(--accent-soft);border-radius:6px;
+  padding:6px 10px;font-size:12.5px;display:flex;align-items:center;gap:8px}
+.cchip .k{font-size:11px;color:var(--sub);font-family:var(--mono)}
+.cchip .pen{color:var(--accent);font-size:12px;opacity:.75}
+.note{font-size:11.5px;color:var(--sub);margin-top:9px;line-height:1.6}
+.note.strong{border-left:3px solid var(--accent);padding-left:9px;background:#f7fafa}
+
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.kpi .t{font-size:11.5px;color:var(--sub)}
+.kpi .v{font-size:26px;font-weight:bold;line-height:1.3;font-family:var(--mono)}
+.kpi .s{font-size:11px;color:var(--sub)}
+.kpi.ok .v{color:var(--ok)} .kpi.warn .v{color:var(--warn)} .kpi.ng .v{color:var(--ng)}
+
+/* 一括バー */
+.bulk{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#fff;
+  border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin-bottom:14px}
+.bulk label{font-size:13px;display:flex;align-items:center;gap:6px;cursor:pointer}
+.bulk .cnt{font-size:12px;color:var(--accent);font-weight:bold;background:var(--accent-soft);
+  border-radius:999px;padding:2px 10px}
+.bulk .acts{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+
+/* テーブル */
+td.c{text-align:center}
+.nm{font-weight:bold}
+.kana{font-size:11px;color:var(--sub);font-weight:normal}
+.flag{color:var(--ng);font-size:11px}
+.flagw{color:var(--warn);font-size:11px}
+.jchip{display:inline-block;border-radius:5px;padding:3px 9px;font-size:12px;white-space:nowrap;border:1px solid}
+.j-ok{background:var(--ok-soft);border-color:#b9ddc6;color:var(--ok)}
+.j-warn{background:var(--warn-soft);border-color:#f0d6a8;color:var(--warn)}
+.j-ng{background:var(--ng-soft);border-color:#f1bcbc;color:var(--ng)}
+.st{display:inline-block;border-radius:5px;padding:2px 8px;font-size:11.5px;border:1px solid var(--line);color:var(--sub);background:#fff}
+.st.pass{background:var(--ok-soft);border-color:#b9ddc6;color:var(--ok)}
+.st.hold{background:var(--warn-soft);border-color:#f0d6a8;color:var(--warn)}
+.st.rej{background:var(--ng-soft);border-color:#f1bcbc;color:var(--ng)}
+
+.ev{min-width:112px;position:relative}
+.segs{display:flex;gap:3px}
+.segs i{display:block;width:16px;height:7px;border-radius:2px;background:#e6ebec}
+.segs i.s-ok{background:var(--ok)} .segs i.s-warn{background:var(--warn)} .segs i.s-ng{background:var(--ng)}
+.ev .lab{font-size:11px;color:var(--sub);margin-top:2px;white-space:nowrap}
+.tip{position:absolute;left:0;top:100%;z-index:30;width:300px;background:#fff;border:1px solid var(--line);
+  border-radius:6px;padding:9px 10px;display:none;font-size:11.5px;line-height:1.6}
+.ev:hover .tip{display:block}
+.tip div{display:flex;gap:7px;padding:1px 0}
+.tip .m{width:14px;flex:none;text-align:center;font-weight:bold}
+.tip .m.ok{color:var(--ok)} .tip .m.warn{color:var(--warn)} .tip .m.ng{color:var(--ng)}
+
+/* モーダル */
+.ov{position:fixed;inset:0;background:rgba(18,51,47,.42);display:none;z-index:100;
+  padding:28px 16px;overflow:auto}
+.ov.on{display:block}
+.modal{max-width:880px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:10px;
+  box-shadow:0 14px 40px rgba(18,51,47,.26)}
+.mh{display:flex;align-items:center;gap:12px;padding:13px 18px;border-bottom:1px solid var(--line)}
+.mh h3{font-size:15px}
+.mh .x{margin-left:auto;background:#fff;border:1px solid var(--line);border-radius:6px;
+  width:28px;height:28px;cursor:pointer;font-size:13px;line-height:1}
+.mb{padding:16px 18px}
+.grid2{display:grid;grid-template-columns:340px 1fr;gap:16px}
+.sec{border:1px solid var(--line);border-radius:8px;padding:12px}
+.sec h4{font-size:12px;margin-bottom:8px;color:var(--accent)}
+.dl{display:grid;grid-template-columns:86px 1fr;gap:4px 10px;font-size:12.5px}
+.dl dt{color:var(--sub);font-size:11.5px}
+.dl dd{font-family:var(--mono);font-size:12px;word-break:break-all}
+.ct{width:100%;border-collapse:collapse;font-size:12.5px}
+.ct th{background:var(--accent-soft);font-size:11px;padding:6px 8px}
+.ct td{padding:6px 8px;border-bottom:1px solid #edf1f2;vertical-align:top}
+.ct td.m{text-align:center;width:34px;font-weight:bold}
+.pr{margin-top:14px;border:1px solid var(--line);border-radius:8px;padding:12px;background:#fafcfc}
+.pr h4{font-size:12px;margin-bottom:6px;color:var(--accent)}
+.pr p{font-size:13px}
+.mf{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:12px 18px;border-top:1px solid var(--line);background:#fafcfc;border-radius:0 0 10px 10px}
+.mf .mnote{font-size:11px;color:var(--sub);flex:1 1 260px;min-width:220px}
+
+/* トースト */
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(14px);
+  background:#12332f;color:#fff;padding:10px 20px;border-radius:999px;font-size:13px;
+  opacity:0;pointer-events:none;transition:.22s;z-index:200}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.foot{font-size:11.5px;color:var(--sub);margin-top:10px}
+
+@media(max-width:1100px){
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .grid2{grid-template-columns:1fr}
+  .dl{grid-template-columns:80px 1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="appbar">
+  <span class="brand">採用管理システム</span>
+  <span class="sep">/</span>
+  <span class="scr">書類スクリーニング</span>
+  <span class="right">DEMO</span>
+</div>
+
+<div class="wrap">
+
+  <div class="head">
+    <h1>書類スクリーニング</h1>
+    <span class="cond-meta">2026年7月クール ／ 営業職 ／ 未処理の新規応募 8件</span>
+    <span class="badge">これまで：1件5分×8件＝40分 → <b>いま：6分</b></span>
+  </div>
+
+  <!-- ① 判定条件パネル -->
+  <div class="card">
+    <div class="panel-h" onclick="togglePanel()">
+      <h2>🗂 この求人の判定条件（設定画面で管理）</h2>
+      <span class="tgl" id="tgl">閉じる</span>
+    </div>
+    <div class="panel-b" id="panelB">
+      <div class="chips">
+        <span class="cchip"><span class="k">年齢</span>20〜54歳<span class="pen">✎ 編集</span></span>
+        <span class="cchip"><span class="k">転職回数</span>3回以下<span class="pen">✎ 編集</span></span>
+        <span class="cchip"><span class="k">通勤</span>事業所から60分以内<span class="pen">✎ 編集</span></span>
+        <span class="cchip"><span class="k">経験</span>不問（未経験歓迎）<span class="pen">✎ 編集</span></span>
+        <span class="cchip"><span class="k">除外</span>管理物件の居住者・関係者（住所で自動照合）<span class="pen">✎ 編集</span></span>
+      </div>
+      <p class="note strong">判定は上記の条件に照らした規則ベースの処理です。合否はご担当者が決定します。</p>
+    </div>
+  </div>
+
+  <!-- ② KPI -->
+  <div class="kpis">
+    <div class="kpi"><div class="t">未処理</div><div class="v" id="k0">8</div><div class="s">件</div></div>
+    <div class="kpi ok"><div class="t">○ 条件内</div><div class="v" id="k1">4</div><div class="s">件（未処理のうち）</div></div>
+    <div class="kpi warn"><div class="t">△ 要確認</div><div class="v" id="k2">3</div><div class="s">件（未処理のうち）</div></div>
+    <div class="kpi ng"><div class="t">× 条件外</div><div class="v" id="k3">1</div><div class="s">件（未処理のうち）</div></div>
+  </div>
+
+  <!-- ③ 一括処理バー -->
+  <div class="bulk">
+    <label><input type="checkbox" id="allChk" onchange="toggleAll(this.checked)"> すべて選択</label>
+    <span class="cnt" id="selCnt">3件を選択中</span>
+    <div class="acts">
+      <button class="btn" onclick="bulk('pass')">○ 書類通過にする</button>
+      <button class="btn" onclick="bulk('hold')">△ 保留にする</button>
+      <button class="btn" onclick="bulk('rej')">× 見送りにする</button>
+      <button class="btn pri" onclick="bulk('mail')">選択した候補者に連絡文面を作成</button>
+    </div>
+  </div>
+
+  <!-- ④ 候補者テーブル -->
+  <div class="card">
+    <h2>候補者一覧（新規応募）</h2>
+    <table>
+      <thead>
+        <tr>
+          <th style="width:34px"></th>
+          <th>氏名</th><th>年齢</th><th>居住地</th><th>転職回数</th><th>経験</th>
+          <th>媒体</th><th>応募日</th><th>判定</th><th>根拠</th><th>状態</th><th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="tb"></tbody>
+    </table>
+    <p class="note">根拠の横バーは5つの条件それぞれの当てはまりを示します（<span style="color:var(--ok)">■</span> クリア ／ <span style="color:var(--warn)">■</span> 要確認 ／ <span style="color:var(--ng)">■</span> 条件外）。バーにカーソルを合わせると条件ごとの内容が表示されます。</p>
+  </div>
+
+  <p class="foot">※ デモ用のサンプルです。候補者情報はすべて架空のものです。</p>
+</div>
+
+<!-- ⑤ 詳細モーダル -->
+<div class="ov" id="ov" onclick="if(event.target===this)closeM()">
+  <div class="modal">
+    <div class="mh">
+      <h3 id="mName">候補者詳細</h3>
+      <span id="mJudge"></span>
+      <button class="x" onclick="closeM()">✕</button>
+    </div>
+    <div class="mb">
+      <div class="grid2">
+        <div class="sec">
+          <h4>基本情報</h4>
+          <dl class="dl" id="mBasic"></dl>
+        </div>
+        <div class="sec">
+          <h4>条件ごとの判定（規則ベース）</h4>
+          <table class="ct">
+            <thead><tr><th></th><th>条件</th><th>候補者の値</th><th>判定理由</th></tr></thead>
+            <tbody id="mCond"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="pr">
+        <h4>自己PR（抜粋）</h4>
+        <p id="mPr"></p>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn" onclick="single('pass')">○ 書類通過</button>
+      <button class="btn" onclick="single('hold')">△ 保留</button>
+      <button class="btn" onclick="single('rej')">× 見送り</button>
+      <span class="mnote">この画面の判定は条件への当てはまりを示すものです。合否はご担当者が決定してください。</span>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* 条件定義（設定画面で管理される規則） */
+var CONDS = [
+  {key:"年齢", rule:"20〜54歳"},
+  {key:"転職回数", rule:"3回以下"},
+  {key:"通勤", rule:"事業所から60分以内"},
+  {key:"経験", rule:"不問（未経験歓迎）"},
+  {key:"除外", rule:"管理物件の居住者・関係者でない"}
+];
+
+/* 候補者データ（架空） */
+var DATA = [
+  {id:"AP-2607-001", name:"桜井 美咲", kana:"サクライ ミサキ", age:28, birth:"1998/04/12", pref:"東京都",
+   addr:"東京都○○区△△ 1-2-3", commute:25, jobs:1, exp:"営業2年", expNew:false, media:"媒体A", date:"7/15",
+   tel:"090-****-1234", mail:"m.s****@example.com", state:"new", excl:false,
+   pr:"前職では法人向けの提案営業を2年担当し、月平均12件の新規訪問を継続しました。初回面談で相手の課題を整理し、次回までに必ず持ち帰り案を用意することを習慣にしてきました。チーム内の商談記録の共有ルールづくりにも関わりました。今後は扱う商材の幅を広げ、長く関係が続く提案に携わりたいと考えています。"},
+  {id:"AP-2607-002", name:"田中 一郎", kana:"タナカ イチロウ", age:34, birth:"1992/09/03", pref:"神奈川県",
+   addr:"神奈川県○○市△△ 4-5", commute:45, jobs:2, exp:"未経験", expNew:true, media:"媒体A", date:"7/14",
+   tel:"090-****-2187", mail:"i.t****@example.com", state:"new", excl:false,
+   pr:"これまで小売店の店長として、スタッフ8名のシフト管理と売場づくりを担当しました。お客様の相談に乗る中で、要望を聞き取って提案する仕事そのものに取り組みたいと考えるようになりました。営業は未経験ですが、数字を見ながら打ち手を変える進め方には慣れています。学ぶ姿勢を大切に、早く戦力になれるよう準備しています。"},
+  {id:"AP-2607-003", name:"高橋 直樹", kana:"タカハシ ナオキ", age:41, birth:"1985/01/27", pref:"千葉県",
+   addr:"千葉県○○市△△ 7-8-9", commute:55, jobs:3, exp:"営業8年", expNew:false, media:"採用ホームページ", date:"7/13",
+   tel:"090-****-3092", mail:"n.t****@example.com", state:"new", excl:false,
+   pr:"住宅・設備関連の営業を通算8年経験し、直近3年は5名のチームのサブリーダーを務めました。新人の同行とロールプレイの設計を担当し、立ち上がり期間の短縮に取り組みました。既存のお客様からの紹介を増やすことを得意としています。現場に近い立場で、長期的な関係づくりを続けたいと考えています。"},
+  {id:"AP-2607-004", name:"中村 彩", kana:"ナカムラ アヤ", age:25, birth:"2001/06/18", pref:"東京都",
+   addr:"東京都○○市△△ 2-11", commute:20, jobs:0, exp:"未経験", expNew:true, media:"採用ホームページ", date:"7/12",
+   tel:"090-****-4461", mail:"a.n****@example.com", state:"new", excl:false,
+   pr:"新卒で入社した会社で3年間、受付と事務を担当してきました。日々20件前後のお問い合わせに対応し、よくある質問をまとめた案内資料を自分で作成して共有しました。人と直接話す仕事が好きで、次は提案まで担える立場に進みたいと考えています。未経験のため、まずは基礎から丁寧に覚えていきたいです。"},
+  {id:"AP-2607-005", name:"小林 拓也", kana:"コバヤシ タクヤ", age:30, birth:"1996/03/05", pref:"埼玉県",
+   addr:"埼玉県○○市△△ 3-14", commute:50, jobs:5, exp:"営業3年", expNew:false, media:"媒体B", date:"7/11",
+   tel:"090-****-5530", mail:"t.k****@example.com", state:"new", excl:false,
+   pr:"通信・人材・保険など複数の業界で営業を経験し、新規開拓を中心に担当してきました。短期間で商材を覚えて立ち上がることには慣れています。一方で、腰を据えて同じお客様と長く付き合う働き方に関心が移ってきました。これまでの経験を整理し、今後は一つの分野で深く取り組みたいと考えています。"},
+  {id:"AP-2607-006", name:"森田 拓海", kana:"モリタ タクミ", age:57, birth:"1969/11/22", pref:"東京都",
+   addr:"東京都○○区△△ 6-1-2", commute:30, jobs:2, exp:"営業12年", expNew:false, media:"媒体A", date:"7/10",
+   tel:"090-****-6648", mail:"t.m****@example.com", state:"new", excl:false,
+   pr:"不動産関連の営業を12年担当し、課長として10名規模の拠点運営も経験しました。地域の事業者との関係づくりと、紹介経由の案件づくりを続けてきました。現在は役職にこだわらず、現場で提案に携わる働き方を希望しています。これまでの人脈と提案の進め方を、新しい環境でも生かせると考えています。"},
+  {id:"AP-2607-007", name:"井上 遥", kana:"イノウエ ハルカ", age:26, birth:"2000/02/09", pref:"茨城県",
+   addr:"茨城県○○市△△ 5-7", commute:95, jobs:1, exp:"未経験", expNew:true, media:"媒体C", date:"7/09",
+   tel:"090-****-7719", mail:"h.i****@example.com", state:"new", excl:false,
+   pr:"これまで医療機関の受付業務を担当し、1日あたり50名前後の患者様の対応を続けてきました。相手の状況に合わせて説明の仕方を変えることを心がけています。営業は未経験ですが、人と関わる仕事を続けたいという気持ちは変わりません。勤務地については、転居を含めて相談させていただきたいと考えています。"},
+  {id:"AP-2607-008", name:"吉岡 奈緒", kana:"ヨシオカ ナオ", age:33, birth:"1993/08/30", pref:"東京都",
+   addr:"東京都○○区△△ 2-4-6 ○○ハイツ 302", commute:35, jobs:2, exp:"営業5年", expNew:false, media:"媒体B", date:"7/08",
+   tel:"090-****-8805", mail:"n.y****@example.com", state:"new", excl:true, exclNote:"管理物件「○○ハイツ」の登録住所と一致",
+   pr:"メーカーの代理店営業を5年担当し、既存のお客様へのフォローと販促企画の提案を行ってきました。月次の実績をまとめて改善案を出す進め方を続けています。前職では新しい取引先の開拓も担当し、年間で8社の新規契約に関わりました。地域に根ざした仕事に関心があり、応募しました。"}
+];
+
+/* 規則ベースの評価（条件への当てはまりのみを算出） */
+function evaluate(c){
+  var r = [];
+  // 1 年齢
+  if(c.age >= 20 && c.age <= 54){
+    r.push({s:"ok", val:c.age+"歳", why:"条件の範囲内（20〜54歳）"});
+  }else{
+    r.push({s:"warn", val:c.age+"歳", why:"範囲外（上限54歳を超過）。経験年数が長いため要確認"});
+  }
+  // 2 転職回数
+  if(c.jobs <= 3){
+    r.push({s:"ok", val:c.jobs+"回", why:"条件の上限（3回）以内"});
+  }else{
+    r.push({s:"ng", val:c.jobs+"回", why:"上限3回を超過（条件外）"});
+  }
+  // 3 通勤
+  if(c.commute <= 60){
+    r.push({s:"ok", val:"約"+c.commute+"分（"+c.pref+"）", why:"事業所から60分以内"});
+  }else{
+    r.push({s:"warn", val:"約"+c.commute+"分（"+c.pref+"）", why:"60分を超過。転居の可否を要確認"});
+  }
+  // 4 経験
+  r.push({s:"ok", val:c.exp, why: c.expNew ? "経験は不問（未経験歓迎）のため該当" : "営業経験あり。条件は不問のため該当"});
+  // 5 除外照合
+  if(!c.excl){
+    r.push({s:"ok", val:"一致なし", why:"管理物件の登録住所と一致する記録なし"});
+  }else{
+    r.push({s:"warn", val:"住所が一致", why:c.exclNote+"。関係者の可能性があるため要確認"});
+  }
+  return r;
+}
+function judge(res){
+  for(var i=0;i<res.length;i++){ if(res[i].s==="ng") return "ng"; }
+  for(var j=0;j<res.length;j++){ if(res[j].s==="warn") return "warn"; }
+  return "ok";
+}
+function cleared(res){ var n=0; for(var i=0;i<res.length;i++){ if(res[i].s==="ok") n++; } return n; }
+
+var JL = {ok:"○ 条件内", warn:"△ 要確認", ng:"× 条件外"};
+var SL = {new:"未処理", pass:"書類通過", hold:"保留", rej:"見送り"};
+var SC = {new:"", pass:"pass", hold:"hold", rej:"rej"};
+
+var sel = {};
+DATA.forEach(function(c,i){ sel[c.id] = (i<3); });   // 既定で3件選択
+var openId = null;
+
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;"); }
+
+function render(){
+  var tb = document.getElementById("tb"), html = "";
+  DATA.forEach(function(c){
+    var res = evaluate(c), j = judge(res), n = cleared(res);
+    var segs = res.map(function(r){ return '<i class="s-'+r.s+'"></i>'; }).join("");
+    var tip = res.map(function(r,i){
+      var m = r.s==="ok" ? "○" : (r.s==="warn" ? "△" : "×");
+      return '<div><span class="m '+r.s+'">'+m+'</span><span><b>'+CONDS[i].key+'</b>（'+CONDS[i].rule+'）<br>'+
+             '候補者の値：'+esc(r.val)+' ／ '+esc(r.why)+'</span></div>';
+    }).join("");
+    var flag = "";
+    if(c.jobs > 3) flag = '<div class="flag">転職回数が条件外</div>';
+    else if(c.age > 54) flag = '<div class="flagw">年齢が条件外</div>';
+    else if(c.commute > 60) flag = '<div class="flagw">通勤時間が条件外</div>';
+    else if(c.excl) flag = '<div class="flagw">管理物件の住所と一致</div>';
+
+    html += '<tr>'+
+      '<td class="c"><input type="checkbox" '+(sel[c.id]?"checked":"")+' onchange="pick(\''+c.id+'\',this.checked)"></td>'+
+      '<td><div class="nm">'+c.name+'</div><div class="kana">'+c.kana+'</div></td>'+
+      '<td class="c">'+c.age+'</td>'+
+      '<td>'+c.pref+(c.commute>60?'<span class="flagw">（通勤'+c.commute+'分）</span>':'')+'</td>'+
+      '<td class="c">'+c.jobs+'回</td>'+
+      '<td>'+c.exp+'</td>'+
+      '<td>'+c.media+'</td>'+
+      '<td>'+c.date+'</td>'+
+      '<td><span class="jchip j-'+j+'">'+JL[j]+'</span></td>'+
+      '<td class="ev"><div class="segs">'+segs+'</div><div class="lab">5条件中'+n+'件クリア</div>'+
+        '<div class="tip">'+tip+flag+'</div></td>'+
+      '<td><span class="st '+SC[c.state]+'">'+SL[c.state]+'</span></td>'+
+      '<td><button class="btn sm" onclick="openM(\''+c.id+'\')">詳細</button></td>'+
+    '</tr>';
+  });
+  tb.innerHTML = html;
+  kpi(); count();
+}
+
+function kpi(){
+  var n0=0,n1=0,n2=0,n3=0;
+  DATA.forEach(function(c){
+    if(c.state!=="new") return;
+    n0++;
+    var j = judge(evaluate(c));
+    if(j==="ok") n1++; else if(j==="warn") n2++; else n3++;
+  });
+  document.getElementById("k0").textContent = n0;
+  document.getElementById("k1").textContent = n1;
+  document.getElementById("k2").textContent = n2;
+  document.getElementById("k3").textContent = n3;
+}
+
+function count(){
+  var n = DATA.filter(function(c){ return sel[c.id]; }).length;
+  document.getElementById("selCnt").textContent = n+"件を選択中";
+  document.getElementById("allChk").checked = (n===DATA.length);
+}
+function pick(id,v){ sel[id]=v; count(); }
+function toggleAll(v){ DATA.forEach(function(c){ sel[c.id]=v; }); render(); }
+
+function bulk(kind){
+  var ids = DATA.filter(function(c){ return sel[c.id]; }).map(function(c){ return c.id; });
+  if(!ids.length){ toast("候補者が選択されていません（デモ）"); return; }
+  if(kind==="mail"){ toast(ids.length+"件の連絡文面を下書きに作成しました（デモ）"); return; }
+  DATA.forEach(function(c){ if(sel[c.id]) c.state = kind; });
+  render();
+  toast(ids.length+"件を"+SL[kind]+"にしました（デモ）");
+}
+
+function openM(id){
+  openId = id;
+  var c = DATA.filter(function(x){ return x.id===id; })[0];
+  var res = evaluate(c), j = judge(res), n = cleared(res);
+  document.getElementById("mName").textContent = c.name+"（"+c.kana+"）";
+  document.getElementById("mJudge").innerHTML =
+    '<span class="jchip j-'+j+'">'+JL[j]+'</span> <span class="kana">5条件中'+n+'件クリア</span>';
+  document.getElementById("mBasic").innerHTML =
+    '<dt>氏名</dt><dd>'+c.name+'</dd>'+
+    '<dt>フリガナ</dt><dd>'+c.kana+'</dd>'+
+    '<dt>年齢</dt><dd>'+c.age+'歳</dd>'+
+    '<dt>生年月日</dt><dd>'+c.birth+'</dd>'+
+    '<dt>電話</dt><dd>'+c.tel+'</dd>'+
+    '<dt>メール</dt><dd>'+c.mail+'</dd>'+
+    '<dt>住所</dt><dd>'+esc(c.addr)+'</dd>'+
+    '<dt>通勤時間</dt><dd>約'+c.commute+'分</dd>'+
+    '<dt>応募日</dt><dd>2026/07/'+("0"+c.date.split("/")[1]).slice(-2)+'</dd>'+
+    '<dt>媒体</dt><dd>'+c.media+'</dd>'+
+    '<dt>応募ID</dt><dd>'+c.id+'</dd>'+
+    '<dt>状態</dt><dd>'+SL[c.state]+'</dd>';
+  document.getElementById("mCond").innerHTML = res.map(function(r,i){
+    var m = r.s==="ok" ? "○" : (r.s==="warn" ? "△" : "×");
+    var col = r.s==="ok" ? "var(--ok)" : (r.s==="warn" ? "var(--warn)" : "var(--ng)");
+    return '<tr><td class="m" style="color:'+col+'">'+m+'</td>'+
+      '<td><b>'+CONDS[i].key+'</b><br><span class="kana">'+CONDS[i].rule+'</span></td>'+
+      '<td>'+esc(r.val)+'</td><td>'+esc(r.why)+'</td></tr>';
+  }).join("");
+  document.getElementById("mPr").textContent = c.pr;
+  document.getElementById("ov").classList.add("on");
+}
+function closeM(){ document.getElementById("ov").classList.remove("on"); openId=null; }
+function single(kind){
+  if(!openId) return;
+  var c = DATA.filter(function(x){ return x.id===openId; })[0];
+  c.state = kind;
+  var nm = c.name;
+  closeM(); render();
+  toast(nm+" さんを"+SL[kind]+"にしました（デモ）");
+}
+document.addEventListener("keydown", function(e){ if(e.key==="Escape") closeM(); });
+
+var tmr = null;
+function toast(msg){
+  var t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("on");
+  clearTimeout(tmr); tmr = setTimeout(function(){ t.classList.remove("on"); }, 2400);
+}
+
+function togglePanel(){
+  var b = document.getElementById("panelB");
+  b.classList.toggle("hide");
+  document.getElementById("tgl").textContent = b.classList.contains("hide") ? "開く" : "閉じる";
+}
+
+render();
+</script>
+</body>
+</html>

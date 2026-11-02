@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>採用計画シミュレーター｜採用管理システム</title>
+<style>
+:root{
+  --ink:#1f2a2e; --sub:#5c6b70; --line:#d7dee0; --bg:#f2f5f5;
+  --accent:#0f766e; --accent-soft:#e4efee;
+  --warn:#b45309; --warn-soft:#fef3e2;
+  --ng:#b91c1c; --ng-soft:#fde8e8;
+  --ok:#166534; --ok-soft:#e3f3e8;
+  --mono:"SFMono-Regular","Consolas",monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",sans-serif;
+  font-size:14px; line-height:1.7;
+  overflow-x:hidden;
+}
+.appbar{
+  background:#12332f; color:#fff; height:38px;
+  display:flex; align-items:center; gap:10px; padding:0 18px;
+}
+.appbar .logo{font-size:13px; font-weight:bold; letter-spacing:.04em}
+.appbar .screen{font-size:11px; color:#a9c4c0}
+.wrap{max-width:1280px; margin:0 auto; padding:16px 20px 40px}
+
+.head{display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:12px}
+h1{font-size:19px; margin:0; line-height:1.4}
+.head .lead{font-size:12px; color:var(--sub); margin-top:2px}
+.badge{
+  background:var(--accent-soft); border:1px solid #c3dedb; color:#0b5a54;
+  border-radius:999px; padding:5px 12px; font-size:11px; white-space:nowrap;
+}
+.badge b{color:var(--accent)}
+
+.card{background:#fff;border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:14px}
+.card h2{font-size:13px;margin:0 0 10px}
+.card h2 .note{font-weight:normal; font-size:11px; color:var(--sub); margin-left:6px}
+.btn{padding:7px 14px;border-radius:6px;border:1px solid var(--line);background:#fff;font-size:13px;cursor:pointer}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:bold}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--accent-soft);text-align:left;padding:8px;font-size:11px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:8px;border-bottom:1px solid #edf1f2}
+
+/* layout */
+.cols{display:grid; grid-template-columns:360px 1fr; gap:14px; align-items:start}
+@media (max-width:1100px){ .cols{grid-template-columns:300px 1fr} }
+
+/* form */
+.f{margin-bottom:12px}
+.f>label{display:block; font-size:11px; color:var(--sub); margin-bottom:4px}
+select,input[type=number]{
+  width:100%; padding:7px 8px; font-size:13px; color:var(--ink);
+  border:1px solid var(--line); border-radius:6px; background:#fff;
+  font-family:inherit;
+}
+input[type=number]{font-family:var(--mono)}
+.sep{border-top:1px solid #edf1f2; margin:14px 0 12px; padding-top:10px}
+.sep .ttl{font-size:11px; color:var(--sub); margin-bottom:8px}
+.srow{display:grid; grid-template-columns:1fr 92px; gap:8px; align-items:center; margin-bottom:7px}
+.srow .nm{font-size:12px}
+.srow .ctl{display:flex; align-items:center; gap:6px}
+.srow input[type=range]{width:100%; accent-color:var(--accent); margin:0}
+.srow .val{
+  width:52px; padding:4px 5px; text-align:right; font-family:var(--mono); font-size:12px;
+  border:1px solid var(--line); border-radius:4px;
+}
+.srow .pct{font-size:11px; color:var(--sub)}
+.unit{display:flex; align-items:center; gap:6px}
+.unit .u{font-size:11px; color:var(--sub); white-space:nowrap}
+.actions{display:flex; gap:8px; align-items:center; margin-top:14px}
+.actions .auto{font-size:11px; color:var(--sub)}
+
+/* kpi */
+.kpis{display:grid; grid-template-columns:repeat(4,1fr); gap:10px}
+.kpi{border:1px solid var(--line); border-radius:8px; padding:10px 11px; background:#fff}
+.kpi .k{font-size:11px; color:var(--sub); line-height:1.5; min-height:34px}
+.kpi .v{font-family:var(--mono); font-size:24px; font-weight:bold; color:var(--accent); line-height:1.25}
+.kpi .v small{font-size:12px; font-weight:normal; margin-left:2px}
+.kpi .s{font-size:11px; color:var(--sub); margin-top:3px}
+.kpi.alt .v{color:var(--warn)}
+.formula{
+  margin-top:12px; background:var(--bg); border:1px solid var(--line); border-radius:6px;
+  padding:9px 11px; font-size:11px; color:var(--sub); font-family:var(--mono); line-height:1.8;
+}
+
+/* funnel */
+.fn{display:flex; flex-direction:column; gap:5px}
+.fnrow{display:grid; grid-template-columns:108px 1fr 72px 112px; gap:10px; align-items:center}
+.fnrow .nm{font-size:12px}
+.fnbarbox{background:var(--bg); border-radius:4px; height:22px; position:relative; overflow:hidden}
+.fnbar{height:22px; background:var(--accent); border-radius:4px}
+.fnrow .ct{font-family:var(--mono); font-size:13px; text-align:right; font-weight:bold}
+.fnrow .rt{font-size:11px; color:var(--sub)}
+.fnrow .rt b{color:var(--ink); font-family:var(--mono); font-weight:bold}
+.fnhead{display:grid; grid-template-columns:108px 1fr 72px 112px; gap:10px; font-size:11px; color:var(--sub); margin-bottom:6px}
+.fnhead .ct{text-align:right}
+
+/* gantt */
+.gsum{
+  background:var(--warn-soft); border:1px solid #f0d8b0; border-radius:6px;
+  padding:8px 12px; font-size:13px; color:#7c3d06; margin-bottom:10px;
+}
+.gsum b{color:var(--warn); font-size:14px}
+table.gantt{table-layout:fixed}
+table.gantt th{padding:4px 2px; text-align:center; font-size:10px; border-left:1px solid #fff}
+table.gantt th.mon{background:#d7e8e6; font-size:10px}
+table.gantt th.rowhead{text-align:left; padding-left:8px; background:var(--accent-soft); border-left:none}
+table.gantt th.join{background:#cfe4e1; color:#0b5a54; font-weight:bold}
+table.gantt td{padding:4px 2px; border-left:1px solid #edf1f2; height:30px}
+table.gantt td.rowname{
+  border-left:none; font-size:12px; padding-left:8px; white-space:nowrap;
+  background:#fafcfc;
+}
+table.gantt td.rowname .tag{font-size:10px; color:var(--warn); margin-left:5px}
+.gbar{height:16px; border-radius:3px; background:var(--accent); color:#fff; font-size:10px;
+  display:flex; align-items:center; justify-content:center; letter-spacing:.02em}
+.gbar.warn{background:var(--warn)}
+.glegend{display:flex; gap:14px; font-size:11px; color:var(--sub); margin-top:9px; flex-wrap:wrap}
+.glegend i{display:inline-block; width:18px; height:9px; border-radius:2px; vertical-align:middle; margin-right:5px}
+
+.foot{font-size:11px; color:var(--sub); margin-top:4px}
+</style>
+</head>
+<body>
+
+<div class="appbar">
+  <span class="logo">採用管理システム</span>
+  <span class="screen">採用計画シミュレーター</span>
+</div>
+
+<div class="wrap">
+
+  <div class="head">
+    <div>
+      <h1>採用計画シミュレーター</h1>
+      <div class="lead">採りたい人数を入れるだけで、必要な応募数・面接工数・媒体費・掲載開始時期を逆算します。</div>
+    </div>
+    <div class="badge">これまで：Excelで逆算 30分 &nbsp;→&nbsp; <b>いま：即時</b></div>
+  </div>
+
+  <div class="cols">
+
+    <!-- 入力 -->
+    <div class="card">
+      <h2>採用条件を入力</h2>
+
+      <div class="f">
+        <label for="job">職種</label>
+        <select id="job">
+          <option value="sales" selected>営業職</option>
+          <option value="admin">事務職</option>
+          <option value="tech">技術職</option>
+        </select>
+      </div>
+
+      <div class="f">
+        <label for="hire">採用人数（名）</label>
+        <input type="number" id="hire" value="3" min="1" max="99" step="1">
+      </div>
+
+      <div class="f">
+        <label for="month">入社希望月</label>
+        <select id="month">
+          <option value="2026-10">2026年10月</option>
+          <option value="2026-11">2026年11月</option>
+          <option value="2026-12" selected>2026年12月</option>
+        </select>
+      </div>
+
+      <div class="sep">
+        <div class="ttl">想定歩留まり（職種を変えると初期値が切り替わります）</div>
+
+        <div class="srow">
+          <div class="nm">有効応募率</div>
+          <div class="ctl"><input type="range" id="r_valid" min="10" max="100" step="1" value="80"></div>
+        </div>
+        <div class="srow" style="margin-bottom:12px">
+          <div></div>
+          <div class="ctl"><input class="val" type="number" id="n_valid" min="10" max="100" value="80"><span class="pct">%</span></div>
+        </div>
+
+        <div class="srow">
+          <div class="nm">1次面接 設定率</div>
+          <div class="ctl"><input type="range" id="r_set" min="10" max="100" step="1" value="81"></div>
+        </div>
+        <div class="srow" style="margin-bottom:12px">
+          <div></div>
+          <div class="ctl"><input class="val" type="number" id="n_set" min="10" max="100" value="81"><span class="pct">%</span></div>
+        </div>
+
+        <div class="srow">
+          <div class="nm">1次面接 実施率</div>
+          <div class="ctl"><input type="range" id="r_held" min="10" max="100" step="1" value="76"></div>
+        </div>
+        <div class="srow" style="margin-bottom:12px">
+          <div></div>
+          <div class="ctl"><input class="val" type="number" id="n_held" min="10" max="100" value="76"><span class="pct">%</span></div>
+        </div>
+
+        <div class="srow">
+          <div class="nm">1次通過率</div>
+          <div class="ctl"><input type="range" id="r_pass" min="5" max="100" step="1" value="28"></div>
+        </div>
+        <div class="srow" style="margin-bottom:12px">
+          <div></div>
+          <div class="ctl"><input class="val" type="number" id="n_pass" min="5" max="100" value="28"><span class="pct">%</span></div>
+        </div>
+
+        <div class="srow">
+          <div class="nm">内定承諾率</div>
+          <div class="ctl"><input type="range" id="r_acc" min="10" max="100" step="1" value="75"></div>
+        </div>
+        <div class="srow">
+          <div></div>
+          <div class="ctl"><input class="val" type="number" id="n_acc" min="10" max="100" value="75"><span class="pct">%</span></div>
+        </div>
+      </div>
+
+      <div class="sep">
+        <div class="ttl">コスト条件</div>
+        <div class="f" style="margin-bottom:0">
+          <label for="unit">1件あたり単価（媒体費／応募 1件）</label>
+          <div class="unit">
+            <input type="number" id="unit" value="18000" min="0" max="200000" step="1000">
+            <span class="u">円</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn pri" id="recalc">再計算する</button>
+        <span class="auto">入力を変えると自動で再計算されます</span>
+      </div>
+    </div>
+
+    <!-- 結果 -->
+    <div>
+      <div class="card">
+        <h2>逆算結果<span class="note" id="cond"></span></h2>
+        <div class="kpis">
+          <div class="kpi">
+            <div class="k">必要な総応募数</div>
+            <div class="v" id="k_apps">-<small>件</small></div>
+            <div class="s" id="s_apps"></div>
+          </div>
+          <div class="kpi">
+            <div class="k">必要な1次面接 実施数</div>
+            <div class="v" id="k_held">-<small>件</small></div>
+            <div class="s" id="s_held"></div>
+          </div>
+          <div class="kpi">
+            <div class="k">必要な面接工数</div>
+            <div class="v" id="k_hours">-<small>時間</small></div>
+            <div class="s" id="s_hours"></div>
+          </div>
+          <div class="kpi alt">
+            <div class="k">想定媒体費</div>
+            <div class="v" id="k_cost">-<small>万円</small></div>
+            <div class="s" id="s_cost"></div>
+          </div>
+        </div>
+        <div class="formula" id="formula"></div>
+      </div>
+
+      <div class="card">
+        <h2>逆算のファネル<span class="note">採用人数から上流へ逆算（小数は切り上げ）</span></h2>
+        <div class="fnhead">
+          <div>工程</div><div></div><div class="ct">必要数</div><div>前工程からの歩留まり</div>
+        </div>
+        <div class="fn" id="funnel"></div>
+      </div>
+
+      <div class="card">
+        <h2>採用スケジュール（逆算ガント）</h2>
+        <div class="gsum" id="gsum"></div>
+        <table class="gantt" id="gantt"></table>
+        <div class="glegend">
+          <span><i style="background:var(--warn)"></i>クリティカル（ここが遅れると入社月に間に合わない）</span>
+          <span><i style="background:var(--accent)"></i>通常工程</span>
+          <span>各列＝1週</span>
+        </div>
+      </div>
+
+      <div class="foot">※ デモ用のサンプルです。歩留まりの初期値は一般的な目安であり、実績値ではありません。</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var PRESET = {
+    sales: {valid:80, set:81, held:76, pass:28, acc:75, unit:18000},
+    admin: {valid:84, set:85, held:80, pass:22, acc:80, unit:12000},
+    tech:  {valid:72, set:70, held:68, pass:32, acc:68, unit:28000}
+  };
+
+  var MIN_PER_INTERVIEW = 0.75; // 45分
+
+  var el = function(id){ return document.getElementById(id); };
+  var KEYS = ["valid","set","held","pass","acc"];
+
+  // range と number の相互同期
+  KEYS.forEach(function(k){
+    var r = el("r_"+k), n = el("n_"+k);
+    r.addEventListener("input", function(){ n.value = r.value; render(); });
+    n.addEventListener("input", function(){
+      var v = parseInt(n.value,10);
+      if(!isNaN(v)){
+        v = Math.max(parseInt(r.min,10), Math.min(100, v));
+        r.value = v;
+      }
+      render();
+    });
+  });
+  el("hire").addEventListener("input", render);
+  el("unit").addEventListener("input", render);
+  el("month").addEventListener("change", render);
+  el("recalc").addEventListener("click", render);
+  el("job").addEventListener("change", function(){
+    var p = PRESET[el("job").value];
+    KEYS.forEach(function(k){ el("r_"+k).value = p[k]; el("n_"+k).value = p[k]; });
+    el("unit").value = p.unit;
+    render();
+  });
+
+  function rate(k){
+    var v = parseInt(el("r_"+k).value,10);
+    if(isNaN(v) || v <= 0) v = 1;
+    return v/100;
+  }
+  function num(id, def, min, max){
+    var v = parseFloat(el(id).value);
+    if(isNaN(v)) v = def;
+    if(v < min) v = min;
+    if(v > max) v = max;
+    return v;
+  }
+  function ja(n){ return Math.round(n).toLocaleString("ja-JP"); }
+  function pct(a,b){ return b>0 ? (a/b*100).toFixed(1) : "0.0"; }
+
+  // ---- 逆算 ----
+  function compute(){
+    var hire  = Math.round(num("hire",3,1,99));
+    var unit  = Math.round(num("unit",18000,0,200000));
+    var rValid=rate("valid"), rSet=rate("set"), rHeld=rate("held"), rPass=rate("pass"), rAcc=rate("acc");
+
+    var accept = hire;                              // 承諾（＝採用人数）
+    var offer  = Math.ceil(accept / rAcc);          // 内定必要数
+    var pass1  = Math.ceil(offer  / rPass);         // 1次通過必要数（2次を1段挟む想定＝1次通過率を流用）
+    var held   = Math.ceil(pass1  / rPass);         // 1次実施必要数（通過数＝実施×通過率）
+    var set    = Math.ceil(held   / rHeld);         // 1次設定必要数
+    var valid  = Math.ceil(set    / rSet);          // 有効応募必要数
+    var apps   = Math.ceil(valid  / rValid);        // 総応募必要数
+
+    var hours  = held * MIN_PER_INTERVIEW;          // 面接工数
+    var cost   = apps * unit;                       // 媒体費
+
+    return {
+      hire:hire, unit:unit, apps:apps, valid:valid, set:set, held:held,
+      pass1:pass1, offer:offer, accept:accept, hours:hours, cost:cost,
+      rValid:rValid, rSet:rSet, rHeld:rHeld, rPass:rPass, rAcc:rAcc
+    };
+  }
+
+  // ---- KPI ----
+  function renderKpi(c){
+    el("k_apps").innerHTML  = ja(c.apps) + '<small>件</small>';
+    el("k_held").innerHTML  = ja(c.held) + '<small>件</small>';
+    el("k_hours").innerHTML = (Math.round(c.hours*10)/10).toLocaleString("ja-JP") + '<small>時間</small>';
+    el("k_cost").innerHTML  = (Math.round(c.cost/1000)/10).toLocaleString("ja-JP") + '<small>万円</small>';
+
+    el("s_apps").textContent  = "うち有効応募 " + ja(c.valid) + "件（有効応募率 " + Math.round(c.rValid*100) + "%）";
+    el("s_held").textContent  = "1次設定 " + ja(c.set) + "件 → 実施率 " + Math.round(c.rHeld*100) + "%";
+    el("s_hours").textContent = "1件45分 × " + ja(c.held) + "件（調整・移動時間は除く）";
+    el("s_cost").textContent  = "1応募 " + ja(c.unit) + "円 × " + ja(c.apps) + "件 ／ 1名あたり " + ja(c.cost/c.hire) + "円";
+
+    var sel = el("job");
+    el("cond").textContent = "｜" + sel.options[sel.selectedIndex].text + " " + c.hire + "名 ／ "
+      + el("month").options[el("month").selectedIndex].text + "入社";
+
+    el("formula").innerHTML =
+      "内定必要数 = " + c.hire + " ÷ " + Math.round(c.rAcc*100) + "% = " + c.offer + "名<br>" +
+      "1次通過必要数 = " + c.offer + " ÷ " + Math.round(c.rPass*100) + "% = " + c.pass1 + "件（2次通過率は1次通過率と同値と仮定）<br>" +
+      "1次実施必要数 = " + c.pass1 + " ÷ " + Math.round(c.rPass*100) + "% = " + c.held + "件 ／ " +
+      "1次設定必要数 = " + c.held + " ÷ " + Math.round(c.rHeld*100) + "% = " + c.set + "件<br>" +
+      "有効応募必要数 = " + c.set + " ÷ " + Math.round(c.rSet*100) + "% = " + c.valid + "件 ／ " +
+      "総応募必要数 = " + c.valid + " ÷ " + Math.round(c.rValid*100) + "% = " + c.apps + "件";
+  }
+
+  // ---- ファネル ----
+  function renderFunnel(c){
+    var rows = [
+      {nm:"総応募",       ct:c.apps,   prev:null,     note:"母集団"},
+      {nm:"有効応募",     ct:c.valid,  prev:c.apps,   note:"有効応募率"},
+      {nm:"1次面接 設定", ct:c.set,    prev:c.valid,  note:"設定率"},
+      {nm:"1次面接 実施", ct:c.held,   prev:c.set,    note:"実施率"},
+      {nm:"1次通過",      ct:c.pass1,  prev:c.held,   note:"1次通過率"},
+      {nm:"内定",         ct:c.offer,  prev:c.pass1,  note:"2次通過率（仮定）"},
+      {nm:"承諾・採用",   ct:c.accept, prev:c.offer,  note:"内定承諾率"}
+    ];
+    var box = el("funnel");
+    box.innerHTML = "";
+    rows.forEach(function(r,i){
+      var w = c.apps>0 ? Math.max(1.5, r.ct/c.apps*100) : 1.5;
+      var op = (1 - i*0.1).toFixed(2);
+      var d = document.createElement("div");
+      d.className = "fnrow";
+      d.innerHTML =
+        '<div class="nm">'+ r.nm +'</div>' +
+        '<div class="fnbarbox"><div class="fnbar" style="width:'+ w.toFixed(2) +'%;opacity:'+ op +'"></div></div>' +
+        '<div class="ct">'+ ja(r.ct) + (i===6 ? "名" : "件") +'</div>' +
+        '<div class="rt">'+ (r.prev===null ? "—（100%）" : '<b>'+ pct(r.ct,r.prev) +'%</b> '+ r.note) +'</div>';
+      box.appendChild(d);
+    });
+  }
+
+  // ---- ガント ----
+  var PHASES = [
+    {nm:"媒体掲載",         s:0, e:3,  crit:true},
+    {nm:"応募受付",         s:0, e:5,  crit:false},
+    {nm:"書類選考",         s:1, e:5,  crit:false},
+    {nm:"一次面接",         s:3, e:6,  crit:false},
+    {nm:"最終面接",         s:6, e:8,  crit:false},
+    {nm:"内定・入社手続き", s:8, e:12, crit:false}
+  ];
+  var COLS = 14; // 掲載開始週〜入社週
+
+  function mondayOf(d){
+    var dow = (d.getDay()+6)%7;
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate()-dow);
+  }
+  function addDays(d,n){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()+n); }
+
+  function renderGantt(){
+    var v = el("month").value.split("-");
+    var joinWeek = mondayOf(new Date(parseInt(v[0],10), parseInt(v[1],10)-1, 1));
+
+    var weeks = [];
+    for(var i=0;i<COLS;i++){
+      var mon = addDays(joinWeek, -7*(COLS-1-i));
+      var thu = addDays(mon, 3);
+      weeks.push({
+        mon: mon,
+        month: thu.getMonth()+1,
+        wk: Math.ceil(thu.getDate()/7)
+      });
+    }
+
+    // 月グループ
+    var groups = [];
+    weeks.forEach(function(w){
+      var g = groups[groups.length-1];
+      if(g && g.month === w.month){ g.span++; } else { groups.push({month:w.month, span:1}); }
+    });
+
+    var t = el("gantt");
+    var h = "";
+    h += '<colgroup><col style="width:132px">';
+    for(var j=0;j<COLS;j++){ h += '<col>'; }
+    h += '</colgroup>';
+
+    h += '<thead><tr><th class="rowhead" rowspan="2">工程</th>';
+    groups.forEach(function(g){ h += '<th class="mon" colspan="'+g.span+'">'+ g.month +'月</th>'; });
+    h += '</tr><tr>';
+    weeks.forEach(function(w,idx){
+      h += '<th class="'+ (idx===COLS-1 ? "join" : "") +'">'+ (idx===COLS-1 ? "入社" : "第"+w.wk+"週") +'</th>';
+    });
+    h += '</tr></thead><tbody>';
+
+    PHASES.forEach(function(p){
+      h += '<tr><td class="rowname">'+ p.nm + (p.crit ? '<span class="tag">クリティカル</span>' : '') +'</td>';
+      if(p.s > 0){ h += '<td colspan="'+ p.s +'"></td>'; }
+      var len = p.e - p.s + 1;
+      h += '<td colspan="'+ len +'"><div class="gbar'+ (p.crit ? " warn" : "") +'">'+ len +'週</div></td>';
+      var rest = COLS - 1 - p.e;
+      if(rest > 0){ h += '<td colspan="'+ rest +'"></td>'; }
+      h += '</tr>';
+    });
+    h += '</tbody>';
+    t.innerHTML = h;
+
+    var start = weeks[0];
+    var joinLabel = el("month").options[el("month").selectedIndex].text;
+    el("gsum").innerHTML = joinLabel + "入社から逆算すると、<b>掲載開始は"+ start.month +"月第"+ start.wk +"週</b>です"
+      + '<span style="font-size:11px;color:var(--sub);margin-left:8px">（掲載〜入社まで '+ (COLS-1) +'週間）</span>';
+  }
+
+  function render(){
+    var c = compute();
+    renderKpi(c);
+    renderFunnel(c);
+    renderGantt();
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>

@@ -1367,6 +1367,15 @@ document.querySelectorAll("[data-go]").forEach(a=>a.addEventListener("click",()=
 }));
 function goCand(){document.querySelector('[data-s="cand"]').click()}
 function goSched(){document.querySelector('[data-s="sched"]').click()}
+/* URLのハッシュで初期画面を指定できる（例: ats.html#sched） */
+(function(){
+  const k=(location.hash||"").replace("#","");
+  if(["dash","cand","sched","sum"].includes(k)){
+    const b=document.querySelector('[data-s="'+k+'"]');
+    if(b){$("nav").querySelectorAll("button").forEach(x=>x.classList.remove("on"));
+      b.classList.add("on"); show(k);}
+  }
+})();
 function skipMsg(n){toast(n+"：デモでは省略しています")}
 function toast(m){const e=$("toastEl");e.textContent=m;e.style.opacity=1;e.style.transform="translateX(-50%)";
   clearTimeout(toast._t);toast._t=setTimeout(()=>{e.style.opacity=0;e.style.transform="translateX(-50%) translateY(14px)"},2300)}

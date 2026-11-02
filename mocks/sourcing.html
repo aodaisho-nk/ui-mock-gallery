@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>母集団形成モニター｜採用管理システム</title>
+<style>
+:root{
+  --ink:#1f2a2e; --sub:#5c6b70; --line:#d7dee0; --bg:#f2f5f5;
+  --accent:#0f766e; --accent-soft:#e4efee;
+  --warn:#b45309; --warn-soft:#fef3e2;
+  --ng:#b91c1c; --ng-soft:#fde8e8;
+  --ok:#166534; --ok-soft:#e3f3e8;
+  --mono:"SFMono-Regular","Consolas",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",sans-serif;
+  font-size:14px; line-height:1.7;
+}
+.appbar{background:#12332f;color:#fff;padding:8px 20px;font-size:13px;display:flex;align-items:center;gap:12px}
+.appbar .sys{font-weight:bold;letter-spacing:.04em}
+.appbar .sep{color:#6d938e}
+.appbar .scr{color:#cfe3e0}
+.wrap{max-width:1280px;margin:0 auto;padding:16px 20px 32px}
+
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:12px;flex-wrap:wrap}
+h1{font-size:20px;line-height:1.4}
+.meta{font-size:12px;color:var(--sub);margin-top:2px}
+.badge{border:1px solid var(--accent);background:var(--accent-soft);color:#0b5a54;border-radius:999px;padding:5px 14px;font-size:12px;white-space:nowrap}
+.badge b{color:#0b4a45}
+
+.card{background:#fff;border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:14px}
+.card h2{font-size:13px;margin-bottom:10px}
+.btn{padding:7px 14px;border-radius:6px;border:1px solid var(--line);background:#fff;font-size:13px;cursor:pointer}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:bold}
+.btn:disabled{cursor:default;opacity:.85}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--accent-soft);text-align:left;padding:8px;font-size:11px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:8px;border-bottom:1px solid #edf1f2}
+
+.alert{border-radius:8px;padding:12px 14px;margin-bottom:14px;border:1px solid var(--warn);background:var(--warn-soft)}
+.alert.okstate{border-color:var(--ok);background:var(--ok-soft)}
+.alert .l1{font-size:15px;font-weight:bold;color:#8a4208}
+.alert.okstate .l1{color:#14532d}
+.alert .l2{font-size:12px;color:var(--sub);margin-top:4px}
+.alert .big{font-size:18px;font-family:var(--mono)}
+
+.kpis{display:flex;gap:12px}
+.kpi{flex:1 1 0;min-width:0;background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.kpi .lab{font-size:11px;color:var(--sub);letter-spacing:.04em}
+.kpi .val{font-size:26px;font-weight:bold;font-family:var(--mono);line-height:1.3}
+.kpi .val .u{font-size:13px;font-weight:normal;font-family:inherit;margin-left:2px}
+.kpi .sub{font-size:11px;color:var(--sub);line-height:1.6;margin-top:2px}
+.kpi.warn .val{color:var(--warn)}
+.kpi.okv .val{color:var(--ok)}
+.meter{height:5px;background:#eceff0;border-radius:3px;margin-top:7px;overflow:hidden}
+.meter span{display:block;height:5px;background:var(--accent)}
+.meter.w span{background:var(--warn)}
+.basis{font-size:11px;color:var(--sub);background:#fff;border:1px solid var(--line);border-top:none;border-radius:0 0 8px 8px;padding:9px 14px;margin-top:-1px}
+.basis b{color:var(--ink)}
+.basis code{font-family:var(--mono);background:#f4f7f7;padding:0 3px;border-radius:3px}
+
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:11px;color:var(--sub);margin-top:6px}
+.legend i{display:inline-block;width:22px;height:0;border-top-width:2px;border-top-style:solid;vertical-align:middle;margin-right:5px}
+svg{display:block;width:100%;height:auto}
+
+.chip{display:inline-block;font-size:11px;padding:2px 9px;border-radius:999px;border:1px solid;white-space:nowrap}
+.chip.ok{color:var(--ok);background:var(--ok-soft);border-color:#b6ddc3}
+.chip.wn{color:var(--warn);background:var(--warn-soft);border-color:#f0ce9a}
+.chip.ng{color:var(--ng);background:var(--ng-soft);border-color:#f2bfbf;font-weight:bold}
+.bar{height:8px;background:#eceff0;border-radius:2px;margin-top:3px}
+.bar span{display:block;height:8px;background:#2b6cb0;border-radius:2px}
+td.num,th.num{text-align:right;font-family:var(--mono)}
+tr.sum td{background:#f7faf9;font-weight:bold;border-bottom:none}
+.note{font-size:11px;color:var(--sub);margin-top:8px}
+
+.acts{display:flex;gap:12px;align-items:stretch}
+.act{flex:1 1 0;min-width:0;border:1px solid var(--line);border-radius:8px;padding:12px;background:#fff;display:flex;flex-direction:column}
+.act.done{background:var(--ok-soft);border-color:#b6ddc3}
+.act .tag{font-size:11px;font-family:var(--mono);color:var(--sub)}
+.act h3{font-size:14px;margin:2px 0 8px}
+.act dl{font-size:12px;border-top:1px solid var(--line);padding-top:7px;margin-bottom:10px}
+.act dl>div{display:flex;gap:8px;padding:2px 0}
+.act dt{width:66px;flex:none;color:var(--sub);font-size:11px;padding-top:1px}
+.act dd{flex:1;min-width:0}
+.act .eff{font-family:var(--mono);font-weight:bold;color:var(--accent);font-size:15px}
+.act .foot{margin-top:auto}
+.act .doneTxt{font-size:12px;color:var(--ok);font-weight:bold}
+.footnote{font-size:11px;color:var(--sub);margin-top:4px}
+@media (max-width:1100px){
+  .kpi .val{font-size:22px}
+  .act dt{width:58px}
+}
+</style>
+</head>
+<body>
+<div class="appbar"><span class="sys">採用管理システム</span><span class="sep">／</span><span class="scr">母集団形成モニター</span></div>
+
+<div class="wrap">
+  <div class="head">
+    <div>
+      <h1>母集団形成モニター</h1>
+      <div class="meta">2026年7月クール／営業職／掲載 2026-07-02 〜 2026-09-02（63日間）／本日 2026-07-17（掲載16日目）</div>
+    </div>
+    <div class="badge">これまで：週1で手集計 → <b>いま：毎日自動で着地予測</b></div>
+  </div>
+
+  <div class="alert" id="alert">
+    <div class="l1" id="alertL1"></div>
+    <div class="l2" id="alertL2"></div>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+  <div class="basis" id="basis"></div>
+
+  <div class="card">
+    <h2>📈 応募の累積推移（実績・着地予測・目標ライン）</h2>
+    <div id="chart"></div>
+    <div class="legend">
+      <span><i style="border-color:var(--accent)"></i>実績の累積（〜7/17）</span>
+      <span><i style="border-top-style:dashed;border-color:var(--warn)" id="lgFc"></i><span id="lgFcT">現在ペースでの着地予測</span></span>
+      <span><i style="border-top-width:1px;border-color:var(--sub)"></i>目標ライン（63日で120件の等速）</span>
+      <span><i style="border-top-width:1px;border-color:#1d5b91"></i>今日（7/17・掲載16日目）</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>媒体別の状況</h2>
+    <table>
+      <thead>
+        <tr>
+          <th style="width:24%">媒体</th>
+          <th style="width:9%">掲載</th>
+          <th style="width:20%">応募数</th>
+          <th class="num" style="width:9%">直近7日</th>
+          <th class="num" style="width:11%">1日あたり</th>
+          <th class="num" style="width:11%">着地予測</th>
+          <th style="width:16%">状態</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="note" id="tableNote"></div>
+  </div>
+
+  <div class="card">
+    <h2>打ち手候補（規則ベースで抽出：必要ペース未達の媒体から順に提示）</h2>
+    <div class="acts" id="acts"></div>
+    <div class="note" id="actNote"></div>
+  </div>
+
+  <div class="footnote">※ デモ用のサンプルです。見込み効果は過去の実績から算出した推定値であり、保証値ではありません。</div>
+</div>
+
+<script>
+(function(){
+/* ============ 前提（規則ベースの定数） ============ */
+var PERIOD=63, ELAPSED=16, REMAIN=PERIOD-ELAPSED, GOAL=120, R7DAYS=7;
+
+/* 媒体ごとの実績（応募数・直近7日・媒体別目標） */
+var CH=[
+  {name:'採用ホームページ', total:9,  r7:4, goal:30},
+  {name:'媒体A',            total:12, r7:5, goal:50},
+  {name:'媒体B',            total:8,  r7:0, goal:25},
+  {name:'媒体C',            total:2,  r7:1, goal:15}
+];
+
+/* 日次の応募数（掲載1日目〜16日目） */
+var DAILY=[1,2,2,3,3,2,3,2,3, 2,2,1,2,1,1,1];
+
+/* 打ち手候補 */
+var ACTS=[
+  {id:'A', title:'媒体Bの原稿を差し替える', eff:14,
+   need:'原稿の訴求軸を、応募が伸びている「未経験歓迎」に寄せる', cost:'費用なし（原稿差し替えのみ）', time:'1時間',
+   why:'媒体Bは直近7日の応募が0件（停止中判定）'},
+  {id:'B', title:'媒体Aの掲載プランを1段上げる', eff:18,
+   need:'掲載プランの変更申込（枠サイズの引き上げ）', cost:'追加費用 12万円', time:'即日',
+   why:'媒体Aは必要ペースの0.90倍（やや不足判定）'},
+  {id:'C', title:'採用HPの求人詳細をSNSで告知する', eff:6,
+   need:'社内の広報担当へ投稿依頼（文面はテンプレートを使用）', cost:'費用なし', time:'30分',
+   why:'採用ホームページは応募単価が最も低い流入元'}
+];
+var adopted={A:false,B:false,C:false};
+
+/* ============ 計算ユーティリティ ============ */
+function r1(v){return Math.round(v*10)/10;}
+function r2(v){return Math.round(v*100)/100;}
+function f1(v){return v.toFixed(1);}
+function f2(v){return v.toFixed(2);}
+
+/* 合計が必ず一致するよう、最大剰余法で丸める */
+function allocate(raws){
+  var fl=raws.map(function(v){return Math.floor(v);});
+  var target=Math.round(raws.reduce(function(a,b){return a+b;},0));
+  var rest=target-fl.reduce(function(a,b){return a+b;},0);
+  var idx=raws.map(function(v,i){return {i:i,fr:v-Math.floor(v)};})
+              .sort(function(a,b){return b.fr-a.fr;});
+  for(var k=0;k<rest;k++){fl[idx[k%idx.length].i]++;}
+  return {vals:fl,total:target};
+}
+
+/* 媒体別の指標 */
+var totalApps=0, total7=0;
+CH.forEach(function(c){
+  c.rate7 = c.r7/R7DAYS;                 /* 直近7日ペース */
+  c.rateAll = c.total/ELAPSED;           /* 通算ペース */
+  c.needRate = c.goal/PERIOD;            /* 媒体別の必要ペース */
+  c.ratio = c.needRate>0 ? c.rate7/c.needRate : 0;
+  c.stopped = (c.r7===0);
+  c.fcRaw = c.total + (c.stopped?0:c.rate7*REMAIN);
+  if(c.stopped){c.state='停止中'; c.cls='ng';}
+  else if(c.ratio>=1.00){c.state='順調'; c.cls='ok';}
+  else if(c.ratio>=0.70){c.state='やや不足'; c.cls='wn';}
+  else {c.state='低調'; c.cls='wn';}
+  totalApps+=c.total; total7+=c.r7;
+});
+var alloc=allocate(CH.map(function(c){return c.fcRaw;}));
+CH.forEach(function(c,i){c.fc=alloc.vals[i];});
+
+var rate7All = total7/R7DAYS;              /* 1.43 件/日 */
+var rateAllAll = totalApps/ELAPSED;        /* 1.94 件/日 */
+var needRate = (GOAL-totalApps)/REMAIN;    /* 目標達成に必要なペース */
+var baseForecast = alloc.total;            /* 98 件 */
+
+/* 打ち手の合算：応募者の重複を考慮し、最大効果以外の分から30%を控除 */
+function uplift(){
+  var picked=ACTS.filter(function(a){return adopted[a.id];});
+  if(!picked.length) return {sum:0,ded:0,net:0,ids:[]};
+  var sum=picked.reduce(function(a,b){return a+b.eff;},0);
+  var mx=Math.max.apply(null,picked.map(function(a){return a.eff;}));
+  var ded=Math.round(0.3*(sum-mx));
+  return {sum:sum,ded:ded,net:sum-ded,ids:picked.map(function(a){return a.id;})};
+}
+function forecast(){return baseForecast+uplift().net;}
+
+/* ============ 描画 ============ */
+function drawKpis(){
+  var fc=forecast(), gap=fc-GOAL, up=uplift();
+  var achieved = fc>=GOAL;
+  var html='';
+  html+='<div class="kpi"><div class="lab">現在の応募数</div>'
+      + '<div class="val">'+totalApps+'<span class="u">件</span></div>'
+      + '<div class="sub">目標 '+GOAL+'件／進捗 '+f1(totalApps/GOAL*100)+'%</div>'
+      + '<div class="meter"><span style="width:'+(totalApps/GOAL*100)+'%"></span></div></div>';
+  html+='<div class="kpi"><div class="lab">経過日数</div>'
+      + '<div class="val">'+ELAPSED+'<span class="u">日</span></div>'
+      + '<div class="sub">掲載期間 '+PERIOD+'日（'+f1(ELAPSED/PERIOD*100)+'%）／残り '+REMAIN+'日</div>'
+      + '<div class="meter"><span style="width:'+(ELAPSED/PERIOD*100)+'%"></span></div></div>';
+  html+='<div class="kpi '+(achieved?'okv':'warn')+'"><div class="lab">着地予測（'+PERIOD+'日時点）</div>'
+      + '<div class="val">'+fc+'<span class="u">件</span></div>'
+      + '<div class="sub">目標比 '+(gap>=0?'+':'')+gap+'件'
+      + (up.net>0?'／採用した打ち手 +'+up.net+'件を反映':'')+'</div>'
+      + '<div class="meter '+(achieved?'':'w')+'"><span style="width:'+Math.min(100,fc/GOAL*100)+'%"></span></div></div>';
+  html+='<div class="kpi"><div class="lab">1日あたり（直近7日）</div>'
+      + '<div class="val">'+f2(rate7All)+'<span class="u">件／日</span></div>'
+      + '<div class="sub">必要ペース '+f2(needRate)+'件／日・不足 '+f2(rate7All-needRate)+'<br>'
+      + '通算ペース '+f2(rateAllAll)+'件／日（'+totalApps+'件 ÷ '+ELAPSED+'日）</div>'
+      + '<div class="meter w"><span style="width:'+Math.min(100,rate7All/needRate*100)+'%"></span></div></div>';
+  document.getElementById('kpis').innerHTML=html;
+}
+
+function drawBasis(){
+  document.getElementById('basis').innerHTML=
+    '<b>着地予測の計算根拠（規則ベース・毎日自動で再計算）</b>　'
+    + '直近7日（7/11〜7/17）の応募 '+total7+'件 ÷ '+R7DAYS+'日 = <code>'+f2(rate7All)+'件／日</code>。'
+    + 'これを残り'+REMAIN+'日に当てはめ、<code>'+totalApps+' + '+f2(rate7All)+' × '+REMAIN+' ≒ '+baseForecast+'件</code>。'
+    + '　通算ペース（'+f2(rateAllAll)+'件／日）ではなく直近7日のペースを使う規則にしているため、'
+    + '掲載初期の立ち上がりで数字が水増しされず、途中の落ち込みを早く検知できます。'
+    + '　直近7日の応募が0件の媒体は「停止中」と判定し、残り期間の増加を0件として計上します。';
+}
+
+function drawTable(){
+  var html='';
+  var maxTotal=Math.max.apply(null,CH.map(function(c){return c.total;}));
+  CH.forEach(function(c){
+    html+='<tr>'
+      + '<td>'+c.name+'</td>'
+      + '<td>掲載中</td>'
+      + '<td><span style="font-family:var(--mono)">'+c.total+'</span> 件'
+      +   '<div class="bar"><span style="width:'+(c.total/maxTotal*100)+'%"></span></div></td>'
+      + '<td class="num">'+c.r7+'</td>'
+      + '<td class="num">'+f2(c.rate7)+'</td>'
+      + '<td class="num"'+(c.stopped?' style="color:var(--ng);font-weight:bold"':'')+'>'+c.fc+'</td>'
+      + '<td><span class="chip '+c.cls+'">'+c.state+'</span></td>'
+      + '</tr>';
+  });
+  html+='<tr class="sum">'
+      + '<td>合計</td><td>4媒体</td>'
+      + '<td><span style="font-family:var(--mono)">'+totalApps+'</span> 件</td>'
+      + '<td class="num">'+total7+'</td>'
+      + '<td class="num">'+f2(rate7All)+'</td>'
+      + '<td class="num" style="color:var(--warn)">'+baseForecast+'</td>'
+      + '<td><span class="chip wn">目標比 '+(baseForecast-GOAL)+'件</span></td>'
+      + '</tr>';
+  document.getElementById('tbody').innerHTML=html;
+
+  document.getElementById('tableNote').innerHTML=
+    '判定ルール：<span style="font-family:var(--mono)">直近7日ペース ÷ 媒体別の必要ペース（媒体別目標 ÷ '+PERIOD+'日）</span>　'
+    + '1.00以上＝順調／0.70以上＝やや不足／0.70未満＝低調／直近7日が0件＝停止中。'
+    + '　媒体別目標：'+CH.map(function(c){return c.name+' '+c.goal+'件';}).join('／')+'（合計 '+GOAL+'件）。'
+    + '　現在の判定値：'+CH.map(function(c){return c.name+' '+f2(c.ratio)+'倍';}).join('／')+'。'
+    + '　着地予測の合計は媒体別の予測を四捨五入（最大剰余法）で割り振っているため、常に合計と一致します。'
+    + '　この表は打ち手を採用する前の実績ベースの値です。';
+}
+
+/* --- 折れ線グラフ（インラインSVG） --- */
+var VW=1000, VH=232, L=52, R=18, T=14, B=40;
+var YMAX=140;
+function x(d){return L+(VW-L-R)*(d/PERIOD);}
+function y(v){return T+(VH-T-B)*(1-v/YMAX);}
+function cum(){
+  var a=[0],s=0;
+  for(var i=0;i<DAILY.length;i++){s+=DAILY[i];a.push(s);}
+  return a;
+}
+var CUM=cum();
+function drawChart(){
+  var fc=forecast();
+  var s='<svg viewBox="0 0 '+VW+' '+VH+'" role="img" aria-label="応募の累積推移">';
+  /* グリッド */
+  [0,40,80,120].forEach(function(v){
+    s+='<line x1="'+L+'" y1="'+y(v)+'" x2="'+(VW-R)+'" y2="'+y(v)+'" stroke="#e7ecec" stroke-width="1"/>';
+    s+='<text x="'+(L-10)+'" y="'+(y(v)+4)+'" text-anchor="end" font-size="11" fill="#5c6b70" font-family="monospace">'+v+'</text>';
+  });
+  s+='<text x="'+(L-10)+'" y="'+(T-2)+'" text-anchor="end" font-size="10" fill="#5c6b70">件</text>';
+  /* 軸 */
+  s+='<line x1="'+L+'" y1="'+y(0)+'" x2="'+(VW-R)+'" y2="'+y(0)+'" stroke="#d7dee0" stroke-width="1"/>';
+  s+='<line x1="'+L+'" y1="'+T+'" x2="'+L+'" y2="'+y(0)+'" stroke="#d7dee0" stroke-width="1"/>';
+  /* X軸目盛 */
+  [[0,'7/02'],[15,'7/17'],[30,'8/01'],[45,'8/16'],[62,'9/02']].forEach(function(t){
+    var dd=(t[0]===0)?0:t[0]+1;
+    s+='<line x1="'+x(dd)+'" y1="'+y(0)+'" x2="'+x(dd)+'" y2="'+(y(0)+4)+'" stroke="#d7dee0"/>';
+    s+='<text x="'+x(dd)+'" y="'+(y(0)+18)+'" text-anchor="middle" font-size="11" fill="#5c6b70" font-family="monospace">'+t[1]+'</text>';
+  });
+  s+='<text x="'+((L+VW-R)/2)+'" y="'+(VH-6)+'" text-anchor="middle" font-size="10" fill="#5c6b70">掲載期間（'+PERIOD+'日）</text>';
+  /* 目標ライン */
+  s+='<line x1="'+x(0)+'" y1="'+y(0)+'" x2="'+x(PERIOD)+'" y2="'+y(GOAL)+'" stroke="#5c6b70" stroke-width="1"/>';
+  s+='<text x="'+(x(PERIOD)-4)+'" y="'+(y(GOAL)-7)+'" text-anchor="end" font-size="11" fill="#5c6b70">目標 '+GOAL+'件</text>';
+  /* 今日の縦線 */
+  s+='<line x1="'+x(ELAPSED)+'" y1="'+T+'" x2="'+x(ELAPSED)+'" y2="'+y(0)+'" stroke="#1d5b91" stroke-width="1" stroke-dasharray="3 3"/>';
+  s+='<text x="'+(x(ELAPSED)+6)+'" y="'+(T+11)+'" font-size="11" fill="#1d5b91">今日 7/17</text>';
+  /* 実績 */
+  var pts=CUM.map(function(v,i){return x(i)+','+y(v);}).join(' ');
+  s+='<polyline points="'+pts+'" fill="none" stroke="#0f766e" stroke-width="2.5"/>';
+  s+='<circle cx="'+x(ELAPSED)+'" cy="'+y(totalApps)+'" r="4" fill="#0f766e"/>';
+  s+='<text x="'+(x(ELAPSED)-8)+'" y="'+(y(totalApps)+4)+'" text-anchor="end" font-size="11" fill="#0f766e" font-family="monospace">'+totalApps+'件</text>';
+  /* 予測（破線） */
+  var col = fc>=GOAL ? '#166534' : '#b45309';
+  s+='<polyline points="'+x(ELAPSED)+','+y(totalApps)+' '+x(PERIOD)+','+y(fc)+'" fill="none" stroke="'+col+'" stroke-width="2.5" stroke-dasharray="7 5"/>';
+  s+='<circle cx="'+x(PERIOD)+'" cy="'+y(fc)+'" r="4" fill="'+col+'"/>';
+  s+='<text x="'+(x(PERIOD)-4)+'" y="'+(y(fc)+(fc>=GOAL?-9:18))+'" text-anchor="end" font-size="12" fill="'+col+'" font-family="monospace" font-weight="bold">着地予測 '+fc+'件</text>';
+  s+='</svg>';
+  document.getElementById('chart').innerHTML=s;
+  document.getElementById('lgFc').style.borderColor=col;
+  document.getElementById('lgFcT').textContent = uplift().net>0 ? '採用した打ち手を反映した着地予測' : '現在ペースでの着地予測';
+}
+
+function drawAlert(){
+  var fc=forecast(), gap=fc-GOAL, up=uplift(), el=document.getElementById('alert');
+  var l1=document.getElementById('alertL1'), l2=document.getElementById('alertL2');
+  if(fc>=GOAL){
+    el.className='alert okstate';
+    l1.innerHTML='✅ 採用した打ち手を反映すると着地は <span class="big">'+fc+'件</span>。目標'+GOAL+'件に対して <span class="big">+'+gap+'件</span>・目標達成の見込みです。';
+  }else{
+    el.className='alert';
+    l1.innerHTML='⚠️ このペースだと着地は <span class="big">'+fc+'件</span>。目標'+GOAL+'件に対して <span class="big">'+gap+'件</span> の見込みです。';
+  }
+  if(up.ids.length){
+    l2.innerHTML='採用済みの打ち手：'+up.ids.join('／')+'（見込み効果の合算 +'+up.sum+'件'
+      + (up.ded>0?'、応募者の重複控除 -'+up.ded+'件':'')+' → 反映 +'+up.net+'件）。'
+      + '算定ルール：合算額から「最大効果以外の分の30%」を重複として控除します。';
+  }else{
+    l2.textContent='媒体Bの応募が7/10以降ほぼ止まっています。下の打ち手候補をご確認ください。';
+  }
+}
+
+function drawActs(){
+  var box=document.getElementById('acts');
+  box.innerHTML='';
+  ACTS.forEach(function(a){
+    var d=adopted[a.id];
+    var el=document.createElement('div');
+    el.className='act'+(d?' done':'');
+    el.innerHTML='<div class="tag">打ち手 '+a.id+'</div><h3>'+a.title+'</h3>'
+      + '<dl>'
+      + '<div><dt>見込み効果</dt><dd><span class="eff">+'+a.eff+'件</span><span style="font-size:11px;color:var(--sub)">（着地予測に加算）</span></dd></div>'
+      + '<div><dt>必要なこと</dt><dd>'+a.need+'</dd></div>'
+      + '<div><dt>費用</dt><dd>'+a.cost+'</dd></div>'
+      + '<div><dt>所要</dt><dd>'+a.time+'</dd></div>'
+      + '<div><dt>提示根拠</dt><dd style="color:var(--sub)">'+a.why+'</dd></div>'
+      + '</dl><div class="foot"></div>';
+    var foot=el.querySelector('.foot');
+    if(d){
+      foot.innerHTML='<span class="doneTxt">採用済み（着地予測に反映）</span> ';
+      var undo=document.createElement('button');
+      undo.className='btn'; undo.textContent='取り消す'; undo.style.marginTop='6px';
+      undo.onclick=function(){adopted[a.id]=false;render();};
+      foot.appendChild(undo);
+    }else{
+      var b=document.createElement('button');
+      b.className='btn pri'; b.textContent='この打ち手を採用';
+      b.onclick=function(){adopted[a.id]=true;render();};
+      foot.appendChild(b);
+    }
+    box.appendChild(el);
+  });
+  var up=uplift();
+  document.getElementById('actNote').innerHTML=
+    '合算ルール（規則ベース）：複数を同時に実施する場合、応募者の重複を考慮して「最大効果以外の分の30%」を控除して合算します。'
+    + '　現在：合算 +'+up.sum+'件 − 重複控除 '+up.ded+'件 = <span style="font-family:var(--mono)">+'+up.net+'件</span>　→　着地予測 '
+    + baseForecast+'件 → <span style="font-family:var(--mono);font-weight:bold">'+forecast()+'件</span>';
+}
+
+function render(){drawKpis();drawBasis();drawChart();drawAlert();drawActs();}
+drawTable();
+render();
+})();
+</script>
+</body>
+</html>

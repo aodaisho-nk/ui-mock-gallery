@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 470" width="900" height="470" font-family="'Hiragino Kaku Gothic ProN','Yu Gothic','Meiryo',sans-serif">
+<style>
+ .bx{fill:#fff;stroke:#d7dee0;stroke-width:1.3}
+ .sb{font-size:10px;fill:#5c6b70}
+ .lb{font-size:11px;fill:#1f2a2e}
+ .hd{font-size:12px;font-weight:bold;fill:#0f766e}
+ .dim{font-size:9.5px;fill:#8a98a0;font-family:monospace}
+ .ar{stroke:#0f766e;stroke-width:1.6;fill:none}
+</style>
+<defs><marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+ <path d="M0,0 L8,4 L0,8 z" fill="#0f766e"/></marker></defs>
+<rect width="900" height="470" fill="#f2f5f5"/>
+<text x="14" y="24" font-size="14" font-weight="bold">図3　レポート抽出フロー（POP 1枚を3ステップで差し替える）</text>
+<text class="dim" x="14" y="40">オーバーレイ .ov#ovRep ＋ .pop.wide（幅520px）。#repStep1 / #repStep2 / #repStep3 を hidden で出し分ける。</text>
+
+<!-- STEP1 -->
+<text class="hd" x="14" y="66">STEP 1　設定（#repStep1）</text>
+<rect class="bx" x="14" y="74" width="266" height="206" rx="8"/>
+<rect x="14" y="74" width="266" height="34" fill="#0f766e" rx="8"/><rect x="14" y="96" width="266" height="12" fill="#0f766e"/>
+<text x="26" y="90" font-size="11.5" fill="#fff" font-weight="bold">📄 分析レポートを作成</text>
+<text x="26" y="104" font-size="9" fill="#cfe3e0">この分析結果をレポートにして、指定の場所へ格納します</text>
+<rect x="26" y="118" width="242" height="42" rx="5" fill="#e4efee"/>
+<text class="sb" x="34" y="133" fill="#0f766e" font-weight="bold">レポートに含める内容</text>
+<text class="sb" x="34" y="147" fill="#0f766e">期間：直近3日間／比較：全クール平均／軸：媒体別</text>
+<g class="sb">
+ <text x="26" y="180">形式</text><text x="26" y="206">格納先</text><text x="26" y="232">通知先</text>
+</g>
+<rect class="bx" x="76" y="168" width="192" height="18" rx="4"/><text class="sb" x="82" y="181">PDF ＋ スプレッドシート　▼</text>
+<rect class="bx" x="76" y="194" width="192" height="18" rx="4"/><text class="sb" x="82" y="207">共有ドライブ ＞ 採用 ＞ … ▼</text>
+<rect class="bx" x="76" y="220" width="192" height="18" rx="4"/><text class="sb" x="82" y="233">採用チーム（3名）　▼</text>
+<rect class="bx" x="26" y="248" width="116" height="22" rx="5"/><text class="sb" x="62" y="263">キャンセル</text>
+<rect x="152" y="248" width="116" height="22" rx="5" fill="#0f766e"/>
+<text x="168" y="263" font-size="10.5" fill="#fff" font-weight="bold">作成して格納する</text>
+
+<path class="ar" d="M288 176 L314 176" marker-end="url(#a)"/>
+
+<!-- STEP2 -->
+<text class="hd" x="322" y="66">STEP 2　進行（#repStep2）</text>
+<rect class="bx" x="322" y="74" width="266" height="206" rx="8"/>
+<rect x="322" y="74" width="266" height="34" fill="#0f766e" rx="8"/><rect x="322" y="96" width="266" height="12" fill="#0f766e"/>
+<text x="334" y="95" font-size="11.5" fill="#fff" font-weight="bold">📄 分析レポートを作成</text>
+<rect class="bx" x="334" y="120" width="242" height="146" rx="6"/>
+<rect x="334" y="120" width="242" height="22" fill="#f4f7f7"/>
+<text class="sb" x="342" y="135">レポート生成</text><text class="sb" x="548" y="135" text-anchor="end" fill="#166534" font-weight="bold">✅ 完了</text>
+<g class="sb">
+ <circle cx="348" cy="156" r="7" fill="#e3f3e8"/><text x="345" y="159" font-size="8" fill="#166534">✓</text>
+ <text x="362" y="153" font-size="10" font-weight="bold" fill="#1f2a2e">分析条件を確定</text>
+ <text x="362" y="164">直近3日間 × 全クール平均／媒体別</text>
+ <circle cx="348" cy="184" r="7" fill="#e3f3e8"/><text x="345" y="187" font-size="8" fill="#166534">✓</text>
+ <text x="362" y="181" font-size="10" font-weight="bold" fill="#1f2a2e">集計データを書き出し</text>
+ <text x="362" y="192">7シート／18項目・グラフ4点</text>
+ <circle cx="348" cy="212" r="7" fill="#e3f3e8"/><text x="345" y="215" font-size="8" fill="#166534">✓</text>
+ <text x="362" y="209" font-size="10" font-weight="bold" fill="#1f2a2e">レポートを生成</text>
+ <circle cx="348" cy="234" r="7" fill="#e3f3e8"/><text x="345" y="237" font-size="8" fill="#166534">✓</text>
+ <text x="362" y="231" font-size="10" font-weight="bold" fill="#1f2a2e">指定の格納先へ保存</text>
+ <circle cx="348" cy="256" r="7" fill="#e3f3e8"/><text x="345" y="259" font-size="8" fill="#166534">✓</text>
+ <text x="362" y="253" font-size="10" font-weight="bold" fill="#1f2a2e">社内通知メールを送信</text>
+</g>
+<text class="dim" x="322" y="292">300ms + n×420ms で1行ずつ .in を付与（opacity 0→1／左から6px スライド）</text>
+
+<path class="ar" d="M596 176 L622 176" marker-end="url(#a)"/>
+
+<!-- STEP3 -->
+<text class="hd" x="630" y="66">STEP 3　完了（#repStep3）</text>
+<rect class="bx" x="630" y="74" width="256" height="206" rx="8"/>
+<rect x="630" y="74" width="256" height="34" fill="#0f766e" rx="8"/><rect x="630" y="96" width="256" height="12" fill="#0f766e"/>
+<text x="642" y="90" font-size="11.5" fill="#fff" font-weight="bold">✅ レポートを作成しました</text>
+<text x="642" y="104" font-size="9" fill="#cfe3e0">格納と通知まで完了しています</text>
+<rect class="bx" x="642" y="118" width="116" height="30" rx="5"/>
+<rect x="648" y="123" width="18" height="20" fill="#b91c1c" rx="2"/><text x="651" y="137" font-size="7" fill="#fff" font-weight="bold">PDF</text>
+<text class="sb" x="670" y="132">採用分析レポート…</text><text class="sb" x="670" y="142">1.8MB・12ページ</text>
+<rect class="bx" x="764" y="118" width="110" height="30" rx="5"/>
+<rect x="770" y="123" width="18" height="20" fill="#166534" rx="2"/><text x="771" y="137" font-size="6.5" fill="#fff" font-weight="bold">XLSX</text>
+<text class="sb" x="792" y="132">…xlsx</text><text class="sb" x="792" y="142">7シート</text>
+<rect x="642" y="154" width="232" height="20" rx="5" fill="#f4f7f7" stroke="#d7dee0"/>
+<text class="sb" x="650" y="168">📁 格納先：共有ドライブ ＞ 採用 ＞ …</text>
+<rect class="bx" x="642" y="180" width="232" height="60" rx="5"/>
+<rect x="642" y="180" width="232" height="18" fill="#f4f7f7"/>
+<text class="sb" x="650" y="193">✉️ 社内通知メール</text>
+<text class="sb" x="866" y="193" text-anchor="end" fill="#166534" font-weight="bold">✅ 送信しました</text>
+<text class="sb" x="650" y="211">宛先：採用チーム（3名）</text>
+<text class="sb" x="650" y="224">件名：【採用分析】直近3日間と全クール平均の比較レポート</text>
+<text class="sb" x="650" y="236">本文：格納先＋要点3行（自動生成）</text>
+<rect class="bx" x="642" y="248" width="110" height="22" rx="5"/><text class="sb" x="684" y="263">閉じる</text>
+<rect x="758" y="248" width="116" height="22" rx="5" fill="#0f766e"/>
+<text x="776" y="263" font-size="10.5" fill="#fff" font-weight="bold">👁 レポートを開く</text>
+
+<!-- viewer -->
+<line x1="14" y1="308" x2="886" y2="308" stroke="#d7dee0"/>
+<text class="hd" x="14" y="330">STEP 4　レポートビューア（#ovView ／ .pop.doc 幅840px）</text>
+<rect x="14" y="340" width="872" height="118" rx="8" fill="#dfe4e5" stroke="#d7dee0"/>
+<rect x="14" y="340" width="872" height="24" fill="#2b3538" rx="8"/><rect x="14" y="356" width="872" height="8" fill="#2b3538"/>
+<text x="26" y="357" font-size="10" fill="#fff">📄 採用分析レポート_20260717_0941_….pdf　—　共有ドライブ ＞ 採用 ＞ …</text>
+<g fill="none" stroke="#7d8b8f"><rect x="700" y="345" width="54" height="14" rx="3"/><rect x="760" y="345" width="40" height="14" rx="3"/><rect x="806" y="345" width="40" height="14" rx="3"/></g>
+<text class="sb" x="710" y="356" fill="#cfd8da">ダウンロード</text><text class="sb" x="770" y="356" fill="#cfd8da">印刷</text><text class="sb" x="814" y="356" fill="#cfd8da">閉じる</text>
+<rect x="200" y="372" width="500" height="80" fill="#fff" stroke="#c9d2d4"/>
+<rect x="216" y="384" width="180" height="3" fill="#0f766e"/>
+<text x="216" y="400" font-size="11" font-weight="bold">直近3日間と全クール平均の比較</text>
+<g fill="#eef2f3"><rect x="216" y="408" width="110" height="26"/><rect x="332" y="408" width="110" height="26"/>
+ <rect x="448" y="408" width="110" height="26"/><rect x="564" y="408" width="120" height="26"/></g>
+<text class="sb" x="216" y="446">1.サマリー ／ 2.応募数の推移（棒＋平均線）／ 3.媒体別比較 ／ 4.所見 ／ 5.次のアクション</text>
+</svg>

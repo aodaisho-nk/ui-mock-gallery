@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 700" width="900" height="700" font-family="'Hiragino Kaku Gothic ProN','Yu Gothic','Meiryo',sans-serif">
+<style>
+ .bx{fill:#fff;stroke:#d7dee0;stroke-width:1.4}
+ .lb{font-size:12px;fill:#1f2a2e}
+ .sb{font-size:10px;fill:#5c6b70}
+ .num{font-size:10px;fill:#fff;font-family:monospace}
+ .tag{fill:#0f766e}
+ .hd{font-size:13px;font-weight:bold;fill:#1f2a2e}
+ .dim{font-size:9.5px;fill:#8a98a0;font-family:monospace}
+</style>
+<rect width="900" height="700" fill="#f2f5f5"/>
+
+<!-- サイドバー -->
+<rect x="12" y="12" width="120" height="676" fill="#12332f" rx="3"/>
+<text x="24" y="34" font-size="11" fill="#ffffff" font-weight="bold">採用管理システム</text>
+<rect x="22" y="44" width="100" height="26" fill="#ffffff" opacity=".08" rx="4"/>
+<text x="30" y="61" font-size="9" fill="#cfe3e0">管理会社A社 / 採用担当</text>
+<rect x="12" y="82" width="120" height="20" fill="#1c453f"/><rect x="12" y="82" width="3" height="20" fill="#5eead4"/>
+<text x="24" y="96" font-size="9.5" fill="#ffffff">🏠 ダッシュボード</text>
+<g font-size="9.5" fill="#cfe3e0">
+ <text x="24" y="118">👤 応募者</text><text x="24" y="138">📈 クール別サマリ</text>
+ <text x="24" y="158">📊 求人</text><text x="24" y="178">📅 面接調整</text>
+ <text x="24" y="198">✉️ 連絡</text><text x="24" y="218">🗓 可否日設定</text>
+ <text x="24" y="238">📥 CSVインポート</text><text x="24" y="258">⚙️ 設定</text>
+</g>
+<text x="24" y="676" font-size="9" fill="#8fb5b0">幅 200px 固定 / sticky / 100vh</text>
+
+<!-- ① ヘッダ -->
+<rect class="bx" x="148" y="12" width="740" height="52" fill="none" stroke-dasharray="4 3"/>
+<circle cx="160" cy="24" r="8" fill="#0f766e"/><text class="num" x="157" y="27">1</text>
+<text class="sb" x="176" y="27">ホーム</text>
+<text class="hd" x="176" y="44">ダッシュボード</text>
+<text class="sb" x="176" y="58">2026年7月17日（木）</text>
+<rect x="700" y="26" width="178" height="20" rx="10" fill="#fff" stroke="#d7dee0"/>
+<text class="sb" x="710" y="40">これまで：集計してから考える →</text>
+<text class="dim" x="790" y="10">Before/Afterバッジ（右寄せ・const BA）</text>
+
+<!-- ② KPI -->
+<circle cx="160" cy="84" r="8" fill="#0f766e"/><text class="num" x="157" y="87">2</text>
+<g>
+ <rect class="bx" x="176" y="72" width="170" height="74" rx="8"/>
+ <rect class="bx" x="354" y="72" width="170" height="74" rx="8"/>
+ <rect class="bx" x="532" y="72" width="170" height="74" rx="8"/>
+ <rect class="bx" x="710" y="72" width="170" height="74" rx="8"/>
+</g>
+<text class="sb" x="188" y="90">未対応の新規応募</text><text x="188" y="118" font-size="22" font-weight="bold" fill="#b45309">3</text>
+<text class="sb" x="366" y="90">応募者総数</text><text x="366" y="118" font-size="22" font-weight="bold">120</text>
+<text class="sb" x="544" y="90">本日の面接</text><text x="544" y="118" font-size="22" font-weight="bold">2</text>
+<text class="sb" x="722" y="90">事前連絡が未送信</text><text x="722" y="118" font-size="22" font-weight="bold" fill="#b45309">1</text>
+<text class="dim" x="188" y="138">.row &gt; .card ×4 / flex:1 / min-width:200px</text>
+
+<!-- ③ フリーワード -->
+<circle cx="160" cy="168" r="8" fill="#0f766e"/><text class="num" x="157" y="171">3</text>
+<rect x="176" y="156" width="704" height="140" rx="8" fill="#f8fcfb" stroke="#b7cfcb" stroke-width="1.4"/>
+<text class="hd" x="190" y="176">🔎 フリーワード分析</text>
+<text class="dim" x="640" y="176">※ このカードだけ枠色 #b7cfcb ＋薄い緑の地</text>
+<rect x="190" y="186" width="576" height="32" rx="6" fill="#fff" stroke="#d7dee0"/>
+<text class="sb" x="202" y="207">直近3日間と全クールの比較を作成して</text>
+<rect x="774" y="186" width="92" height="32" rx="6" fill="#0f766e"/>
+<text x="794" y="207" font-size="12" fill="#fff" font-weight="bold">分析する</text>
+<g class="sb"><text x="190" y="236">よく使われる質問：</text></g>
+<rect x="278" y="226" width="150" height="16" rx="8" fill="#fff" stroke="#d7dee0"/>
+<rect x="436" y="226" width="130" height="16" rx="8" fill="#fff" stroke="#d7dee0"/>
+<rect x="574" y="226" width="150" height="16" rx="8" fill="#fff" stroke="#d7dee0"/>
+<rect x="190" y="252" width="676" height="34" rx="5" fill="#fff" stroke="#d7dee0" stroke-dasharray="4 3"/>
+<text class="sb" x="200" y="273">▼ 分析実行後にここへ：ステータス → 認識ワードのチップ → 分析カード4枚 → 比較テーブル → 所見 → ［レポートを抽出］</text>
+
+<!-- ④ 分析パネル -->
+<circle cx="160" cy="320" r="8" fill="#0f766e"/><text class="num" x="157" y="323">4</text>
+<rect class="bx" x="176" y="308" width="346" height="256" rx="8"/>
+<text class="hd" x="188" y="328">媒体別応募数</text>
+<circle cx="238" cy="392" r="42" fill="none" stroke="#2b6cb0" stroke-width="16" stroke-dasharray="77 187"/>
+<circle cx="238" cy="392" r="42" fill="none" stroke="#ef8a3a" stroke-width="16" stroke-dasharray="187 77" stroke-dashoffset="-77"/>
+<text x="238" y="396" font-size="14" font-weight="bold" text-anchor="middle">29.2%</text>
+<text class="sb" x="312" y="350">HPからの応募数</text><text x="312" y="376" font-size="20" font-weight="bold">35 名</text>
+<text class="sb" x="312" y="398">公開中の原稿数</text><text x="312" y="424" font-size="20" font-weight="bold">6 件</text>
+<text class="sb" x="188" y="452">媒体別 応募数（テーブル＋横バー）</text>
+<g fill="#eef2f3"><rect x="188" y="460" width="322" height="14"/></g>
+<g fill="#2b6cb0"><rect x="266" y="480" width="80" height="8"/></g>
+<g fill="#ef8a3a"><rect x="266" y="496" width="92" height="8"/><rect x="266" y="512" width="46" height="8"/>
+ <rect x="266" y="528" width="28" height="8"/><rect x="266" y="544" width="14" height="8"/></g>
+<text class="dim" x="188" y="560">合計行で 120 / 96 / 80.0% を必ず表示</text>
+
+<rect class="bx" x="534" y="308" width="346" height="58" rx="8"/>
+<text class="hd" x="546" y="326">採用HP 訪問数・応募率</text>
+<text x="546" y="356" font-size="18" font-weight="bold">4,280</text>
+<text x="820" y="356" font-size="18" font-weight="bold" text-anchor="end">0.8 %</text>
+
+<rect class="bx" x="534" y="374" width="346" height="112" rx="8"/>
+<text class="hd" x="546" y="392">HP流入経路</text>
+<g fill="#eef2f3"><rect x="546" y="400" width="322" height="12"/></g>
+<g fill="#7fb3de"><rect x="622" y="420" width="70" height="8"/><rect x="622" y="436" width="34" height="8"/>
+ <rect x="622" y="452" width="20" height="8"/><rect x="622" y="468" width="12" height="8"/></g>
+<text class="dim" x="546" y="482">訪問数 / 平均滞在(秒) / 応募率 の3列とも横バー付き</text>
+
+<rect class="bx" x="534" y="494" width="168" height="70" rx="8"/>
+<text class="hd" x="544" y="512">デバイス別</text>
+<circle cx="580" cy="540" r="16" fill="none" stroke="#2b6cb0" stroke-width="8" stroke-dasharray="62 39"/>
+<circle cx="580" cy="540" r="16" fill="none" stroke="#7fb3de" stroke-width="8" stroke-dasharray="33 68" stroke-dashoffset="-62"/>
+<text class="sb" x="608" y="544">61.2% スマホ</text>
+<rect class="bx" x="712" y="494" width="168" height="70" rx="8"/>
+<text class="hd" x="722" y="512">ランディング別</text>
+<circle cx="758" cy="540" r="16" fill="none" stroke="#1d5b91" stroke-width="8" stroke-dasharray="47 54"/>
+<circle cx="758" cy="540" r="16" fill="none" stroke="#7fb3de" stroke-width="8" stroke-dasharray="32 69" stroke-dashoffset="-47"/>
+<text class="sb" x="786" y="544">46.3% 求人詳細</text>
+<text class="dim" x="534" y="580">.two2 = grid 1fr 1fr / gap 14px</text>
+
+<!-- ⑤⑥⑦ -->
+<circle cx="160" cy="606" r="8" fill="#0f766e"/><text class="num" x="157" y="609">5</text>
+<rect class="bx" x="176" y="594" width="704" height="30" rx="8"/>
+<text class="lb" x="188" y="613">クール別サマリ（7月クール／営業職・5月クール／事務職の2行）　　→ すべての数字を見る</text>
+<circle cx="160" cy="642" r="8" fill="#0f766e"/><text class="num" x="157" y="645">6</text>
+<rect class="bx" x="176" y="630" width="704" height="30" rx="8"/>
+<text class="lb" x="188" y="649">要対応（🟡 希望日の受領 ／ ✉️ 事前連絡の未送信）</text>
+<circle cx="160" cy="678" r="8" fill="#0f766e"/><text class="num" x="157" y="681">7</text>
+<rect class="bx" x="176" y="666" width="704" height="26" rx="8"/>
+<text class="lb" x="188" y="683">直近の面接（本日／明日／調整中の5行）</text>
+
+<text class="dim" x="176" y="698">main: padding 18px 22px / max-width 1120px</text>
+</svg>

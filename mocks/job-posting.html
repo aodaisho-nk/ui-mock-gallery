@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>求人票 下書き生成｜採用管理システム</title>
+<style>
+:root{
+  --ink:#1f2a2e; --sub:#5c6b70; --line:#d7dee0; --bg:#f2f5f5;
+  --accent:#0f766e; --accent-soft:#e4efee;
+  --warn:#b45309; --warn-soft:#fef3e2;
+  --ng:#b91c1c; --ng-soft:#fde8e8;
+  --ok:#166534; --ok-soft:#e3f3e8;
+  --mono:"SFMono-Regular","Consolas",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",sans-serif;
+  font-size:14px; line-height:1.7;
+}
+.appbar{background:#12332f;color:#fff;padding:8px 20px;font-size:13px;display:flex;align-items:center;gap:12px}
+.appbar .sys{font-weight:bold;letter-spacing:.04em}
+.appbar .sep{color:#6d938e}
+.appbar .scr{color:#cfe3e0}
+.wrap{max-width:1280px;margin:0 auto;padding:16px 20px 32px}
+
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:12px;flex-wrap:wrap}
+h1{font-size:20px;line-height:1.4}
+.meta{font-size:12px;color:var(--sub);margin-top:2px}
+.badge{border:1px solid var(--accent);background:var(--accent-soft);color:#0b5a54;border-radius:999px;padding:5px 14px;font-size:12px;white-space:nowrap}
+.badge b{color:#0b4a45;font-family:var(--mono)}
+
+.card{background:#fff;border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:14px}
+.card h2{font-size:13px;margin-bottom:10px}
+.btn{padding:7px 14px;border-radius:6px;border:1px solid var(--line);background:#fff;font-size:13px;cursor:pointer}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:bold}
+.btn.sm{padding:3px 9px;font-size:11px;border-radius:5px}
+.btn:disabled{cursor:default;opacity:.6}
+
+.cols{display:grid;grid-template-columns:320px 1fr 300px;gap:14px;align-items:start}
+@media (max-width:1100px){ .cols{grid-template-columns:286px 1fr 266px} }
+.col{min-width:0}
+
+/* ---- left ---- */
+.fl{margin-bottom:12px}
+.fl > .lab{font-size:11px;color:var(--sub);letter-spacing:.04em;display:block;margin-bottom:4px}
+select{width:100%;padding:6px 8px;font-size:13px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink);font-family:inherit}
+.opts{display:flex;flex-direction:column;gap:3px}
+.opt{display:flex;align-items:flex-start;gap:6px;font-size:13px;padding:2px 0;cursor:pointer}
+.opt input{margin-top:5px;flex:none}
+.opt .note{color:var(--sub);font-size:11px}
+.hr{height:1px;background:var(--line);margin:12px 0}
+.src{font-size:11px;color:var(--sub);line-height:1.6;margin-top:10px;border-top:1px dashed var(--line);padding-top:8px}
+.src b{color:var(--ink)}
+
+/* ---- center ---- */
+.empty{border:1px dashed var(--line);border-radius:8px;padding:34px 14px;text-align:center;color:var(--sub);font-size:13px;background:#fafcfc}
+.status{display:flex;align-items:center;gap:10px;font-size:13px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:#fafcfc;margin-bottom:10px}
+.spin{width:14px;height:14px;flex:none;border:2px solid #cfdcda;border-top-color:var(--accent);border-radius:50%;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.steplist{font-size:11px;color:var(--sub);margin-left:auto;font-family:var(--mono)}
+
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.tab{padding:6px 12px;font-size:12px;border:1px solid var(--line);border-bottom:none;border-radius:6px 6px 0 0;background:#f6f9f9;color:var(--sub);cursor:pointer;margin-bottom:-1px}
+.tab.on{background:#fff;color:var(--ink);font-weight:bold;border-bottom:1px solid #fff}
+.tab .lim{font-family:var(--mono);font-size:10px}
+
+.counter{border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:12px;background:#fafcfc}
+.counter .row1{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.counter .n{font-family:var(--mono);font-size:17px;font-weight:bold}
+.counter .cap{font-size:11px;color:var(--sub)}
+.counter .over{color:var(--ng);font-size:12px;font-weight:bold}
+.counter .fit{color:var(--ok);font-size:12px;font-weight:bold}
+.meter{height:6px;background:#eceff0;border-radius:3px;margin-top:7px;overflow:hidden}
+.meter span{display:block;height:6px;background:var(--accent);width:0}
+.meter.ngm span{background:var(--ng)}
+.meter.okm span{background:var(--ok)}
+.counter .sub2{font-size:11px;color:var(--sub);margin-top:5px;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.alert{border-radius:8px;padding:10px 12px;margin-bottom:12px;border:1px solid var(--ng);background:var(--ng-soft);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.alert .t{font-size:13px;font-weight:bold;color:#8c1414}
+.alert .d{font-size:11px;color:#7c2222}
+
+.doc{border:1px solid var(--line);border-radius:8px;background:#fff}
+.doc .dhead{border-bottom:1px solid var(--line);padding:10px 12px;background:#f8fbfb;border-radius:8px 8px 0 0}
+.doc .dhead .lab{font-size:10px;color:var(--sub);letter-spacing:.06em}
+.doc .catch{font-size:16px;font-weight:bold;line-height:1.5;outline:none}
+.doc .body{padding:12px 14px;outline:none}
+.doc .body h3{font-size:12px;color:#0b5a54;letter-spacing:.04em;border-left:3px solid var(--accent);padding-left:7px;margin:14px 0 4px}
+.doc .body h3:first-child{margin-top:0}
+.doc .body p{font-size:13px;line-height:1.85}
+.doc .body ul{margin:2px 0 0 18px;font-size:13px}
+.doc [contenteditable]:focus{background:#fcfffe}
+.mark{background:#fff6cc;border-bottom:1px dotted #a98a00}
+.mark.done{background:var(--ok-soft);border-bottom:1px solid #9cc7ab}
+.editnote{font-size:11px;color:var(--sub);margin:6px 0 0;text-align:right}
+.actions{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}
+.actions .n2{font-size:11px;color:var(--sub);flex:1 1 220px;min-width:0}
+.toast{font-size:11px;color:var(--ok);font-weight:bold}
+
+/* ---- right ---- */
+.chk{border:1px solid var(--line);border-radius:7px;padding:9px 10px;margin-bottom:8px}
+.chk.ng{border-color:#e7b4b4;background:var(--ng-soft)}
+.chk.wa{border-color:#e8cfa3;background:var(--warn-soft)}
+.chk.ok{border-color:#bedcc8;background:var(--ok-soft)}
+.chk.fixed{border-color:#9cc7ab;background:var(--ok-soft)}
+.chk .k{font-size:11px;font-weight:bold;letter-spacing:.04em}
+.chk.ng .k{color:#8c1414}
+.chk.wa .k{color:#8a4208}
+.chk.ok .k,.chk.fixed .k{color:#14532d}
+.chk .w{font-size:13px;font-weight:bold;margin-top:2px}
+.chk .r{font-size:11px;color:var(--sub);line-height:1.6;margin-top:2px}
+.chk .alt{font-size:12px;background:#fff;border:1px solid var(--line);border-radius:5px;padding:5px 7px;margin-top:6px;line-height:1.6}
+.chk .alt .al{font-size:10px;color:var(--sub);display:block}
+.chk .bl{margin-top:6px;display:flex;justify-content:flex-end}
+.legend{font-size:11px;color:var(--sub);margin-top:8px;border-top:1px dashed var(--line);padding-top:7px;line-height:1.6}
+
+.barrow{margin-bottom:9px}
+.barrow .bl2{display:flex;justify-content:space-between;font-size:11px;gap:6px}
+.barrow .bl2 .v{font-family:var(--mono);font-weight:bold}
+.bart{position:relative;height:10px;background:#eceff0;border-radius:2px;margin-top:3px}
+.bart i{position:absolute;left:0;top:0;height:10px;background:var(--accent);border-radius:2px;display:block}
+.bart i.dim{background:#b8c6c4}
+.bart u{position:absolute;top:-3px;bottom:-3px;width:1px;background:var(--warn)}
+.baseline{font-size:10px;color:var(--warn);text-align:right;margin-top:2px}
+
+.foot{font-size:11px;color:var(--sub);margin-top:4px;border-top:1px solid var(--line);padding-top:10px;line-height:1.7}
+</style>
+</head>
+<body>
+
+<div class="appbar">
+  <span class="sys">採用管理システム</span><span class="sep">／</span><span class="scr">求人票 下書き生成</span>
+</div>
+
+<div class="wrap">
+
+  <div class="head">
+    <div>
+      <h1>求人票 下書き生成</h1>
+      <div class="meta">分譲マンション管理会社（架空）／ 媒体ごとの文字数・表現ルールに沿った下書きを作成します</div>
+    </div>
+    <div class="badge">これまで：1職種あたり 90分 → いま：<b>5分</b></div>
+  </div>
+
+  <div class="cols">
+
+    <!-- ================= LEFT ================= -->
+    <div class="col">
+      <div class="card">
+        <h2>条件入力</h2>
+
+        <div class="fl">
+          <span class="lab">職種</span>
+          <select id="job">
+            <option>営業職</option>
+            <option>事務職</option>
+            <option>マンション管理フロント職</option>
+          </select>
+        </div>
+
+        <div class="fl">
+          <span class="lab">雇用形態</span>
+          <select id="emp">
+            <option>正社員</option>
+            <option>契約社員</option>
+          </select>
+        </div>
+
+        <div class="fl">
+          <span class="lab">経験</span>
+          <div class="opts" id="expbox">
+            <label class="opt"><input type="radio" name="exp" value="未経験歓迎" checked><span>未経験歓迎</span></label>
+            <label class="opt"><input type="radio" name="exp" value="経験者優遇"><span>経験者優遇</span></label>
+            <label class="opt"><input type="radio" name="exp" value="経験必須"><span>経験必須</span></label>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="fl">
+          <span class="lab">訴求ポイント（複数可）</span>
+          <div class="opts" id="ptbox"></div>
+        </div>
+
+        <div class="fl">
+          <span class="lab">掲載媒体（複数可）</span>
+          <div class="opts" id="mdbox"></div>
+        </div>
+
+        <button class="btn pri" id="gen" style="width:100%">求人票を生成</button>
+
+        <div class="src">
+          生成のもとになるデータ：<b>過去2年の自社求人12本</b>＋<b>応募につながった表現のリスト</b><br>
+          機械が下書きを作り、最終の文面は担当者が仕上げます。
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= CENTER ================= -->
+    <div class="col">
+      <div class="card">
+        <h2>生成された原稿</h2>
+
+        <div id="cEmpty" class="empty">
+          左の条件を選び、［求人票を生成］を押してください。<br>
+          過去の自社求人と応募実績を参照して、媒体ごとの文字数に収めた下書きを作成します。
+        </div>
+
+        <div id="cLoad" style="display:none">
+          <div class="status">
+            <span class="spin"></span>
+            <span id="loadTxt">過去の求人と応募実績を参照しています…</span>
+            <span class="steplist" id="loadStep">1 / 2</span>
+          </div>
+        </div>
+
+        <div id="cDoc" style="display:none">
+          <div class="tabs" id="tabs"></div>
+
+          <div class="counter">
+            <div class="row1">
+              <span class="cap">本文</span>
+              <span class="n" id="cnBody">0</span>
+              <span class="cap" id="cnLimit">/ 1,200文字</span>
+              <span id="cnState"></span>
+            </div>
+            <div class="meter" id="cnMeter"><span></span></div>
+            <div class="sub2">
+              <span>見出し <b id="cnHead" style="font-family:var(--mono)">0</b> <span id="cnHeadLimit">/ 40文字</span></span>
+              <span id="cnHeadState"></span>
+            </div>
+          </div>
+
+          <div class="alert" id="overAlert" style="display:none">
+            <div>
+              <div class="t" id="overTitle">本文が上限を超えています</div>
+              <div class="d">この媒体の上限に収まるよう、優先度の低い記述から圧縮します（削る順番はルールで決めています）。</div>
+            </div>
+            <button class="btn" id="shrink" style="margin-left:auto">自動で縮める</button>
+          </div>
+
+          <div class="doc">
+            <div class="dhead">
+              <span class="lab">見出し（キャッチ）</span>
+              <div class="catch" id="docHead" contenteditable="true" spellcheck="false"></div>
+            </div>
+            <div class="body" id="docBody" contenteditable="true" spellcheck="false"></div>
+          </div>
+          <p class="editnote">この原稿はその場で直接編集できます（文字数は即時に反映されます）</p>
+
+          <div class="actions">
+            <button class="btn" id="btnCopy">コピー</button>
+            <button class="btn" id="btnPaste">媒体へ貼り付ける</button>
+            <span class="toast" id="toast"></span>
+            <span class="n2">貼り付けまでが自動です。掲載の確定操作はご自身で行ってください。</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= RIGHT ================= -->
+    <div class="col">
+      <div class="card">
+        <h2>表現チェック</h2>
+        <div id="chkbox"></div>
+        <div class="legend">規則ベースの検出です（法令由来のNG表現／自社12本の応募実績／媒体の審査基準）。判断の最終確認は担当者が行ってください。</div>
+      </div>
+
+      <div class="card">
+        <h2>過去の実績との比較</h2>
+        <div id="barbox"></div>
+        <div class="baseline">点線＝自社平均 0.8%</div>
+        <div class="legend">訴求ポイント別の応募率（過去2年・自社求人12本の集計）。選択中のポイントを濃色で表示しています。</div>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="foot">※ デモ用のサンプルです。応募率は架空の数値です。生成結果は必ず担当者がご確認のうえ掲載してください。</p>
+</div>
+
+<script>
+/* ============ master data ============ */
+var POINTS = [
+  {id:'p1', label:'年間休日120日',    short:'年間休日120日',    line:'年間休日120日。土日祝を基本としたシフトで、連休もとりやすい体制です。', rate:1.4, on:true},
+  {id:'p2', label:'原則定時退社',      short:'原則定時退社',      line:'原則定時退社。残業は直近1年で月平均10時間以下におさまっています。', rate:1.2, on:true},
+  {id:'p3', label:'賞与 平均8.27ヶ月', short:'賞与 平均8.27ヶ月', line:'賞与は直近実績で平均8.27ヶ月分。成果が収入に反映されます。', rate:0.9, on:true},
+  {id:'p4', label:'資格取得支援',      short:'資格取得支援',      line:'管理業務主任者などの資格取得を支援。受験費用は会社が負担します。', rate:0.6, on:false},
+  {id:'p5', label:'転勤なし',          short:'転勤なし',          line:'転勤はありません。勤務地は通勤圏内の事業所に限定しています。', rate:null, on:false},
+  {id:'p6', label:'23期連続増収',      short:'23期連続増収',      line:'23期連続で増収。管理受託の棟数が毎年積み上がっている事業です。', rate:null, on:false}
+];
+var MEDIA = [
+  {id:'hp', name:'採用ホームページ', body:null, head:null, note:'上限なし'},
+  {id:'ma', name:'媒体A', body:1200, head:40, note:'本文1,200文字・見出し40文字'},
+  {id:'mb', name:'媒体B', body:800,  head:30, note:'本文800文字・見出し30文字'}
+];
+var JOBS = {
+  '営業職':{
+    cat:'分譲マンション管理の提案営業',
+    catShort:'提案営業スタッフ',
+    work:'分譲マンションの管理組合に向けて、建物管理サービスのご提案を行う仕事です。すでにお付き合いのある管理組合への定期訪問が中心で、理事会の議題にあわせた資料づくりや、修繕に関するご相談への対応を担当します。管理会社の切り替えを検討されている管理組合へのご提案もありますが、飛び込みの新規開拓や個人宅への訪問はありません。アットホームな職場で、最初の3か月は先輩が同行しながら進め方を覚えていただきます。提案の件数を競う仕事ではなく、長くお付き合いいただくための関係づくりが中心です。担当エリアは1人あたり10〜15組合で、移動は社用車を使います。',
+    workShort:'分譲マンションの管理組合に、建物管理サービスのご提案を行う仕事です。既存のお客さまへの定期訪問が中心で、飛び込みの新規開拓はありません。アットホームな職場で、先輩の同行から始めます。',
+    day:['9:00　出社、メール確認と当日の訪問準備','10:00　管理組合への訪問（1日1〜2件）','12:00　昼食（社用車で移動することが多い職種です）','13:30　帰社して提案資料・見積の作成','15:00　理事会に向けた社内打ち合わせ','17:00　日報を入力し、翌日の段取りを確認','18:00　退社'],
+    dayShort:['9:00　出社・訪問準備','10:00　管理組合への訪問（1〜2件）','13:30　提案資料・見積の作成','15:00　理事会に向けた打ち合わせ','18:00　退社'],
+    qual:'普通自動車運転免許（AT限定可）をお持ちの方。'
+  },
+  '事務職':{
+    cat:'管理組合の事務サポート',
+    catShort:'事務サポートスタッフ',
+    work:'管理組合の運営を支える事務の仕事です。理事会・総会の案内文の作成や、収支報告の資料づくり、工事見積の整理、居住者からのお問い合わせ対応などを担当します。専用システムへの入力が中心で、はじめから高度な知識を求められることはありません。アットホームな職場で、担当業務は少しずつ範囲を広げていきます。繁忙期は総会が集中する時期ですが、担当を分けて対応しているため、特定の人に負担が偏らないようにしています。電話とメールでの対応が中心で、外出はほとんどありません。',
+    workShort:'管理組合の運営を支える事務の仕事です。理事会・総会の案内文作成、収支報告の資料づくり、お問い合わせ対応などを担当します。アットホームな職場で、業務範囲は少しずつ広げます。',
+    day:['9:00　出社、メールと問い合わせ内容の確認','10:00　理事会・総会の案内文の作成','12:00　昼食（休憩はしっかり取れます）','13:00　専用システムへの入力、書類のチェック','15:00　居住者からのお問い合わせ対応','16:30　担当者との引き継ぎ・翌日の準備','17:30　退社'],
+    dayShort:['9:00　出社・問い合わせ内容の確認','10:00　理事会・総会の案内文の作成','13:00　システム入力、書類チェック','15:00　お問い合わせ対応','17:30　退社'],
+    qual:'基本的なパソコン操作（文字入力・表計算の基本）ができる方。'
+  },
+  'マンション管理フロント職':{
+    cat:'分譲マンションの管理フロント',
+    catShort:'管理フロント担当',
+    work:'担当する分譲マンション（10〜15棟程度）の窓口となる仕事です。理事会・総会の運営サポート、建物点検の手配、修繕工事の計画づくり、管理員さんとの連携などを担当します。担当棟数は経験にあわせて調整し、1人で抱え込まない運用にしています。アットホームな職場で、判断に迷う場面は上司と一緒に整理しながら進めます。居住者の方との会話が多い仕事なので、専門知識よりも、相手の話を整理して伝えられることを大切にしています。',
+    workShort:'担当する分譲マンション（10〜15棟）の窓口となる仕事です。理事会・総会の運営サポート、点検の手配、修繕計画づくりを担当します。アットホームな職場で、1人で抱え込まない運用です。',
+    day:['9:00　出社、担当物件からの連絡を確認','10:00　担当マンションを巡回、管理員と打ち合わせ','12:00　昼食','13:30　点検・修繕の手配、見積の取りまとめ','15:00　理事会資料の作成','17:00　日報を入力（理事会がある日は夜間対応、翌日は遅出）','18:00　退社'],
+    dayShort:['9:00　出社・担当物件の連絡確認','10:00　担当マンションの巡回','13:30　点検・修繕の手配','15:00　理事会資料の作成','18:00　退社'],
+    qual:'普通自動車運転免許（AT限定可）をお持ちの方。管理業務主任者の資格は入社後の取得でかまいません。'
+  }
+};
+var EXPTXT = {
+  '未経験歓迎':{full:'未経験歓迎。入社後3か月は研修期間として、先輩と一緒に業務を覚えていただきます。若い方が活躍中の部署ですが、前職の業界は問いません。',short:'未経験歓迎。若い方が活躍中の部署です。'},
+  '経験者優遇':{full:'業界での実務経験がある方は優遇します。経験のない方の応募も可能で、入社後の研修でカバーします。若い方が活躍中の部署です。',short:'経験者優遇（未経験の応募も可）。若い方が活躍中の部署です。'},
+  '経験必須':{full:'同業での実務経験が3年以上ある方を対象としています。担当範囲や役割は面接でご相談のうえ決定します。若い方が活躍中の部署です。',short:'同業での実務経験3年以上。若い方が活躍中の部署です。'}
+};
+
+/* ============ state ============ */
+var state = {cur:'hp', docs:{}, shrunk:{}, applied:[], generated:false};
+var CHECKS = [
+  {id:'c1', kind:'ng', word:'若い方が活躍中', reason:'年齢を示唆する表現です（雇用対策法）', alt:'20代〜50代まで幅広く活躍中', act:true},
+  {id:'c2', kind:'wa', word:'アットホームな職場', reason:'応募率が平均より低い表現です（自社12本の実績）', alt:'残業が月10時間以下の職場', act:true},
+  {id:'c3', kind:'wa', word:'ノルマなし', reason:'媒体Aの審査で差し戻し実績があります', alt:null, act:false},
+  {id:'c4', kind:'ok', word:'性別・国籍に関する表現', reason:'検出なし', alt:null, act:false},
+  {id:'c5', kind:'ok', word:'賃金表示', reason:'下限・上限の記載あり', alt:null, act:false}
+];
+
+/* ============ left render ============ */
+function el(h){var d=document.createElement('div');d.innerHTML=h;return d.firstElementChild;}
+function renderLeft(){
+  var pb=document.getElementById('ptbox'); pb.innerHTML='';
+  POINTS.forEach(function(p){
+    var l=el('<label class="opt"><input type="checkbox" data-p="'+p.id+'"'+(p.on?' checked':'')+'><span>'+p.label+'</span></label>');
+    pb.appendChild(l);
+  });
+  var mb=document.getElementById('mdbox'); mb.innerHTML='';
+  MEDIA.forEach(function(m){
+    var l=el('<label class="opt"><input type="checkbox" data-m="'+m.id+'" checked><span>'+m.name+'<span class="note">（'+m.note+'）</span></span></label>');
+    mb.appendChild(l);
+  });
+}
+function selectedPoints(){
+  return POINTS.filter(function(p){
+    var i=document.querySelector('[data-p="'+p.id+'"]'); return i && i.checked;
+  });
+}
+function selectedMedia(){
+  return MEDIA.filter(function(m){
+    var i=document.querySelector('[data-m="'+m.id+'"]'); return i && i.checked;
+  });
+}
+
+/* ============ draft builder ============ */
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function buildDoc(mediaId, variant){
+  var job=document.getElementById('job').value;
+  var emp=document.getElementById('emp').value;
+  var exp=document.querySelector('[name=exp]:checked').value;
+  var J=JOBS[job], pts=selectedPoints(), shortv=(variant==='short');
+  var m=MEDIA.filter(function(x){return x.id===mediaId})[0];
+  var narrow=(m.head && m.head<=30);
+
+  /* --- head --- */
+  var head;
+  if(narrow || shortv){
+    head = (pts[0]? pts[0].short+'／':'') + J.catShort;
+  }else{
+    head = (pts[0]? pts[0].short+'／':'') + (exp==='未経験歓迎'?'未経験から始める':'') + J.cat;
+  }
+
+  /* --- body --- */
+  var S=[];
+  S.push(['仕事内容','<p>'+esc(shortv?J.workShort:J.work)+'</p>']);
+  var day=(shortv?J.dayShort:J.day).map(function(d){return '<li>'+esc(d)+'</li>'}).join('');
+  S.push(['1日の流れ','<ul>'+day+'</ul>']);
+
+  var q='<p>学歴不問。'+esc(J.qual)+esc(shortv?EXPTXT[exp].short:EXPTXT[exp].full);
+  if(!shortv){ q+=esc('配属先と担当範囲は、面接でご希望をうかがったうえで決定します。ブランクのある方、異業種からの転職の方の応募も歓迎しています。'); }
+  q+='</p>';
+  S.push(['応募資格',q]);
+
+  var wage = (emp==='正社員')
+    ? '月給240,000円〜350,000円（経験・前職給与を考慮して決定）'
+    : '月給210,000円〜280,000円（契約社員・1年更新／正社員への登用制度あり）';
+  var ben = '<p>'+esc(wage)+'。各種社会保険完備、通勤交通費は全額支給です。ノルマなしで、個人を数字だけで評価する運用はしていません。</p>';
+  if(!shortv){
+    ben += '<p>'+esc('勤務時間は9:00〜18:00（休憩60分）。休日は土日祝が基本で、理事会・総会で休日に出勤した場合は振替休日を取得します。住宅手当・家族手当・資格手当のほか、退職金制度と定期健康診断があります。')+'</p>';
+  }
+  if(pts.length){
+    if(shortv){
+      ben += '<ul><li>'+pts.map(function(p){return esc(p.short)}).join('／')+'</li></ul>';
+    }else{
+      ben += '<ul>'+pts.map(function(p){return '<li>'+esc(p.line)+'</li>'}).join('')+'</ul>';
+    }
+  }
+  S.push(['待遇・福利厚生',ben]);
+
+  var flow = shortv
+    ? '<p>書類選考 → 一次面接（オンライン可） → 二次面接 → 内定。応募から内定までの目安は2〜3週間です。</p>'
+    : '<p>書類選考 → 一次面接（オンライン可） → 二次面接（対面・勤務先の見学を含みます） → 内定。応募から内定までの目安は2〜3週間です。面接は平日の夜間と土曜日も対応していますので、在職中の方もご相談ください。</p>';
+  S.push(['選考の流れ',flow]);
+
+  var body=S.map(function(s){return '<h3>'+s[0]+'</h3>'+s[1]}).join('');
+  return {head:head, body:body};
+}
+function applyAll(d){
+  state.applied.forEach(function(a){
+    d.head = d.head.split(a.from).join(a.to);
+    d.body = d.body.split(a.from).join(a.to);
+  });
+  return d;
+}
+function regenAll(){
+  state.docs={}; state.shrunk={};
+  selectedMedia().forEach(function(m){
+    state.docs[m.id]=applyAll(buildDoc(m.id,'full'));
+  });
+}
+
+/* ============ counting ============ */
+function textLen(html){
+  var d=document.createElement('div'); d.innerHTML=html;
+  return d.textContent.replace(/\s/g,'').length;
+}
+function fmt(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
+function currentMedia(){return MEDIA.filter(function(x){return x.id===state.cur})[0];}
+
+function updateCounts(){
+  var m=currentMedia();
+  var bodyLen=document.getElementById('docBody').textContent.replace(/\s/g,'').length;
+  var headLen=document.getElementById('docHead').textContent.replace(/\s/g,'').length;
+  document.getElementById('cnBody').textContent=fmt(bodyLen);
+  var meter=document.getElementById('cnMeter'), bar=meter.firstElementChild;
+  var st=document.getElementById('cnState'), al=document.getElementById('overAlert');
+
+  if(m.body===null){
+    document.getElementById('cnLimit').textContent='文字（上限なし）';
+    meter.className='meter'; bar.style.width='18%';
+    st.className=''; st.textContent='';
+    al.style.display='none';
+  }else{
+    document.getElementById('cnLimit').textContent='/ '+fmt(m.body)+'文字';
+    var pct=Math.min(100, Math.round(bodyLen/m.body*100));
+    bar.style.width=pct+'%';
+    if(bodyLen>m.body){
+      meter.className='meter ngm';
+      st.className='over'; st.textContent='（'+fmt(bodyLen-m.body)+'文字オーバー）';
+      document.getElementById('overTitle').textContent=m.name+'の上限を '+fmt(bodyLen-m.body)+'文字 超えています';
+      al.style.display='flex';
+    }else{
+      meter.className='meter'+(state.shrunk[m.id]?' okm':'');
+      st.className=state.shrunk[m.id]?'fit':'';
+      st.textContent=state.shrunk[m.id]?'（上限内に収まりました）':'';
+      al.style.display='none';
+    }
+  }
+  var hl=document.getElementById('cnHeadLimit'), hs=document.getElementById('cnHeadState');
+  document.getElementById('cnHead').textContent=headLen;
+  if(m.head===null){hl.textContent='文字（上限なし）'; hs.textContent=''; hs.className='';}
+  else{
+    hl.textContent='/ '+m.head+'文字';
+    if(headLen>m.head){hs.textContent='見出しが '+(headLen-m.head)+'文字オーバー'; hs.className='over';}
+    else{hs.textContent='上限内'; hs.className='fit';}
+  }
+}
+
+/* ============ center render ============ */
+function saveCurrent(){
+  if(!state.docs[state.cur]) return;
+  state.docs[state.cur].head=document.getElementById('docHead').textContent;
+  state.docs[state.cur].body=document.getElementById('docBody').innerHTML;
+}
+function renderTabs(){
+  var t=document.getElementById('tabs'); t.innerHTML='';
+  selectedMedia().forEach(function(m){
+    var b=el('<button class="tab'+(m.id===state.cur?' on':'')+'" data-tab="'+m.id+'">'+m.name+' <span class="lim">'+(m.body?fmt(m.body)+'字':'上限なし')+'</span></button>');
+    b.onclick=function(){ saveCurrent(); state.cur=m.id; renderTabs(); renderDoc(); };
+    t.appendChild(b);
+  });
+}
+function renderDoc(){
+  var d=state.docs[state.cur];
+  if(!d){ var k=Object.keys(state.docs); if(!k.length) return; state.cur=k[0]; d=state.docs[state.cur]; renderTabs(); }
+  document.getElementById('docHead').textContent=d.head;
+  document.getElementById('docBody').innerHTML=d.body;
+  updateCounts();
+}
+
+/* ============ generate flow ============ */
+document.getElementById('gen').onclick=function(){
+  var ms=selectedMedia();
+  if(!ms.length){ alert('掲載媒体を1つ以上選んでください。'); return; }
+  state.applied=[]; renderChecks();
+  document.getElementById('cEmpty').style.display='none';
+  document.getElementById('cDoc').style.display='none';
+  document.getElementById('cLoad').style.display='block';
+  document.getElementById('loadTxt').textContent='過去の求人と応募実績を参照しています…';
+  document.getElementById('loadStep').textContent='1 / 2';
+  this.disabled=true;
+  var btn=this;
+  setTimeout(function(){
+    document.getElementById('loadTxt').textContent='媒体ごとの文字数に合わせて調整しています…';
+    document.getElementById('loadStep').textContent='2 / 2';
+  },800);
+  setTimeout(function(){
+    document.getElementById('cLoad').style.display='none';
+    document.getElementById('cDoc').style.display='block';
+    state.generated=true;
+    regenAll();
+    if(!state.docs[state.cur]) state.cur=ms[0].id;
+    renderTabs(); renderDoc();
+    btn.disabled=false;
+    flash('下書きを作成しました');
+  },1600);
+};
+document.getElementById('shrink').onclick=function(){
+  saveCurrent();
+  state.docs[state.cur]=applyAll(buildDoc(state.cur,'short'));
+  state.shrunk[state.cur]=true;
+  renderDoc();
+  flash('上限に収まるよう短縮しました');
+};
+function flash(msg){
+  var t=document.getElementById('toast'); t.textContent=msg;
+  setTimeout(function(){ if(t.textContent===msg) t.textContent=''; },2600);
+}
+document.getElementById('btnCopy').onclick=function(){ flash('原稿をコピーしました（デモ）'); };
+document.getElementById('btnPaste').onclick=function(){ flash(currentMedia().name+'の入稿フォームに貼り付けました（掲載は未確定）'); };
+document.getElementById('docBody').addEventListener('input',function(){ saveCurrent(); updateCounts(); });
+document.getElementById('docHead').addEventListener('input',function(){ saveCurrent(); updateCounts(); });
+
+/* ============ checks ============ */
+function renderChecks(){
+  var box=document.getElementById('chkbox'); box.innerHTML='';
+  CHECKS.forEach(function(c){
+    var done=state.applied.some(function(a){return a.id===c.id});
+    var cls = done?'fixed':c.kind;
+    var key = done?'✅ 置き換え済み':(c.kind==='ng'?'❌ NG':(c.kind==='wa'?'⚠️ 注意':'✅ OK'));
+    var h='<div class="chk '+cls+'" data-c="'+c.id+'">'
+      +'<div class="k">'+key+'</div>'
+      +'<div class="w">'+(c.kind==='ok'?'':'「')+c.word+(c.kind==='ok'?'':'」')+'</div>'
+      +'<div class="r">'+(done?'「'+c.alt+'」に置き換えました（原稿に反映済み）':c.reason)+'</div>';
+    if(c.alt && !done){
+      h+='<div class="alt"><span class="al">代替案</span>'+c.alt+'</div>'
+       +'<div class="bl"><button class="btn sm" data-fix="'+c.id+'">置き換える</button></div>';
+    }
+    h+='</div>';
+    box.appendChild(el(h));
+  });
+  Array.prototype.forEach.call(box.querySelectorAll('[data-fix]'),function(b){
+    b.onclick=function(){
+      var c=CHECKS.filter(function(x){return x.id===b.getAttribute('data-fix')})[0];
+      if(!state.generated){ alert('先に［求人票を生成］を押してください。'); return; }
+      saveCurrent();
+      state.applied.push({id:c.id, from:c.word, to:c.alt});
+      Object.keys(state.docs).forEach(function(k){
+        var d=state.docs[k];
+        d.head=d.head.split(c.word).join(c.alt);
+        d.body=d.body.split(c.word).join('<span class="mark done">'+c.alt+'</span>');
+      });
+      renderDoc(); renderChecks();
+      flash('原稿内の「'+c.word+'」を置き換えました');
+    };
+  });
+}
+
+/* ============ bars ============ */
+function renderBars(){
+  var box=document.getElementById('barbox'); box.innerHTML='';
+  var MAX=1.6, base=0.8;
+  POINTS.filter(function(p){return p.rate!==null}).forEach(function(p){
+    var sel=selectedPoints().some(function(s){return s.id===p.id});
+    var h='<div class="barrow"><div class="bl2"><span>'+p.label+'</span><span class="v">'+p.rate.toFixed(1)+'%</span></div>'
+      +'<div class="bart"><i class="'+(sel?'':'dim')+'" style="width:'+(p.rate/MAX*100)+'%"></i><u style="left:'+(base/MAX*100)+'%"></u></div></div>';
+    box.appendChild(el(h));
+  });
+}
+
+/* ============ wiring ============ */
+renderLeft(); renderChecks(); renderBars();
+document.getElementById('ptbox').addEventListener('change',renderBars);
+document.getElementById('mdbox').addEventListener('change',function(){
+  if(!state.generated) return;
+  saveCurrent();
+  var ms=selectedMedia();
+  if(!ms.length) return;
+  ms.forEach(function(m){ if(!state.docs[m.id]) state.docs[m.id]=applyAll(buildDoc(m.id,'full')); });
+  Object.keys(state.docs).forEach(function(k){
+    if(!ms.some(function(m){return m.id===k})) delete state.docs[k];
+  });
+  if(!state.docs[state.cur]) state.cur=ms[0].id;
+  renderTabs(); renderDoc();
+});
+</script>
+</body>
+</html>

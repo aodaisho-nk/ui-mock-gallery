@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" width="900" height="560" font-family="'Hiragino Kaku Gothic ProN','Yu Gothic','Meiryo',sans-serif">
+<style>
+ .bx{fill:#fff;stroke:#d7dee0;stroke-width:1.3}
+ .lb{font-size:11.5px;fill:#1f2a2e}
+ .sb{font-size:10px;fill:#5c6b70}
+ .hd{font-size:12px;font-weight:bold;fill:#0f766e}
+ .dim{font-size:9.5px;fill:#8a98a0;font-family:monospace}
+ .ar{stroke:#0f766e;stroke-width:1.6;fill:none}
+</style>
+<defs><marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+ <path d="M0,0 L8,4 L0,8 z" fill="#0f766e"/></marker></defs>
+<rect width="900" height="560" fill="#f2f5f5"/>
+<text x="14" y="24" font-size="14" font-weight="bold" fill="#1f2a2e">図2　フリーワード分析の状態遷移（0秒 → 0.7秒 → 1.5秒）</text>
+
+<!-- STATE 0 -->
+<text class="hd" x="14" y="52">STATE 0　入力待ち</text>
+<rect class="bx" x="14" y="60" width="270" height="86" rx="6"/>
+<rect x="26" y="72" width="184" height="26" rx="5" fill="#fff" stroke="#d7dee0"/>
+<text class="sb" x="34" y="89">直近3日間と全クールの比較を作成して</text>
+<rect x="218" y="72" width="54" height="26" rx="5" fill="#0f766e"/>
+<text x="230" y="89" font-size="10" fill="#fff" font-weight="bold">分析する</text>
+<rect x="26" y="108" width="110" height="14" rx="7" fill="#fff" stroke="#d7dee0"/>
+<rect x="142" y="108" width="98" height="14" rx="7" fill="#fff" stroke="#d7dee0"/>
+<text class="sb" x="26" y="138">プリセット質問（押すと即実行）</text>
+
+<path class="ar" d="M292 103 L318 103" marker-end="url(#a)"/>
+
+<!-- STATE 1 -->
+<text class="hd" x="326" y="52">STATE 1　抽出中（2段階）</text>
+<rect class="bx" x="326" y="60" width="270" height="86" rx="6"/>
+<circle cx="340" cy="80" r="5" fill="none" stroke="#0f766e" stroke-width="2" stroke-dasharray="6 4"/>
+<text class="lb" x="352" y="84" fill="#0f766e">ワードを抽出しています…</text>
+<circle cx="340" cy="106" r="5" fill="none" stroke="#0f766e" stroke-width="2" stroke-dasharray="6 4"/>
+<text class="lb" x="352" y="110" fill="#0f766e">集計し、分析項目を組み立てています…</text>
+<text class="dim" x="326" y="138">0ms → 700ms で文言切替／1500ms で STATE 2</text>
+
+<path class="ar" d="M604 103 L630 103" marker-end="url(#a)"/>
+
+<!-- STATE 2 head -->
+<text class="hd" x="638" y="52">STATE 2　完了</text>
+<rect class="bx" x="638" y="60" width="248" height="86" rx="6"/>
+<text class="lb" x="650" y="82" fill="#166534">✅ 分析が完了しました</text>
+<text class="sb" x="650" y="98">（4個のワードを認識／分析項目を4件生成）</text>
+<text class="dim" x="650" y="126">認識数は parse() の戻り値の length</text>
+
+<!-- 詳細 -->
+<line x1="14" y1="166" x2="886" y2="166" stroke="#d7dee0"/>
+<text x="14" y="188" font-size="13" font-weight="bold" fill="#1f2a2e">STATE 2 の中身（上から順に描画）</text>
+
+<!-- chips -->
+<text class="hd" x="14" y="212">① 認識したワード（チップ・✕で削除可）</text>
+<rect class="bx" x="14" y="220" width="872" height="38" rx="6"/>
+<text class="sb" x="26" y="244">認識したワード：</text>
+<g>
+ <rect x="112" y="228" width="128" height="22" rx="11" fill="#fff" stroke="#0f766e"/>
+ <text x="122" y="243" font-size="9" fill="#5c6b70">期間</text><text x="146" y="243" font-size="10.5" font-weight="bold" fill="#0f766e">直近3日間</text>
+ <text x="222" y="243" font-size="9" fill="#5c6b70">✕</text>
+ <rect x="248" y="228" width="150" height="22" rx="11" fill="#fff" stroke="#0f766e"/>
+ <text x="258" y="243" font-size="9" fill="#5c6b70">比較対象</text><text x="296" y="243" font-size="10.5" font-weight="bold" fill="#0f766e">全クール平均</text>
+ <text x="380" y="243" font-size="9" fill="#5c6b70">✕</text>
+ <rect x="406" y="228" width="110" height="22" rx="11" fill="#fff" stroke="#0f766e"/>
+ <text x="416" y="243" font-size="9" fill="#5c6b70">分析軸</text><text x="446" y="243" font-size="10.5" font-weight="bold" fill="#0f766e">媒体別</text>
+ <text x="498" y="243" font-size="9" fill="#5c6b70">✕</text>
+ <rect x="524" y="228" width="106" height="22" rx="11" fill="#fff" stroke="#0f766e"/>
+ <text x="534" y="243" font-size="9" fill="#5c6b70">指標</text><text x="558" y="243" font-size="10.5" font-weight="bold" fill="#0f766e">応募数</text>
+ <text x="612" y="243" font-size="9" fill="#5c6b70">✕</text>
+</g>
+
+<!-- cards -->
+<text class="hd" x="14" y="284">② 分析カード4枚（grid 4列・gap 10px）</text>
+<g>
+ <rect class="bx" x="14" y="292" width="212" height="72" rx="5"/>
+ <rect class="bx" x="234" y="292" width="212" height="72" rx="5"/>
+ <rect class="bx" x="454" y="292" width="212" height="72" rx="5"/>
+ <rect class="bx" x="674" y="292" width="212" height="72" rx="5"/>
+</g>
+<text class="sb" x="26" y="310">直近3日間の応募数</text><text x="26" y="336" font-size="18" font-weight="bold">11 件</text>
+<text class="sb" x="26" y="354">1日あたり 3.67件</text>
+<text class="sb" x="246" y="310">全クール平均との差</text><text x="246" y="336" font-size="18" font-weight="bold">+93%</text>
+<text class="sb" x="246" y="354" fill="#166534">3.67件 / 1.90件</text>
+<text class="sb" x="466" y="310">直近3日間の有効応募率</text><text x="466" y="336" font-size="18" font-weight="bold">81.8 %</text>
+<text class="sb" x="466" y="354" fill="#166534">全クール平均 80.0%</text>
+<text class="sb" x="686" y="310">媒体別で最も伸びた項目</text><text x="686" y="336" font-size="18" font-weight="bold">採用HP</text>
+<text class="sb" x="686" y="354" fill="#166534">構成比 29.2% → 45.5%</text>
+<text class="dim" x="14" y="378">カードの見出しは認識ワードから組み立てる：`${kikan}の応募数` `${hikaku}との差` `${jiku}で最も伸びた項目`</text>
+
+<!-- table -->
+<text class="hd" x="14" y="404">③ 比較テーブル（2段ヘッダ・媒体別×2期間）</text>
+<rect class="bx" x="14" y="412" width="872" height="72" rx="5"/>
+<rect x="14" y="412" width="872" height="30" fill="#e4efee"/>
+<line x1="298" y1="412" x2="298" y2="484" stroke="#d7dee0" stroke-width="2"/>
+<line x1="592" y1="412" x2="592" y2="484" stroke="#d7dee0" stroke-width="2"/>
+<text class="sb" x="26" y="432">媒体別</text>
+<text class="sb" x="400" y="426" text-anchor="middle">直近3日間</text>
+<text class="sb" x="740" y="426" text-anchor="middle">全クール平均</text>
+<text class="sb" x="310" y="438">応募数 / 有効応募 / 構成比</text>
+<text class="sb" x="604" y="438">応募数 / 有効応募 / 構成比</text>
+<text class="sb" x="26" y="460">採用ホームページ … 社員紹介（5行）</text>
+<text class="sb" x="26" y="476" font-weight="bold">合計 11 / 9 / 100.0%　　120 / 96 / 100.0%</text>
+
+<!-- comment + button -->
+<text class="hd" x="14" y="510">④ 所見コメント ＋ ⑤ ［📄 レポートを抽出］（右寄せ）</text>
+<rect x="14" y="518" width="700" height="32" rx="5" fill="#e4efee"/>
+<rect x="14" y="518" width="3" height="32" fill="#0f766e"/>
+<text class="sb" x="26" y="538">読み取れること：直近3日間は1日あたり3.67件で、全クール平均（1.90件）を93%上回っています…</text>
+<rect x="756" y="518" width="130" height="32" rx="6" fill="#0f766e"/>
+<text x="778" y="538" font-size="11.5" fill="#fff" font-weight="bold">📄 レポートを抽出</text>
+</svg>
