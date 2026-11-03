@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AIX｜採用のラストワンマイルに伴走する</title>
+<title>伴走型ラストワンマイル｜AODAISHO</title>
 <style>
 :root{
   --bg:#f6f5f2; --bg2:#eeece7; --ink:#1b1a18; --ink2:#55524c; --ink3:#8d8981;
@@ -38,8 +38,19 @@ button{font-family:inherit;cursor:pointer;color:inherit}
 header{position:sticky;top:0;z-index:30;background:rgba(246,245,242,.9);backdrop-filter:blur(10px);
   border-bottom:1px solid var(--line)}
 header .wrap{display:flex;align-items:center;justify-content:space-between;height:72px}
-.logo{font-family:var(--mono);font-weight:500;font-size:22px;letter-spacing:.08em;display:flex;align-items:center;gap:10px}
-.logo i{width:14px;height:14px;background:var(--accent);display:inline-block;transform:rotate(45deg)}
+.logo{font-family:var(--head);font-weight:700;font-size:18px;letter-spacing:.04em;display:flex;align-items:center;gap:10px;line-height:1.2}
+.logo i{width:14px;height:14px;background:var(--accent);display:inline-block;transform:rotate(45deg);flex:none}
+.logo .lt{display:flex;flex-direction:column}
+.logo small{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.18em;color:var(--ink3);margin-top:3px}
+.logo small b{color:var(--ink);font-weight:500}
+.byline{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--ink3);
+  border:1px solid var(--line);background:#fff;padding:4px 12px;border-radius:2px;margin-bottom:22px}
+.byline b{color:var(--ink);font-weight:500}
+.byline i{width:6px;height:6px;background:var(--accent);display:inline-block}
+.about{margin-top:56px;display:grid;grid-template-columns:280px 1fr;gap:48px;align-items:start;border-top:1px solid var(--line);padding-top:36px}
+.about .nm{font-family:var(--mono);font-size:22px;font-weight:500;letter-spacing:.14em}
+.about .nm small{display:block;font-size:11px;letter-spacing:.14em;color:var(--ink3);margin-top:4px}
+.about p{color:var(--ink2);font-size:14.5px;line-height:1.95;max-width:680px}
 nav{display:flex;align-items:center;gap:32px;font-size:14px;color:var(--ink2)}
 nav a:hover{color:var(--ink)}
 nav .btn{height:44px;padding:0 20px;font-size:14px}
@@ -223,7 +234,7 @@ footer .logo i{width:10px;height:10px}
 
 <header>
   <div class="wrap">
-    <a href="#" class="logo"><i></i>AIX</a>
+    <a href="#" class="logo"><i></i><span class="lt">伴走型ラストワンマイル<small>by <b>AODAISHO</b></small></span></a>
     <nav>
       <a href="#pipeline">工程とUI</a>
       <a href="#problem">お悩み</a>
@@ -238,6 +249,7 @@ footer .logo i{width:10px;height:10px}
   <!-- HERO -->
   <div class="hero">
     <div class="wrap">
+      <div class="byline"><i></i>PROVIDED BY <b>AODAISHO</b></div>
       <div class="label">Recruiting ── Last One Mile</div>
       <h1>ツールを入れても、<br>現場の手作業は<em>減らない。</em></h1>
       <div class="hero-sub">
@@ -362,6 +374,13 @@ footer .logo i{width:10px;height:10px}
         <div class="step rv"><div class="dot">05</div><div class="en">Adopt</div><h3>定着支援</h3>
           <p>運用開始後も振り返りと改善を重ね、現場に根付くまで支援します。</p></div>
       </div>
+
+      <div class="about rv">
+        <div class="nm">AODAISHO<small>伴走型ラストワンマイル 提供元</small></div>
+        <p>伴走型ラストワンマイルは、AODAISHOが提供する採用業務の伴走支援サービスです。
+          ツールの導入だけで終わらせず、現場に残る手作業を一つずつ整理し、
+          このページでご覧いただいた画面のように「実際に回る形」まで一緒につくります。</p>
+      </div>
     </div>
   </section>
 
@@ -370,7 +389,7 @@ footer .logo i{width:10px;height:10px}
     <div class="wrap">
       <div class="cta-box rv">
         <div>
-          <div class="label">Contact</div>
+          <div class="label">Contact ── AODAISHO</div>
           <h2>まずは、残っている<br>手作業を教えてください。</h2>
           <p class="oneline">現状の採用フローをお伺いし、AIXで解消できる工程と進め方をご提案します。</p>
         </div>
@@ -384,9 +403,9 @@ footer .logo i{width:10px;height:10px}
 
 <footer>
   <div class="wrap">
-    <a href="#" class="logo"><i></i>AIX</a>
+    <a href="#" class="logo"><i></i><span class="lt">伴走型ラストワンマイル<small>by <b>AODAISHO</b></small></span></a>
     <span>表示される画面はすべてデモです。候補者情報・数値は架空のものです。</span>
-    <span>© 2026 AIX. All rights reserved.</span>
+    <span>© 2026 AODAISHO. All rights reserved.</span>
   </div>
 </footer>
 
