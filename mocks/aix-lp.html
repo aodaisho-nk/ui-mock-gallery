@@ -416,7 +416,8 @@ const I={
    <path d="M3 17.5a4 4 0 0 1 8 0"/><path d="M13 17.5a4 4 0 0 1 8 0"/>
    <line x1="2.5" y1="20.5" x2="21.5" y2="20.5"/>`,
  offer:`<circle cx="12" cy="9" r="5.75"/><polyline points="9.5 9 11.25 10.75 14.5 7.5"/>
-   <path d="M8.75 13.75 7.5 21l4.5-2.25L16.5 21l-1.25-7.25"/>`
+   <path d="M8.75 13.75 7.5 21l4.5-2.25L16.5 21l-1.25-7.25"/>`,
+ analytics:`<path d="M11 5a8 8 0 1 0 8 8h-8z"/><path d="M13.5 3v7.5H21A7.5 7.5 0 0 0 13.5 3z"/>`
 };
 const svg=d=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
   stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
@@ -429,8 +430,10 @@ const STAGES=[
     desc:"採りたい人数から、必要な応募数・工数・予算・掲載開始週を逆算"}]},
 
  {n:"00",jp:"母集団形成",en:"Sourcing",ic:"recruiting",manual:false,tag:"TOOL",
-  prob:"週1でシートを手集計。気づいたときには掲載期間が終わっている。",
+  prob:"掲載したあとのペースが見えず、気づいたときには掲載期間が終わっている。",
   mocks:[
+   {t:"スカウトDM 文面アシスタント",file:"offer-assistant.html",
+    desc:"学生プロフィールを読み取り、その人だけのスカウト文面を10秒で作成"},
    {t:"母集団形成モニター",file:"sourcing.html",
     desc:"直近ペースから着地を毎日予測。足りないときは打ち手候補まで提示"},
    {t:"求人票 下書き生成",file:"job-posting.html",
@@ -468,7 +471,7 @@ const STAGES=[
    {t:"採用管理システム（面接調整）",file:"ats.html#sched",
     desc:"候補者の希望日がカレンダーに黄色で表示。確定でGカレまで自動作成"}]},
 
- {n:"04",jp:"評価シート作成",en:"Evaluation",ic:"interview",manual:true,tag:"MANUAL",
+ {n:"04",jp:"面接",en:"Interview",ic:"interview",manual:true,tag:"MANUAL",
   prob:"面接ごとの記録や評価の整理が後回しになり、比較が難しい。",
   mocks:[
    {t:"面接評価シート自動生成（Zoom面接）",file:"interview.html",
@@ -478,15 +481,15 @@ const STAGES=[
    {t:"不採用理由 言語化システム",file:"reject-reason.html",
     desc:"役員の「なんとなくダメ」を、5問の選択と自由記述だけで文章化"}]},
 
- {n:"05",jp:"候補者対応",en:"Candidate Care",ic:"offer",manual:true,tag:"MANUAL",
-  prob:"連絡・フォローが属人化し、対応漏れや遅れが起きやすい。",
+ {n:"05",jp:"分析",en:"Analytics",ic:"analytics",manual:true,tag:"MANUAL",
+  prob:"歩留まり表を週1で手集計。数字が合わない理由までは追えない。",
   mocks:[
-   {t:"AIオファー文面アシスタント",file:"offer-assistant.html",
-    desc:"個別のオファー文面を自動作成。個人情報は生成AIを通さず直接転記"},
+   {t:"ダッシュボード（フリーワード分析）",file:"ats.html#dash",
+    desc:"「直近3日間と全クールの比較を作成して」と書くだけで分析項目が出る"},
+   {t:"クール別サマリ",file:"ats.html#sum",
+    desc:"いま手で作っている歩留まり表が、常に最新で自動表示される"},
    {t:"不採用理由 言語化システム",file:"reject-reason.html",
-    desc:"見送りの連絡にも根拠が残る。人事側で集計まで自動処理"},
-   {t:"社内FAQ AIチャットボット",file:"faq-bot.html",
-    desc:"候補者からの問い合わせ対応を、権限に応じた開示範囲で標準化"}]}
+    desc:"見送りの理由を文章と数値で蓄積し、人事側で集計まで自動処理"}]}
 ];
 
 /* ══════ パイプラインの描画 ══════ */
