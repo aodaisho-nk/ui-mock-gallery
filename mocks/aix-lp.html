@@ -59,9 +59,14 @@ nav a:hover{color:var(--ink)}
 nav .btn{height:44px;padding:0 20px;font-size:14px}
 
 .hero{padding:0;position:relative;overflow:hidden;background:#fff}
-.hero-top{position:relative;padding:72px 0 0}
-.hero-art{position:absolute;right:0;top:0;width:min(860px,64%);height:560px;pointer-events:none;z-index:0}
-@media (max-width:1100px){.hero-art{width:70%;opacity:.35}}
+.hero-top{position:relative;padding:96px 0 0}
+/* 画像2と同じ構図：右上から左下へ溶けていくライン。背景として薄く敷く */
+.hero-art{position:absolute;right:0;top:0;bottom:0;width:58%;pointer-events:none;z-index:0;opacity:.32}
+.hero h1,.hero .label{max-width:60%}
+@media (max-width:1100px){
+  .hero-art{width:80%;opacity:.14}
+  .hero h1,.hero .label{max-width:none}
+}
 .hero-art svg,.hero-art img{position:absolute;inset:0;width:100%;height:100%}
 .hero-art img{object-fit:cover;object-position:right top;
   -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 30%);mask-image:linear-gradient(90deg,transparent 0,#000 30%)}
@@ -269,12 +274,12 @@ footer .logo .big{font-size:18px}
       <svg viewBox="0 0 920 650" preserveAspectRatio="xMaxYMin slice" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="fh" x1="0" y1="0" x2="1" y2="0">
-            <stop offset=".05" stop-color="#fff" stop-opacity="0"/>
-            <stop offset=".5" stop-color="#fff" stop-opacity="1"/>
+            <stop offset=".02" stop-color="#fff" stop-opacity="0"/>
+            <stop offset=".55" stop-color="#fff" stop-opacity="1"/>
           </linearGradient>
           <linearGradient id="fv" x1="0" y1="0" x2="0" y2="1">
-            <stop offset=".62" stop-color="#fff" stop-opacity="1"/>
-            <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+            <stop offset=".45" stop-color="#fff" stop-opacity="1"/>
+            <stop offset=".95" stop-color="#fff" stop-opacity="0"/>
           </linearGradient>
           <mask id="mh"><rect width="920" height="650" fill="url(#fh)"/></mask>
           <mask id="mv"><rect width="920" height="650" fill="url(#fv)"/></mask>
@@ -285,7 +290,6 @@ footer .logo .big{font-size:18px}
     </div>
 
     <div class="wrap">
-      <div class="wordmark" aria-label="AODAISHO"><span>AODA</span><i></i><span>SHO</span></div>
       <div class="label">Recruiting ── Last One Mile</div>
       <h1>ツールを入れても、<br>現場の手作業は<em>減らない。</em></h1>
       <div class="hero-sub">
