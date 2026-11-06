@@ -64,7 +64,7 @@ nav .btn{height:44px;padding:0 20px;font-size:14px}
 .hero-art{position:absolute;right:0;top:0;height:82%;width:48%;pointer-events:none;z-index:0;opacity:.32}
 .hero .label{max-width:60%}
 .hero h1 .nw{white-space:nowrap}
-@media (max-width:640px){.hero h1{font-size:8.2vw}}
+@media (max-width:640px){.hero h1{font-size:7.3vw}}
 @media (max-width:1100px){
   .hero-art{width:66%;opacity:.14}
   .hero h1,.hero .label{max-width:none}
@@ -249,6 +249,92 @@ footer .logo .big{font-size:18px}
   .step .dot{position:absolute;left:0;top:0;margin:0}
   .cta-box{grid-template-columns:1fr;padding:48px 24px}
 }
+
+/* PC用／スマホ用の出し分け */
+.sp-only{display:none}
+
+/* ══════ スマホ（〜700px） ══════ */
+@media (max-width:700px){
+  .pc-only{display:none !important}
+  .sp-only{display:inline}
+  .pipe-hint.sp-only{display:block}
+  body{font-size:15px;line-height:1.8}
+  .wrap{padding:0 18px}
+
+  header .wrap{height:60px}
+  .logo .big{font-size:18px;letter-spacing:.06em}
+  .logo .sm{font-size:9px;margin-top:3px}
+  nav .btn{height:38px;padding:0 14px;font-size:12.5px;gap:6px}
+
+  .hero{padding-top:0}
+  .hero-top{padding-top:40px}
+  .hero-art{width:100%;height:260px;opacity:.13}
+  .hero .label{font-size:10.5px;letter-spacing:.1em;margin-bottom:16px;max-width:none}
+  .hero h1{font-size:7.3vw;line-height:1.4}
+  .hero-sub{margin-top:22px;padding-bottom:40px;gap:22px}
+  .hero-sub p{font-size:14.5px;line-height:1.9}
+  .hero-ctas{flex-direction:column;width:100%;gap:10px}
+  .hero-ctas .btn{width:100%;justify-content:center;height:52px}
+
+  .pipe .wrap{padding-top:30px;padding-bottom:34px}
+  .pipe-head{flex-direction:column;gap:2px;font-size:10px;margin-bottom:6px}
+  .pipe-hint{font-size:12.5px;margin-bottom:12px;line-height:1.7}
+  .pipe-grid{grid-template-columns:repeat(2,1fr);gap:6px}
+  .stage{min-height:0;padding:11px 12px;gap:3px;display:grid;grid-template-columns:30px 1fr;grid-template-rows:auto auto auto;
+    column-gap:10px;align-items:center}
+  .stage .n{grid-column:1/-1;font-size:10px}
+  .stage .ico{grid-row:2/4;width:26px;height:26px;margin:0}
+  .stage .t{font-size:13.5px}
+  .stage .en{display:none}
+  .stage .tag{grid-column:2;margin-top:0;font-size:8.5px}
+  .stage:hover{transform:none}
+  .stage.on{transform:none}
+  .stage .pin{display:none !important}
+  .pipe-bars{display:none}
+
+  .pv{margin-top:16px}
+  .pvbar{padding:11px 12px;gap:6px 8px}
+  .pvbar .ttl{font-size:14.5px}
+  .pvbar .desc{flex-basis:100%;border-left:none;padding-left:0;font-size:12px;line-height:1.7}
+  .pvbar .sp{margin-left:0;width:100%}
+  .pvbar .st,#pvPin{display:none}
+  #pvOpen{width:100%;padding:11px;font-size:13px}
+  .pvtabs{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:8px 12px;scrollbar-width:none}
+  .pvtabs::-webkit-scrollbar{display:none}
+  .pvtabs button{white-space:nowrap;flex:none;font-size:11.5px}
+  .pvtabs .cap{display:none}
+  .pvstage{cursor:pointer}
+  .pvlock{font-size:10px;right:8px;bottom:8px;padding:5px 9px}
+
+  section{padding:60px 0}
+  .sec-head{margin-bottom:28px}
+  .sec-head h2{font-size:25px}
+  .sec-head p{font-size:14.5px;margin-top:14px}
+  .prob h3{font-size:18px}
+  .prob p{font-size:14px}
+  .problems-note{margin-top:28px;padding:20px}
+  .problems-note p{font-size:17px}
+  .big-quote{font-size:25px;margin-bottom:36px}
+  .col{padding:20px}
+  .col h3{font-size:15.5px;flex-wrap:wrap;gap:4px}
+  .col li{font-size:14px;padding:12px 0}
+  .steps{gap:28px}
+  .step h3{font-size:19px}
+  .about{grid-template-columns:1fr;gap:12px;margin-top:40px;padding-top:26px}
+  .about .nm{font-size:19px}
+  .about p{font-size:14px}
+
+  .cta{padding-bottom:60px}
+  .cta-box{padding:34px 20px;gap:22px}
+  .cta-box::after{font-size:130px;top:-24px;right:-10px}
+  .cta-box h2{font-size:23px;margin:14px 0 12px}
+  .cta-box p.oneline{white-space:normal;font-size:14px}
+  .cta-actions{width:100%}
+  .cta-actions .btn{width:100%;justify-content:center}
+
+  footer{padding:26px 0}
+  footer .wrap{flex-direction:column;align-items:flex-start;gap:8px;font-size:12px}
+}
 </style>
 </head>
 <body>
@@ -312,10 +398,13 @@ footer .logo .big{font-size:18px}
     <div class="pipe" id="pipeline">
       <div class="wrap">
         <div class="pipe-head"><span>HIRING PIPELINE ─ 8 STAGES</span><span>UPSTREAM ─────── DOWNSTREAM</span></div>
-        <div class="pipe-hint">
+        <div class="pipe-hint pc-only">
           <span class="k">HOVER</span>工程にカーソルを合わせると、<b>下に実際のUIが表示されます</b>
           <span class="k">CLICK</span>固定するとそのまま操作できます
           <span class="k">TABS</span>1つの工程に複数のUIがある場合は、下のタブで切り替えられます
+        </div>
+        <div class="pipe-hint sp-only" id="spHint">
+          工程を<b>タップ</b>すると、下に実際の画面が表示されます。画面をタップすると全画面で開きます。
         </div>
 
         <div class="pipe-grid" id="grid"></div>
@@ -593,10 +682,27 @@ $("probs").innerHTML=STAGES.filter(s=>s.manual).map(s=>`
 const frames={};           /* file文字列をキーにしたiframeのキャッシュ */
 let curIdx=-1, curMock=0, pinned=-1, hoverTimer=null;
 const stageEl=$("pvStage");
+const SP=window.matchMedia("(max-width:700px)");
 
-function fit(f){ f.style.transform=`scale(${stageEl.clientWidth/1400})`; }
+/* ── ページを開いたら必ずTOPから。埋め込み画面の読み込みでページが勝手に動くのを防ぐ ── */
+if("scrollRestoration" in history) history.scrollRestoration="manual";
+let userMoved=false, guardY=null, guardUntil=0;
+["wheel","touchstart","keydown","mousedown"].forEach(ev=>
+  window.addEventListener(ev,()=>{userMoved=true},{passive:true}));
+function guardScroll(){ guardY=window.scrollY; guardUntil=performance.now()+3500; userMoved=false; }
+window.addEventListener("scroll",()=>{
+  if(guardY===null||userMoved||performance.now()>guardUntil) return;
+  if(Math.abs(window.scrollY-guardY)>2) window.scrollTo({top:guardY,behavior:"instant"});
+},{passive:true});
+
+function fit(f){
+  const s=stageEl.clientWidth/1400;
+  f.style.transform=`scale(${s})`;
+  stageEl.style.height = SP.matches ? Math.round(900*s)+"px" : "";
+}
 function ensureFrame(file,title){
   if(frames[file]) return frames[file];
+  guardScroll();
   const f=document.createElement("iframe");
   f.src=file;
   f.setAttribute("title",title);
@@ -622,7 +728,7 @@ function preview(i,m){
     : `<span class="cap">UI</span><span class="one">${s.mocks[0].t}</span>`);
   $("pvTabs").querySelectorAll("[data-m]").forEach(b=>b.addEventListener("click",e=>{
     e.stopPropagation();
-    if(pinned<0){
+    if(pinned<0 && !SP.matches){
       pinned=i; stageEl.classList.add("live");
       $("pvLock").textContent="操作できます（固定を解除すると元に戻ります）";
       $("pvPin").textContent="固定を解除";
@@ -649,9 +755,33 @@ document.querySelectorAll(".stage").forEach(b=>{
     clearTimeout(hoverTimer);
     hoverTimer=setTimeout(()=>preview(i,0),110);
   });
-  b.addEventListener("focus",()=>{if(pinned<0)preview(i,0)});
-  b.addEventListener("click",()=>{ setPin(pinned===i?-1:i); });
+  b.addEventListener("focus",()=>{if(pinned<0 && !SP.matches)preview(i,0)});
+  b.addEventListener("click",()=>{
+    if(SP.matches){                         /* スマホ：タップで表示し、プレビューまでスクロール */
+      clearTimeout(hoverTimer);
+      preview(i,0);
+      document.querySelectorAll(".stage").forEach((x,n)=>x.classList.toggle("on",n===i));
+      guardY=null;                           /* 自分で動かすスクロールは止めない */
+      setTimeout(()=>document.querySelector(".pv").scrollIntoView({behavior:"smooth",block:"start"}),60);
+      setTimeout(guardScroll,900);           /* 移動が終わった位置で固定 */
+      return;
+    }
+    setPin(pinned===i?-1:i);
+  });
 });
+/* スマホ：プレビューをタップすると全画面で開く */
+stageEl.addEventListener("click",()=>{
+  if(SP.matches && curIdx>=0) window.open(STAGES[curIdx].mocks[curMock].file,"_blank","noopener");
+});
+function applySP(){
+  $("pvLock").textContent = SP.matches ? "タップで全画面表示"
+    : (pinned>=0?"操作できます（固定を解除すると元に戻ります）":"プレビュー中（クリックで固定すると操作できます）");
+  $("pvOpen").textContent = SP.matches ? "この画面を全画面で開く →" : "新しいタブで開く →";
+  if(SP.matches && pinned>=0){ pinned=-1; stageEl.classList.remove("live"); }
+  Object.values(frames).forEach(fit);
+}
+SP.addEventListener("change",applySP);
+applySP();
 $("pvPin").addEventListener("click",()=>setPin(-1));
 $("pvOpen").addEventListener("click",()=>{
   if(curIdx<0) return;
@@ -659,13 +789,22 @@ $("pvOpen").addEventListener("click",()=>{
 });
 document.querySelectorAll("[data-jump]").forEach(b=>b.addEventListener("click",()=>{
   const i=+b.dataset.jump;
-  document.getElementById("pipeline").scrollIntoView({behavior:"smooth"});
-  setTimeout(()=>setPin(i),420);
+  guardY=null;
+  const target = SP.matches ? document.querySelector(".pv") : document.getElementById("pipeline");
+  target.scrollIntoView({behavior:"smooth",block:"start"});
+  setTimeout(()=>{                                  /* スクロールが終わってから表示 */
+    if(SP.matches){ preview(i,0); document.querySelectorAll(".stage").forEach((x,n)=>x.classList.toggle("on",n===i)); }
+    else setPin(i);
+  },850);
 }));
 window.addEventListener("resize",()=>Object.values(frames).forEach(fit));
 
-/* 初期表示：1工程目 */
-window.addEventListener("load",()=>{ preview(0,0); });
+/* 初期表示：必ずページの先頭から。そのうえで1工程目を読み込む */
+window.scrollTo(0,0);
+window.addEventListener("load",()=>{
+  if(!location.hash || location.hash==="#") window.scrollTo({top:0,behavior:"instant"});
+  preview(0,0);
+});
 
 /* ══════ reveal ══════ */
 const io=new IntersectionObserver(es=>{
